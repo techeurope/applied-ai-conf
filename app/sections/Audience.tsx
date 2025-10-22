@@ -15,8 +15,7 @@ export default function Audience() {
               key={segment.label}
               className="rounded-3xl border border-gray-700 bg-black/80 p-8 text-center transition-colors hover:border-white"
             >
-              <p className="text-5xl font-semibold text-white">{segment.percentage}</p>
-              <p className="mt-4 text-base text-gray-200">{segment.label}</p>
+              <p className="text-base text-gray-200">{segment.label}</p>
             </div>
           ))}
         </div>

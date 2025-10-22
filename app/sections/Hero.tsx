@@ -6,10 +6,10 @@ export default function Hero() {
   return (
     <section className="relative flex min-h-screen flex-col justify-center px-4 pb-24 pt-32 sm:px-6 lg:px-8">
       {/* Background Spline Scene - Neural Network */}
-      <div className="absolute inset-0 z-0 opacity-50">
-        <SplineScene 
-          scene="https://prod.spline.design/sNIE5EnvEGJpwQNW/scene.splinecode"
-          className="w-full h-full"
+      <div className="absolute inset-0 z-0 opacity-70">
+        <SplineScene
+          scene="https://prod.spline.design/KRNIQmlKyZ6SYYoF/scene.splinecode"
+          className="w-full h-full scale-150"
         />
       </div>
       
