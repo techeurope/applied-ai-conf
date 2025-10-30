@@ -1,0 +1,4 @@
+- waitlist für emails sammeln, newsletter
+- speaker
+- hero
+- parnership auf extra seite
