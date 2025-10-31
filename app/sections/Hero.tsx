@@ -11,7 +11,7 @@ export default function Hero() {
       {/* Content */}
       <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col items-center text-center">
         <h1 className="mb-4 text-5xl font-bold tracking-tight sm:text-6xl md:text-7xl lg:text-8xl">
-          {CONFERENCE_INFO.title}
+          Applied AI in Europe
         </h1>
         <p className="mb-6 text-xl text-gray-300 sm:text-2xl">
           {CONFERENCE_INFO.location}
