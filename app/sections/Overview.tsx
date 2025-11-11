@@ -94,7 +94,7 @@ export default function Overview() {
             <TypingHeading text="Applied AI" />
           </h2>
           <p className="mx-auto mt-6 max-w-3xl text-lg text-gray-300 sm:text-xl lg:text-2xl">
-            The first edition of Applied AI Conf by {'{'} Tech Europe {'}'} - a one-day technical gathering for a curated mix of builders, product owners, and partners shaping applied AI
+            The first edition of Applied AI Conf by {'{'}Tech: Europe{'}'} - a one-day technical gathering for a curated mix of builders, product owners, and partners shaping applied AI
           </p>
         </div>
 

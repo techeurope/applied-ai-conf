@@ -170,14 +170,23 @@ export default function PartnershipTiers() {
           <p className="mb-8 text-lg text-gray-300">
             Get in touch to discuss custom packages, speaking opportunities, and exclusive activations tailored to your goals.
           </p>
-          <div className="flex items-center justify-center">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link
+              href="mailto:info@techeurope.io"
+              className="group relative inline-flex items-center justify-center gap-3 overflow-hidden rounded-full bg-white px-10 py-5 text-base font-medium uppercase tracking-wider text-black shadow-lg shadow-black/50 transition-all duration-300 hover:scale-105 hover:bg-gray-200 hover:shadow-xl"
+            >
+              <span className="relative flex items-center gap-3">
+                Become a Partner
+                <span aria-hidden className="text-xl transition-transform duration-300 group-hover:translate-x-1">→</span>
+              </span>
+            </Link>
             <Link
               href="mailto:info@techeurope.io"
               className="group relative inline-flex items-center justify-center gap-3 overflow-hidden rounded-full bg-gradient-to-r from-zinc-800 via-zinc-900 to-black px-10 py-5 text-base font-medium uppercase tracking-wider text-white shadow-lg shadow-black/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-zinc-800/80 border border-white/20 hover:border-white/40"
             >
               <span className="absolute inset-0 h-full w-full bg-gradient-to-r from-black via-zinc-900 to-zinc-800 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></span>
               <span className="relative flex items-center gap-3">
-                Get Partners Info
+                Get Partnership Info
                 <span aria-hidden className="text-xl transition-transform duration-300 group-hover:translate-x-1">→</span>
               </span>
             </Link>

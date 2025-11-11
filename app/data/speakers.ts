@@ -37,4 +37,13 @@ export const SPEAKERS = [
     accent: 'from-blue-400/40 via-indigo-400/30 to-violet-500/40',
     image: '/speakers/jacob_lauritzen.jpg',
   },
+  {
+    name: 'Lucas Hild',
+    title: 'CTO',
+    company: 'Knowunity',
+    bio: '',
+    initial: 'LH',
+    accent: 'from-green-400/40 via-emerald-400/30 to-teal-500/40',
+    image: '/speakers/lucas_hild.jpg',
+  },
 ] satisfies Speaker[];

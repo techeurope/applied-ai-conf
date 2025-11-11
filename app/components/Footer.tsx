@@ -18,7 +18,7 @@ export default function Footer() {
             ))}
           </div>
           <div className="text-sm text-gray-300">
-            © 2026 Applied AI Conf by {'{'} Tech Europe {'}'}. All rights reserved
+            © 2026 Applied AI Conf by {'{'}Tech: Europe{'}'}. All rights reserved
           </div>
         </div>
       </div>

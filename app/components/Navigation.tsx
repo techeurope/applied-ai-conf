@@ -29,6 +29,22 @@ export default function Navigation() {
                 ? 'bg-white text-black px-4 py-2 rounded-full text-sm transition-colors hover:bg-gray-200'
                 : 'text-sm text-gray-200 transition-colors hover:text-white';
 
+            const isExternal = action.href.startsWith('http');
+
+            if (isExternal) {
+              return (
+                <a
+                  key={action.label}
+                  href={action.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={baseClasses}
+                >
+                  {action.label}
+                </a>
+              );
+            }
+
             return (
               <Link key={action.label} href={action.href} className={baseClasses}>
                 {action.label}

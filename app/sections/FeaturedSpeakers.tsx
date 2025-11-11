@@ -1,12 +1,15 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import Link from 'next/link';
-import { SPEAKERS } from '@/data/speakers';
+import Image from "next/image";
+import Link from "next/link";
+import { SPEAKERS } from "@/data/speakers";
 
 export default function FeaturedSpeakers() {
   return (
-    <section id="speakers" className="relative w-full min-h-screen bg-black py-20 lg:py-32">
+    <section
+      id="speakers"
+      className="relative w-full min-h-screen bg-black py-20 lg:py-32"
+    >
       <div className="w-full px-6 lg:px-8">
         {/* Header */}
         <div className="mb-16 text-center lg:mb-24">
@@ -16,7 +19,7 @@ export default function FeaturedSpeakers() {
         </div>
 
         {/* Speakers Grid - Full Width */}
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
           {SPEAKERS.map((speaker) => (
             <div
               key={speaker.name}
@@ -30,11 +33,13 @@ export default function FeaturedSpeakers() {
                     alt={speaker.name}
                     fill
                     className="object-cover grayscale transition-all duration-500 group-hover:scale-110 group-hover:grayscale-0"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center bg-zinc-800">
-                    <span className="text-4xl font-mono text-gray-600">{speaker.initial}</span>
+                    <span className="text-4xl font-mono text-gray-600">
+                      {speaker.initial}
+                    </span>
                   </div>
                 )}
               </div>
@@ -62,7 +67,12 @@ export default function FeaturedSpeakers() {
             className="group inline-flex items-center justify-center gap-3 rounded-full border border-white/20 bg-white/5 px-8 py-4 text-base font-medium uppercase tracking-wider text-white transition-all duration-300 hover:border-white/40 hover:bg-white/10 hover:shadow-[0_0_30px_rgba(255,255,255,0.1)]"
           >
             Call for proposals
-            <span aria-hidden className="text-xl transition-transform duration-300 group-hover:translate-x-1">→</span>
+            <span
+              aria-hidden
+              className="text-xl transition-transform duration-300 group-hover:translate-x-1"
+            >
+              →
+            </span>
           </Link>
           <p className="mt-6 text-sm text-gray-400 lg:text-base">
             We accept talks until Dec 31, 2025

@@ -1,8 +1,8 @@
-# Applied AI Conf by { Tech Europe } - Codebase Context
+# Applied AI Conf by {Tech: Europe} - Codebase Context
 
 ## Overview
 
-Next.js 15 conference website for "Applied AI Conf by { Tech Europe }" - an event series, with the first edition focused on Applied AI. Scheduled for May 28, 2026 at Delta Campus in Berlin. Built with React 19, TypeScript, Tailwind CSS v4, and React Three Fiber shader graphics.
+Next.js 15 conference website for "Applied AI Conf by {Tech: Europe}" - an event series, with the first edition focused on Applied AI. Scheduled for May 28, 2026 at Delta Campus in Berlin. Built with React 19, TypeScript, Tailwind CSS v4, and React Three Fiber shader graphics.
 
 ## Architecture
 
@@ -81,18 +81,24 @@ Conference data split by domain:
 
 - `conference.ts`: Title, tagline, location, date, ticket pricing
 - `partnerships.ts`: Partnership tiers (Platinum/Gold/Silver/Bronze), add-ons, audience segments, focus areas
-- `navigation.ts`: Header links and action buttons
+- `navigation.ts`: Header links and action buttons (primary CTA is Tickets, linking to external ticket platform)
 - Other data files: Speakers, sessions, sponsors, FAQs (prepared but may not be fully used)
 
 ## Current State
 
 **Active Sections:**
 
-- Hero (with React Three Fiber fluid wave shader background, newsletter form)
+- Hero (with React Three Fiber fluid wave shader background, newsletter form, value prop emphasizing speakers who implement AI at scale)
 - FeaturedSpeakers (speaker cards with images from public/speakers/)
 - Overview (typing heading, focus areas, attendees)
-- PartnershipTiers (typing heading, tier cards, stats, CTA)
+- PartnershipTiers (typing heading, tier cards, stats, dual CTAs: "Become a Partner" primary button and "Get Partnership Info" secondary link)
 - FAQ (typing heading, accordion)
+
+**Navigation & CTAs:**
+
+- Primary navigation CTA: Tickets (external link to Luma ticket platform)
+- Navigation component handles external links with proper security attributes (target="_blank", rel="noopener noreferrer")
+- Partnership CTAs are secondary, located in PartnershipTiers section
 
 **Todo Items** (from `todo.md`):
 
@@ -119,10 +125,11 @@ Conference data split by domain:
 - All sections use consistent gradient overlay backgrounds
 - Smooth scroll behavior enabled globally
 - Font loading optimized via next/font
+- Navigation component conditionally renders anchor tags for external URLs (starts with "http") vs Next.js Link for internal routes
 
 ## Branding
 
-- Event series name: "Applied AI Conf by { Tech Europe }"
+- Event series name: "Applied AI Conf by {Tech: Europe}"
 - First edition focus: "Applied AI"
 - Location: Delta Campus, Berlin
 - Date: May 28, 2026

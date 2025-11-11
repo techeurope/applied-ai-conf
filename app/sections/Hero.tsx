@@ -1,13 +1,13 @@
-import { CONFERENCE_INFO } from '@/data/conference';
-import { PARTNERSHIP_OVERVIEW } from '@/data/partnerships';
-import { FluidWaveBackground } from '@/components/ui/fluid-wave-background';
+import { CONFERENCE_INFO } from "@/data/conference";
+import { PARTNERSHIP_OVERVIEW } from "@/data/partnerships";
+import { FluidWaveBackground } from "@/components/ui/fluid-wave-background";
 
 export default function Hero() {
   return (
     <section className="relative flex min-h-screen flex-col justify-center pb-24 pt-32 w-full overflow-hidden">
       {/* Background Fluid Wave */}
       <FluidWaveBackground />
-      
+
       {/* Main Content - Centered */}
       <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col items-center text-center px-4 sm:px-6 lg:px-8">
         <div className="bg-black/40 backdrop-blur-sm rounded-2xl p-8 sm:p-12 lg:p-16 w-full">
@@ -18,7 +18,8 @@ export default function Hero() {
             {CONFERENCE_INFO.location}
           </p>
           <p className="mb-12 max-w-3xl mx-auto text-lg text-gray-200 sm:text-xl">
-            {PARTNERSHIP_OVERVIEW.about[0]}
+            Learn from European founders and engineers building AI at scale:
+            Real production systems, real challenges, real solutions
           </p>
 
           <form className="mb-16 flex w-full max-w-xl mx-auto flex-col gap-3 sm:flex-row">

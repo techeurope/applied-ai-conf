@@ -9,7 +9,7 @@ const kodeMono = Kode_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Applied AI Conf by { Tech Europe } - Applied AI",
+  title: "Applied AI Conf by {Tech: Europe} - Applied AI",
   description: "First edition - May 28, 2026 at Delta Campus, Berlin",
 };
 
