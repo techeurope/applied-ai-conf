@@ -40,7 +40,7 @@ export default function Overview() {
 
           {/* Attendees */}
           <div className="glass-card rounded-2xl p-8 sm:p-10">
-            <h3 className="mb-8 text-2xl font-semibold text-white">Who's Coming</h3>
+            <h3 className="mb-8 text-2xl font-semibold text-white">Who&rsquo;s Coming</h3>
             <ul className="space-y-4">
               {PARTNERSHIP_OVERVIEW.audience.map((segment) => (
                 <li key={segment.label} className="flex items-start">

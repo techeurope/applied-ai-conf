@@ -43,7 +43,7 @@ function WaveShader({ controls }: { controls: ShaderControls }) {
       uColorWaveSpeed: { value: controls.colorWaveSpeed },
       uColorWaveIntensity: { value: controls.colorWaveIntensity },
     }),
-    [],
+    [controls],
   )
 
   useMemo(() => {
