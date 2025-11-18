@@ -1,7 +1,8 @@
 import { CONFERENCE_INFO } from "@/data/conference";
 import { NAVIGATION_ACTIONS } from "@/data/navigation";
+import Image from "next/image";
 import { FluidWaveBackground } from "@/components/ui/fluid-wave-background";
-import { Linkedin, X } from "lucide-react";
+import { Linkedin } from "lucide-react";
 
 export default function Hero() {
   const ticketAction = NAVIGATION_ACTIONS[0];
@@ -69,10 +70,12 @@ export default function Hero() {
               className="group flex h-14 w-14 items-center justify-center rounded-full bg-white/10 text-white transition-all hover:bg-white/20 hover:scale-110 border border-white/10"
               aria-label="Follow on X (Twitter)"
             >
-              <X className="h-6 w-6" />
+              <div className="relative h-6 w-6">
+                <Image src="/x.svg" alt="X" fill />
+              </div>
             </a>
             <a
-              href="https://linkedin.com/company/techeurope"
+              href="https://www.linkedin.com/company/tech-europe-community/"
               target="_blank"
               rel="noopener noreferrer"
               className="group flex h-14 w-14 items-center justify-center rounded-full bg-white/10 text-white transition-all hover:bg-white/20 hover:scale-110 border border-white/10"
