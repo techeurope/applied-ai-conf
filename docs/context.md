@@ -69,8 +69,6 @@ Data lives in `app/data/` as typed constants, imported into components/sections.
 
 ### Interactive Patterns
 
-**Typing Animation:** Used in Overview, PartnershipTiers, and FAQ sections. Components reveal text character-by-character when scrolled into view.
-
 **Shader Backgrounds:** Hero section uses React Three Fiber for a fluid wave effect (`FluidWaveBackground`). Tuned for a slower, more elegant "ethereal" movement with subtle color shifts.
 
 **Navigation:** Floating pill design, sticky at the top, with glass effect.
@@ -92,11 +90,12 @@ Conference data split by domain:
 
 **Active Sections (in order):**
 
-1. **Hero:** Fluid wave background, massive mono typography ("Applied AI"), explicit "Why attend?" value prop in clean sans-serif font, primary CTA (Tickets).
-2. **FeaturedSpeakers:** Grid of speakers with glass-card styling and hover effects.
-3. **Overview:** Typing heading, focus areas, and audience breakdown in glass cards.
-4. **PartnershipTiers:** Pricing tiers, stats, and contact CTAs in a refined grid layout.
-5. **FAQ:** Accordion style with glass effect and smooth transitions.
+1. **Hero:** Fluid wave background, massive mono typography ("Applied / AI Conf"), consistent CTA styling, and a concise two-line pitch.
+2. **FeaturedSpeakers:** Two-per-row layout with large grayscale cards, strong gradients, and a placeholder slot for upcoming speakers.
+3. **Overview:** Glass cards detailing focus areas and attendee profiles.
+4. **PartnershipTiers:** “Coming soon” copy for Platinum/Gold/Silver tiers, refreshed stats (700 attendees, 65% senior ICs/founders, 45% decision makers), and CTA buttons matching the hero.
+5. **Team:** Mirrors the speaker card aesthetic with grayscale photos and inline X/LinkedIn icons that use local assets (`public/team`).
+6. **FAQ:** Glass-card accordion with static heading.
 
 **Navigation & CTAs:**
 

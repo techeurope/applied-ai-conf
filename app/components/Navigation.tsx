@@ -5,9 +5,12 @@ export default function Navigation() {
   return (
     <nav className="fixed top-6 left-0 right-0 z-50 flex justify-center px-4">
       <div className="glass flex items-center gap-6 rounded-full px-6 py-3 transition-all duration-300 hover:border-white/20 hover:bg-white/10">
-        <Link href="/" className="text-sm font-bold tracking-wide text-white transition-colors hover:text-gray-300">
-          Applied AI
-        </Link>
+        {/* Left side: Conference Name */}
+        <div className="flex items-center gap-3">
+          <Link href="/" className="text-sm font-mono font-bold tracking-wide text-white transition-colors hover:text-gray-300">
+            Applied AI Conf
+          </Link>
+        </div>
 
         {NAVIGATION_LINKS.length > 0 && (
           <>

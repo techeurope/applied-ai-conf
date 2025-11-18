@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { Plus, Minus } from 'lucide-react';
 
 const FAQ_ITEMS = [
@@ -26,83 +26,6 @@ const FAQ_ITEMS = [
   },
 ];
 
-function TypingHeading({ text }: { text: string }) {
-    const [displayText, setDisplayText] = useState('');
-    const [isVisible, setIsVisible] = useState(false);
-    const headingRef = useRef<HTMLSpanElement>(null);
-  
-    useEffect(() => {
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting && !isVisible) {
-            setIsVisible(true);
-          }
-        },
-        { threshold: 0.3 }
-      );
-  
-      const currentRef = headingRef.current;
-      if (currentRef) {
-        observer.observe(currentRef);
-      }
-  
-      return () => {
-        if (currentRef) {
-          observer.unobserve(currentRef);
-        }
-      };
-    }, [isVisible]);
-  
-    useEffect(() => {
-      if (!isVisible) return;
-  
-      let currentIndex = 0;
-      let isDeleting = false;
-      let timeoutId: NodeJS.Timeout;
-  
-      const animate = () => {
-        if (!isDeleting) {
-          // Typing forward
-          if (currentIndex <= text.length) {
-            setDisplayText(text.slice(0, currentIndex));
-            currentIndex++;
-            timeoutId = setTimeout(animate, 100);
-          } else {
-            // Pause at end before deleting
-            timeoutId = setTimeout(() => {
-              isDeleting = true;
-              animate();
-            }, 2000);
-          }
-        } else {
-          // Deleting backward
-          if (currentIndex > 0) {
-            currentIndex--;
-            setDisplayText(text.slice(0, currentIndex));
-            timeoutId = setTimeout(animate, 50);
-          } else {
-            // Pause at start before typing again
-            timeoutId = setTimeout(() => {
-              isDeleting = false;
-              animate();
-            }, 500);
-          }
-        }
-      };
-  
-      animate();
-  
-      return () => clearTimeout(timeoutId);
-    }, [text, isVisible]);
-  
-    return (
-      <span ref={headingRef} className="text-glow">
-        {displayText}
-        <span className="animate-pulse text-white/50">|</span>
-      </span>
-    );
-  }
-
 export default function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
@@ -110,8 +33,8 @@ export default function FAQ() {
     <section id="faq" className="relative py-24 lg:py-32">
       <div className="relative mx-auto max-w-4xl px-6 lg:px-8">
         <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold tracking-tighter text-white sm:text-5xl lg:text-6xl min-h-[1.2em]">
-                <TypingHeading text="Questions & Answers" />
+            <h2 className="text-4xl font-mono font-bold tracking-tighter text-white sm:text-5xl lg:text-6xl text-glow">
+                Questions & Answers
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-400">
             Everything you need to know about the event.

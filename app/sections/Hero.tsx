@@ -14,16 +14,25 @@ export default function Hero() {
 
       {/* Main Content */}
       <div className="relative z-10 mx-auto flex w-full max-w-[90rem] flex-col items-center px-4 sm:px-6 lg:px-8 animate-fade-in-up">
-        {/* Organized By - New Branding */}
-        <div className="mb-6 font-mono text-sm tracking-widest text-gray-400 uppercase">
-          Organized by{" "}
-          <span className="text-white font-semibold">
+        {/* 1. Tech Europe Presents... */}
+        <div className="mb-10 font-mono text-base sm:text-lg tracking-widest text-gray-400 uppercase">
+          <span className="text-white font-bold text-lg sm:text-xl">
             {"{"}Tech: Europe{"}"}
-          </span>
+          </span>{" "}
+          presents
         </div>
 
-        {/* Date/Location Pill - Mono font for tech feel */}
-        <div className="glass mb-10 inline-flex items-center rounded-full px-5 py-2 text-sm font-medium text-white/90 transition-transform hover:scale-105 cursor-default border-white/10 font-mono tracking-wide">
+        {/* 2. Main Title */}
+        <h1 className="mb-12 w-full text-6xl font-bold tracking-tighter text-white sm:text-7xl md:text-8xl lg:text-[10rem] xl:text-[12rem] leading-[0.92] text-glow font-mono select-none">
+          Applied
+          <br />
+          <span className="text-white/40 block mt-3 sm:mt-4 lg:mt-5">
+            AI Conf
+          </span>
+        </h1>
+
+        {/* 3. Location Pill (Below Title) */}
+        <div className="glass mb-16 inline-flex items-center rounded-full px-6 py-3 text-sm font-medium text-white/90 transition-all duration-300 hover:px-8 cursor-default border-white/10 font-mono tracking-wide group">
           <span className="mr-3 flex h-2 w-2 relative">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -31,21 +40,11 @@ export default function Hero() {
           {CONFERENCE_INFO.location}
         </div>
 
-        {/* Main Title - Full width, massive scale, Mono font */}
-        <h1 className="mb-12 w-full text-6xl font-bold tracking-tighter text-white sm:text-7xl md:text-8xl lg:text-[10rem] xl:text-[12rem] leading-[0.85] text-glow font-mono select-none">
-          Applied AI
-          <br />
-          <span className="text-white/40">in Europe</span>
-        </h1>
-
-        {/* Description - Sans font, high readability, large size */}
+        {/* 4. Description - Authentic, Engineer-focused Copy */}
         <div className="mb-16 max-w-4xl mx-auto backdrop-blur-sm rounded-2xl p-4 sm:p-0">
           <p className="text-xl sm:text-2xl text-gray-300 leading-relaxed font-normal max-w-3xl mx-auto drop-shadow-md">
-            The definitive conference for{" "}
-            <span className="text-white font-medium">Applied AI</span> in
-            Europe.
-            <br className="hidden sm:block" />
-            One full day of talks & workshops in the heart of Berlin.
+            One day of talks & workshops from founders & engineers sharing
+            lessons learned from actually shipping AI into production
           </p>
         </div>
 

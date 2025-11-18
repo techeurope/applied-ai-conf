@@ -3,8 +3,23 @@
 import Image from "next/image";
 import Link from "next/link";
 import { SPEAKERS } from "@/data/speakers";
+import type { Speaker } from "@/types";
 
 export default function FeaturedSpeakers() {
+  const speakers: Speaker[] = [...SPEAKERS];
+
+  if (speakers.length < 6) {
+    speakers.push({
+      name: "Speaker TBA",
+      title: "To be announced",
+      company: "Applied AI Conf",
+      bio: "",
+      image: undefined,
+      initial: "TBA",
+      accent: "from-white/10 via-white/10 to-white/10",
+    });
+  }
+
   return (
     <section
       id="speakers"
@@ -13,7 +28,7 @@ export default function FeaturedSpeakers() {
       <div className="mx-auto w-full max-w-7xl px-6 lg:px-8">
         {/* Header */}
         <div className="mb-20 text-center">
-          <h2 className="text-4xl font-bold tracking-tighter text-white sm:text-5xl lg:text-6xl text-glow">
+          <h2 className="text-4xl font-mono font-bold tracking-tighter text-white sm:text-5xl lg:text-6xl text-glow">
             Speakers
           </h2>
           <p className="mt-4 text-lg text-gray-400">
@@ -21,44 +36,43 @@ export default function FeaturedSpeakers() {
           </p>
         </div>
 
-        {/* Speakers Grid */}
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {SPEAKERS.map((speaker) => (
+        {/* Speakers Grid - Three per row on desktop */}
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 xl:grid-cols-3">
+          {speakers.map((speaker) => (
             <div
               key={speaker.name}
-              className="group relative flex flex-col overflow-hidden rounded-xl glass-card transition-all hover:-translate-y-1"
+              className="group relative flex flex-col overflow-hidden rounded-2xl glass-card transition-all hover:-translate-y-2 hover:shadow-2xl hover:shadow-white/5"
             >
-              {/* Speaker Image */}
-              <div className="relative aspect-[4/5] w-full overflow-hidden bg-zinc-900">
+              {/* Speaker Image - Taller aspect ratio */}
+              <div className="relative aspect-[3/4] w-full overflow-hidden bg-zinc-900">
                 {speaker.image ? (
                   <Image
                     src={speaker.image}
                     alt={speaker.name}
                     fill
-                    className="object-cover grayscale transition-all duration-500 group-hover:scale-105 group-hover:grayscale-0"
-                    sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                    className="object-cover grayscale transition-all duration-700 group-hover:scale-105 group-hover:grayscale-0"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 40vw"
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center bg-zinc-800">
-                    <span className="text-4xl font-mono text-gray-600">
+                    <span className="text-6xl font-mono text-gray-600">
                       {speaker.initial}
                     </span>
                   </div>
                 )}
                 
                 {/* Overlay Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 transition-opacity group-hover:opacity-60" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-80 transition-opacity group-hover:opacity-60" />
                 
-                {/* Text Content (Over Image) */}
-                <div className="absolute bottom-0 left-0 w-full p-4 transition-transform duration-300 group-hover:translate-y-0">
-                   <h3 className="text-lg font-bold text-white leading-tight">
+                {/* Text Content */}
+                <div className="absolute bottom-0 left-0 w-full p-10 transition-transform duration-300 group-hover:translate-y-0">
+                   <h3 className="text-4xl font-bold text-white leading-tight mb-3">
                     {speaker.name}
                   </h3>
-                  <p className="mt-1 text-xs font-medium uppercase tracking-wide text-gray-300">
-                    {speaker.company}
-                  </p>
-                  <p className="text-xs text-gray-500 truncate mt-0.5">
-                    {speaker.title}
+                  <p className="text-sm font-medium text-gray-300">
+                    <span className="uppercase tracking-wide text-white/90">{speaker.title}</span>
+                    <span className="mx-2 text-gray-500">@</span>
+                    <span className="text-white font-semibold">{speaker.company}</span>
                   </p>
                 </div>
               </div>
@@ -67,13 +81,12 @@ export default function FeaturedSpeakers() {
         </div>
 
         {/* CTA Section */}
-        <div className="mt-20 text-center">
+        <div className="mt-24 text-center">
           <Link
             href="#"
-            className="group inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-8 py-3 text-sm font-medium text-white transition-all hover:bg-white/10 hover:border-white/30"
+            className="inline-flex h-14 items-center justify-center rounded-full bg-white px-10 text-lg font-semibold text-black transition-all hover:bg-gray-100 hover:scale-105 hover:shadow-[0_0_30px_rgba(255,255,255,0.4)]"
           >
             Call for proposals
-            <span className="transition-transform group-hover:translate-x-1">→</span>
           </Link>
           <p className="mt-4 text-xs text-gray-500">
             Applications open until Dec 31, 2025
