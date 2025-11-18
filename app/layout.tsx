@@ -1,11 +1,17 @@
 import type { Metadata } from "next";
-import { Kode_Mono } from "next/font/google";
+import { Kode_Mono, Inter } from "next/font/google";
 import "./globals.css";
 
 const kodeMono = Kode_Mono({
   variable: "--font-kode-mono",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+});
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
 });
 
 export const metadata: Metadata = {
@@ -21,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${kodeMono.variable} antialiased`}
+        className={`${kodeMono.variable} ${inter.variable} antialiased`}
       >
         {children}
       </body>

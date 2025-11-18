@@ -10,7 +10,9 @@ Next.js 15 conference website for "Applied AI Conf by {Tech: Europe}" - an event
 **Language:** TypeScript (strict mode)
 **Styling:** Tailwind CSS v4 with PostCSS
 **Graphics:** React Three Fiber with Three.js for shader-based backgrounds
-**Font:** Kode Mono (Google Fonts)
+**Fonts:** 
+- **Headings/Mono:** Kode Mono (Google Fonts)
+- **Body/UI:** Inter (Google Fonts) for maximum readability
 
 ## File Structure
 
@@ -18,7 +20,7 @@ Next.js 15 conference website for "Applied AI Conf by {Tech: Europe}" - an event
 app/
 ├── components/          # Reusable UI components
 │   ├── ui/            # Low-level UI primitives (shader backgrounds, button, label, slider)
-│   ├── Navigation.tsx # Fixed header navigation
+│   ├── Navigation.tsx # Floating pill navigation
 │   ├── Footer.tsx     # Site footer
 │   └── index.ts       # Component exports
 ├── lib/                # Utility functions
@@ -57,19 +59,21 @@ Data lives in `app/data/` as typed constants, imported into components/sections.
 
 ### Styling Approach
 
-- Tailwind CSS v4 with inline theme configuration
-- Dark theme: black background (`#05070f`), white/gray text
-- Custom scrollbar styling
-- Gradient overlays for visual depth
-- Typography: Kode Mono monospace font throughout
+- **Vercel-like Aesthetic:** High contrast, glassmorphism (`.glass`, `.glass-card`), subtle borders (`border-white/10`), and glow effects (`.text-glow`).
+- **Tailwind CSS v4:** Inline theme configuration in `globals.css`.
+- **Dark Theme:** Deep black background (`#05070f`) with cleaner white/gray text.
+- **Typography:** 
+    - `Kode Mono` for titles, numbers, and tech elements.
+    - `Inter` for body text, descriptions, and UI elements to ensure high readability.
+- **Animations:** Fade-ins (`animate-fade-in-up`) and refined shader movements.
 
 ### Interactive Patterns
 
-**Typing Animation:** Used in Overview and PartnershipTiers sections. Components reveal text character-by-character when scrolled into view, then loop with delete animation. Uses IntersectionObserver for scroll detection.
+**Typing Animation:** Used in Overview, PartnershipTiers, and FAQ sections. Components reveal text character-by-character when scrolled into view.
 
-**Shader Backgrounds:** Hero section uses React Three Fiber with Three.js for shader-based animated backgrounds. FluidWaveBackground component provides a simple, performant fluid wave effect using multiple overlapping sine waves, noise variation, and distortion for natural movement. Shader approach prioritizes simplicity and performance over complex controls.
+**Shader Backgrounds:** Hero section uses React Three Fiber for a fluid wave effect (`FluidWaveBackground`). Tuned for a slower, more elegant "ethereal" movement with subtle color shifts.
 
-**FAQ Accordion:** Client-side state manages open/close. First item open by default.
+**Navigation:** Floating pill design, sticky at the top, with glass effect.
 
 ### Configuration Pattern
 
@@ -79,57 +83,45 @@ Path aliases: `@/*` maps to `./app/*` (configured in `tsconfig.json`). All impor
 
 Conference data split by domain:
 
-- `conference.ts`: Title, tagline, location, date, ticket pricing
-- `partnerships.ts`: Partnership tiers (Platinum/Gold/Silver/Bronze), add-ons, audience segments, focus areas
-- `navigation.ts`: Header links and action buttons (primary CTA is Tickets, linking to external ticket platform)
-- Other data files: Speakers, sessions, sponsors, FAQs (prepared but may not be fully used)
+- `conference.ts`: Title, tagline, location, date
+- `partnerships.ts`: Partnership tiers, audience segments, focus areas
+- `navigation.ts`: Header links and action buttons
+- `speakers.ts`, `faqs.ts`: Section specific content
 
 ## Current State
 
-**Active Sections:**
+**Active Sections (in order):**
 
-- Hero (with React Three Fiber fluid wave shader background, newsletter form, value prop emphasizing speakers who implement AI at scale)
-- FeaturedSpeakers (speaker cards with images from public/speakers/)
-- Overview (typing heading, focus areas, attendees)
-- PartnershipTiers (typing heading, tier cards, stats, dual CTAs: "Become a Partner" primary button and "Get Partnership Info" secondary link)
-- FAQ (typing heading, accordion)
+1. **Hero:** Fluid wave background, massive mono typography ("Applied AI"), explicit "Why attend?" value prop in clean sans-serif font, primary CTA (Tickets).
+2. **FeaturedSpeakers:** Grid of speakers with glass-card styling and hover effects.
+3. **Overview:** Typing heading, focus areas, and audience breakdown in glass cards.
+4. **PartnershipTiers:** Pricing tiers, stats, and contact CTAs in a refined grid layout.
+5. **FAQ:** Accordion style with glass effect and smooth transitions.
 
 **Navigation & CTAs:**
 
-- Primary navigation CTA: Tickets (external link to Luma ticket platform)
-- Navigation component handles external links with proper security attributes (target="_blank", rel="noopener noreferrer")
-- Partnership CTAs are secondary, located in PartnershipTiers section
+- **Header:** Floating pill with Logo and "Get Tickets" CTA.
+- **Primary CTA:** "Get Tickets" (links to Luma).
+- **Secondary CTAs:** "Become a Partner" (email/form links).
 
 **Todo Items** (from `todo.md`):
 
-- Email waitlist/newsletter functionality
-- Speaker section implementation
-- Hero updates
-- Partnership page (separate route)
+- Email waitlist/newsletter functionality (backend integration needed)
+- Speaker section implementation (completed, refined)
+- Hero updates (completed, refined)
+- Partnership page (completed via PartnershipTiers section)
 
 ## Implementation Guidelines
 
 1. **Add New Sections:** Create component in `app/sections/`, export from `sections/index.ts`, import and add to `app/page.tsx`
-2. **Add Data:** Create or update file in `app/data/`, ensure types exist in `app/types/`
-3. **Styling:** Use Tailwind classes, maintain dark theme consistency
-4. **Types:** Always define TypeScript interfaces/types before creating data structures
-5. **Components:** Keep sections business-logic heavy, components reusable and simple
-6. **Animations:** Typing animation pattern can be reused via `TypingHeading` component (currently duplicated - could be extracted)
+2. **Styling:** Use global utility classes (`glass`, `glass-card`, `text-glow`) for consistency.
+3. **Components:** Prefer `lucide-react` for icons.
+4. **Responsiveness:** Ensure all grids (`grid-cols-`) break down gracefully to single columns on mobile.
+5. **Animations:** Use CSS animations for simple fades and IntersectionObserver for complex reveal effects.
 
 ## Technical Notes
 
-- Image optimization enabled with `sharp` package required for production (speaker images optimized via Next.js Image component)
-- Graphics stack uses React Three Fiber (@react-three/fiber) with Three.js for shader rendering
-- UI component utilities use clsx and tailwind-merge for className management
-- Newsletter form in Hero is currently non-functional (needs backend integration)
-- All sections use consistent gradient overlay backgrounds
-- Smooth scroll behavior enabled globally
-- Font loading optimized via next/font
-- Navigation component conditionally renders anchor tags for external URLs (starts with "http") vs Next.js Link for internal routes
-
-## Branding
-
-- Event series name: "Applied AI Conf by {Tech: Europe}"
-- First edition focus: "Applied AI"
-- Location: Delta Campus, Berlin
-- Date: May 28, 2026
+- Graphics stack uses React Three Fiber (@react-three/fiber) with Three.js.
+- `FluidWaveBackground` controls are preset for the production look; UI controls code has been removed for cleanliness.
+- Images use Next.js `Image` component with `grayscale` effect on hover.
+- Global CSS includes custom scrollbar and loader styles.

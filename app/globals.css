@@ -8,8 +8,21 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-kode-mono);
+  --font-sans: var(--font-inter);
   --font-mono: var(--font-kode-mono);
+  
+  --animate-fade-in: fade-in 0.5s ease-out forwards;
+  --animate-fade-in-up: fade-in-up 0.7s ease-out forwards;
+  
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 }
 
 html {
@@ -29,29 +42,52 @@ body {
   overflow-y: auto;
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-kode-mono), monospace;
+  font-family: var(--font-inter), sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   letter-spacing: 0.01em;
   line-height: 1.6;
 }
 
+/* Vercel-like Utilities */
+@layer utilities {
+  .glass {
+    @apply backdrop-blur-xl bg-white/5 border border-white/10 shadow-2xl;
+  }
+  
+  .glass-card {
+    @apply backdrop-blur-lg bg-zinc-900/40 border border-white/5 hover:border-white/20 transition-all duration-300;
+  }
+
+  .text-glow {
+    @apply text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-white/50;
+  }
+  
+  .text-glow-hover {
+    @apply hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-b hover:from-white hover:via-white hover:to-white/70 transition-all;
+  }
+  
+  .border-glow {
+    @apply border border-white/10 hover:border-white/30 transition-colors duration-300;
+  }
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1a1a1a;
+  background: #05070f;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #444;
-  border-radius: 5px;
+  background: #333;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #666;
+  background: #555;
 }
 
 /* Loader spinner */

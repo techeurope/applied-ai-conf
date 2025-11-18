@@ -3,10 +3,6 @@
 import { useRef, useMemo, useState, useEffect } from "react"
 import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import * as THREE from "three"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Slider } from "@/components/ui/slider"
-import { Settings } from "lucide-react"
 
 interface FluidWaveControls {
   animationSpeed: number
@@ -257,27 +253,23 @@ function FluidWaveShader({ controls }: { controls: FluidWaveControls }) {
       float hue = mod(hueBase + hueVariation, 1.0);
       
       // Create color that follows the wave pattern intensity
-      float colorStrength = abs(wave); // Stronger color where waves are stronger
+      // Vercel-like: cooler, more cybernetic colors (blue/cyan/purple)
+      float colorStrength = abs(wave); 
       vec3 colorfulWave = vec3(
-        0.5 + 0.5 * sin(hue * 6.28318 + 0.0),
-        0.5 + 0.5 * sin(hue * 6.28318 + 2.094),
-        0.5 + 0.5 * sin(hue * 6.28318 + 4.189)
+        0.5 + 0.5 * sin(hue * 6.28318 + 3.5), // Blue bias
+        0.5 + 0.5 * sin(hue * 6.28318 + 3.0), // Cyan bias
+        0.5 + 0.5 * sin(hue * 6.28318 + 4.5)  // Purple bias
       );
       
-      // Modulate color intensity based on wave pattern - color follows wave strength
-      colorfulWave *= (0.4 + colorStrength * 0.6); // Base intensity + wave modulation
+      colorfulWave *= (0.4 + colorStrength * 0.6);
       
-      // Mix colorful waves with monochrome based on color intensity
       vec3 monoColor1 = vec3(1.0, 1.0, 1.0);
-      vec3 monoColor2 = vec3(0.85, 0.85, 0.85);
+      vec3 monoColor2 = vec3(0.1, 0.1, 0.15); // Darker base
       vec3 monoWave = mix(monoColor2, monoColor1, band);
       
-      // Blend colors more naturally - color intensity affects how much color mixes in
-      // Colors now follow the wave pattern, not just straight lines
       vec3 waveColor = mix(monoWave, colorfulWave, band * uColorIntensity);
       
-      // Apply darkness and background blending
-      vec3 bgColor = vec3(0.0, 0.0, 0.0);
+      vec3 bgColor = vec3(0.02, 0.03, 0.05); // Very dark blue-black
       vec3 color = mix(bgColor, waveColor, band * (1.0 - uDarkness));
       
       // Posterization
@@ -337,259 +329,30 @@ function FluidWaveShader({ controls }: { controls: FluidWaveControls }) {
 }
 
 export function FluidWaveBackground() {
-  const [showControls, setShowControls] = useState(false)
-  const [controls, setControls] = useState<FluidWaveControls>({
-    animationSpeed: 0.11,
-    waveSpeedX: 0.09,
-    waveSpeedY: 0.0,
-    waveFrequency1: 2.9,
-    waveFrequency2: 5.9,
-    waveFrequency3: 6.8,
-    noiseAmount: 0.96,
-    noiseScale: 3.4,
-    distortAmount: 0.5,
-    distortFrequency: 3.6,
-    bandThreshold: 0.76,
-    bandSharpness: 1.9,
-    posterizationLevels: 11,
-    ditherIntensity: 1.0,
-    colorIntensity: 0.75,
-    darkness: 0.0,
+  const [controls] = useState<FluidWaveControls>({
+    animationSpeed: 0.05, 
+    waveSpeedX: 0.02,
+    waveSpeedY: 0.01,
+    waveFrequency1: 3.0,
+    waveFrequency2: 4.0,
+    waveFrequency3: 5.0,
+    noiseAmount: 0.3,
+    noiseScale: 2.0,
+    distortAmount: 0.2,
+    distortFrequency: 2.0,
+    bandThreshold: 0.6,
+    bandSharpness: 1.2,
+    posterizationLevels: 16.0,
+    ditherIntensity: 0.5,
+    colorIntensity: 0.4,
+    darkness: 0.6, // Significantly increased darkness (was 0.3)
   })
-
-  const updateControl = (key: keyof FluidWaveControls, value: number) => {
-    setControls((prev) => ({ ...prev, [key]: value }))
-  }
 
   return (
     <div className="absolute inset-0 bg-black" style={{ width: '100%', height: '100%' }}>
       <Canvas camera={{ position: [0, 0, 1], fov: 75 }}>
         <FluidWaveShader controls={controls} />
       </Canvas>
-
-      <div className="absolute top-4 right-4 z-50">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => setShowControls(!showControls)}
-          className="bg-black/50 backdrop-blur-sm border-white/20 hover:bg-black/70"
-        >
-          <Settings className="h-4 w-4 text-white" />
-        </Button>
-      </div>
-
-      {showControls && (
-        <div className="absolute top-16 right-4 z-50 bg-black/90 backdrop-blur-md border border-white/20 rounded-lg p-6 w-80 max-h-[80vh] overflow-y-auto">
-          <h3 className="text-white font-semibold mb-4 text-lg">Wave Controls</h3>
-
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <Label className="text-white text-sm">Animation Speed: {controls.animationSpeed.toFixed(2)}</Label>
-              <Slider
-                value={[controls.animationSpeed]}
-                onValueChange={([value]) => updateControl("animationSpeed", value)}
-                min={0}
-                max={2}
-                step={0.01}
-                className="w-full"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-white text-sm">Wave Speed X: {controls.waveSpeedX.toFixed(2)}</Label>
-              <Slider
-                value={[controls.waveSpeedX]}
-                onValueChange={([value]) => updateControl("waveSpeedX", value)}
-                min={-1}
-                max={1}
-                step={0.01}
-                className="w-full"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-white text-sm">Wave Speed Y: {controls.waveSpeedY.toFixed(2)}</Label>
-              <Slider
-                value={[controls.waveSpeedY]}
-                onValueChange={([value]) => updateControl("waveSpeedY", value)}
-                min={-1}
-                max={1}
-                step={0.01}
-                className="w-full"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-white text-sm">Wave Frequency 1: {controls.waveFrequency1.toFixed(2)}</Label>
-              <Slider
-                value={[controls.waveFrequency1]}
-                onValueChange={([value]) => updateControl("waveFrequency1", value)}
-                min={0.5}
-                max={10}
-                step={0.1}
-                className="w-full"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-white text-sm">Wave Frequency 2: {controls.waveFrequency2.toFixed(2)}</Label>
-              <Slider
-                value={[controls.waveFrequency2]}
-                onValueChange={([value]) => updateControl("waveFrequency2", value)}
-                min={0.5}
-                max={10}
-                step={0.1}
-                className="w-full"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-white text-sm">Wave Frequency 3: {controls.waveFrequency3.toFixed(2)}</Label>
-              <Slider
-                value={[controls.waveFrequency3]}
-                onValueChange={([value]) => updateControl("waveFrequency3", value)}
-                min={0.5}
-                max={10}
-                step={0.1}
-                className="w-full"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-white text-sm">Noise Amount: {controls.noiseAmount.toFixed(3)}</Label>
-              <Slider
-                value={[controls.noiseAmount]}
-                onValueChange={([value]) => updateControl("noiseAmount", value)}
-                min={0}
-                max={1}
-                step={0.01}
-                className="w-full"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-white text-sm">Noise Scale: {controls.noiseScale.toFixed(2)}</Label>
-              <Slider
-                value={[controls.noiseScale]}
-                onValueChange={([value]) => updateControl("noiseScale", value)}
-                min={0.1}
-                max={5}
-                step={0.1}
-                className="w-full"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-white text-sm">Distort Amount: {controls.distortAmount.toFixed(3)}</Label>
-              <Slider
-                value={[controls.distortAmount]}
-                onValueChange={([value]) => updateControl("distortAmount", value)}
-                min={0}
-                max={0.5}
-                step={0.01}
-                className="w-full"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-white text-sm">Distort Frequency: {controls.distortFrequency.toFixed(2)}</Label>
-              <Slider
-                value={[controls.distortFrequency]}
-                onValueChange={([value]) => updateControl("distortFrequency", value)}
-                min={0.1}
-                max={5}
-                step={0.1}
-                className="w-full"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-white text-sm">Band Threshold: {controls.bandThreshold.toFixed(3)}</Label>
-              <Slider
-                value={[controls.bandThreshold]}
-                onValueChange={([value]) => updateControl("bandThreshold", value)}
-                min={0}
-                max={1}
-                step={0.01}
-                className="w-full"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-white text-sm">Band Sharpness: {controls.bandSharpness.toFixed(2)}</Label>
-              <Slider
-                value={[controls.bandSharpness]}
-                onValueChange={([value]) => updateControl("bandSharpness", value)}
-                min={0.1}
-                max={2}
-                step={0.1}
-                className="w-full"
-              />
-            </div>
-
-            <div className="border-t border-white/20 pt-4 mt-4">
-              <h4 className="text-white font-semibold mb-3 text-sm">Posterization & Dithering</h4>
-
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-white text-sm">Posterization Levels: {controls.posterizationLevels}</Label>
-                  <Slider
-                    value={[controls.posterizationLevels]}
-                    onValueChange={([value]) => updateControl("posterizationLevels", value)}
-                    min={1}
-                    max={16}
-                    step={1}
-                    className="w-full"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-white text-sm">Dither Intensity: {controls.ditherIntensity.toFixed(2)}</Label>
-                  <Slider
-                    value={[controls.ditherIntensity]}
-                    onValueChange={([value]) => updateControl("ditherIntensity", value)}
-                    min={0}
-                    max={1}
-                    step={0.05}
-                    className="w-full"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="border-t border-white/20 pt-4 mt-4">
-              <h4 className="text-white font-semibold mb-3 text-sm">Color & Visibility</h4>
-
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-white text-sm">Color Intensity: {controls.colorIntensity.toFixed(2)}</Label>
-                  <Slider
-                    value={[controls.colorIntensity]}
-                    onValueChange={([value]) => updateControl("colorIntensity", value)}
-                    min={0}
-                    max={1}
-                    step={0.05}
-                    className="w-full"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-white text-sm">Darkness: {controls.darkness.toFixed(2)}</Label>
-                  <Slider
-                    value={[controls.darkness]}
-                    onValueChange={([value]) => updateControl("darkness", value)}
-                    min={0}
-                    max={1}
-                    step={0.05}
-                    className="w-full"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
-

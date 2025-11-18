@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { PARTNERSHIP_OVERVIEW } from '@/data/partnerships';
+import { Check } from 'lucide-react';
 
 function TypingHeading({ text }: { text: string }) {
   const [displayText, setDisplayText] = useState('');
@@ -73,53 +74,58 @@ function TypingHeading({ text }: { text: string }) {
   }, [text, isVisible]);
 
   return (
-    <span ref={headingRef}>
+    <span ref={headingRef} className="text-glow">
       {displayText}
-      <span className="animate-pulse">|</span>
+      <span className="animate-pulse text-white/50">|</span>
     </span>
   );
 }
 
 export default function Overview() {
   return (
-    <section id="overview" className="relative overflow-hidden py-20">
-      {/* Background gradient overlays matching FAQ style */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-zinc-900/80 to-black/60"></div>
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-zinc-700/40 via-transparent to-transparent"></div>
-
-      <div className="relative mx-auto w-full max-w-screen-2xl px-6 lg:px-12">
+    <section id="overview" className="relative overflow-hidden py-24">
+      {/* Background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black via-zinc-950/50 to-black"></div>
+      
+      <div className="relative mx-auto w-full max-w-6xl px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-16 text-center lg:mb-24">
-          <h2 className="text-5xl font-light tracking-tight text-white sm:text-6xl lg:text-7xl min-h-[1.2em]">
+        <div className="mb-20 text-center">
+          <h2 className="text-4xl font-bold tracking-tighter text-white sm:text-5xl lg:text-6xl min-h-[1.2em]">
             <TypingHeading text="Applied AI" />
           </h2>
-          <p className="mx-auto mt-6 max-w-3xl text-lg text-gray-300 sm:text-xl lg:text-2xl">
-            The first edition of Applied AI Conf by {'{'}Tech: Europe{'}'} - a one-day technical gathering for a curated mix of builders, product owners, and partners shaping applied AI
+          <p className="mx-auto mt-6 max-w-3xl text-lg text-gray-400 leading-relaxed">
+            The first edition of Applied AI Conf by {'{'}Tech: Europe{'}'}.
+            <br />
+            A one-day technical gathering for builders, product owners, and partners.
           </p>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2">
-          {/* Topics Box - Left Side */}
-          <div className="rounded-2xl border border-dashed border-white/10 bg-gradient-to-br from-zinc-900/80 via-zinc-800/40 to-black/80 p-8 backdrop-blur-sm transition-all duration-300 hover:border-white/30 hover:from-zinc-800/80 hover:via-zinc-700/50 hover:to-zinc-900/80 hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]">
-            <h3 className="mb-6 text-3xl font-light text-white lg:text-4xl">Focus Areas</h3>
+        <div className="grid gap-8 sm:grid-cols-2">
+          {/* Focus Areas */}
+          <div className="glass-card rounded-2xl p-8 sm:p-10">
+            <h3 className="mb-8 text-2xl font-semibold text-white">Focus Areas</h3>
             <ul className="space-y-4">
               {PARTNERSHIP_OVERVIEW.focusAreas.map((area) => (
                 <li key={area} className="flex items-start">
-                  <span className="text-gray-400 mr-3">•</span>
-                  <span className="text-sm leading-relaxed text-gray-400">{area}</span>
+                  <span className="mt-1 flex h-5 w-5 items-center justify-center rounded-full bg-white/10 mr-4">
+                    <Check className="h-3 w-3 text-white" />
+                  </span>
+                  <span className="text-base text-gray-300">{area}</span>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Attendees Box - Right Side */}
-          <div className="rounded-2xl border border-dashed border-white/10 bg-gradient-to-br from-zinc-900/80 via-zinc-800/40 to-black/80 p-8 backdrop-blur-sm transition-all duration-300 hover:border-white/30 hover:from-zinc-800/80 hover:via-zinc-700/50 hover:to-zinc-900/80 hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]">
-            <h3 className="mb-6 text-3xl font-light text-white lg:text-4xl">Attendees</h3>
+          {/* Attendees */}
+          <div className="glass-card rounded-2xl p-8 sm:p-10">
+            <h3 className="mb-8 text-2xl font-semibold text-white">Who's Coming</h3>
             <ul className="space-y-4">
               {PARTNERSHIP_OVERVIEW.audience.map((segment) => (
                 <li key={segment.label} className="flex items-start">
-                  <span className="text-gray-400 mr-3">•</span>
-                  <span className="text-sm leading-relaxed text-gray-400">{segment.label}</span>
+                  <span className="mt-1 flex h-5 w-5 items-center justify-center rounded-full bg-white/10 mr-4">
+                    <Check className="h-3 w-3 text-white" />
+                  </span>
+                  <span className="text-base text-gray-300">{segment.label}</span>
                 </li>
               ))}
             </ul>

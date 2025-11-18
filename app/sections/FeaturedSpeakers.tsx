@@ -8,31 +8,34 @@ export default function FeaturedSpeakers() {
   return (
     <section
       id="speakers"
-      className="relative w-full min-h-screen bg-black py-20 lg:py-32"
+      className="relative w-full bg-black py-24 lg:py-32"
     >
-      <div className="w-full px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-7xl px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-16 text-center lg:mb-24">
-          <h2 className="text-5xl font-light tracking-tight text-white sm:text-6xl lg:text-7xl">
+        <div className="mb-20 text-center">
+          <h2 className="text-4xl font-bold tracking-tighter text-white sm:text-5xl lg:text-6xl text-glow">
             Speakers
           </h2>
+          <p className="mt-4 text-lg text-gray-400">
+            Building the future of AI in Europe.
+          </p>
         </div>
 
-        {/* Speakers Grid - Full Width */}
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+        {/* Speakers Grid */}
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {SPEAKERS.map((speaker) => (
             <div
               key={speaker.name}
-              className="group flex flex-col overflow-hidden rounded-2xl border border-solid border-white/10 bg-gradient-to-br from-zinc-900/80 via-zinc-950/80 to-black/80 transition-all duration-300 hover:border-white/30 hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]"
+              className="group relative flex flex-col overflow-hidden rounded-xl glass-card transition-all hover:-translate-y-1"
             >
               {/* Speaker Image */}
-              <div className="relative aspect-[3/4] w-full overflow-hidden bg-zinc-900">
+              <div className="relative aspect-[4/5] w-full overflow-hidden bg-zinc-900">
                 {speaker.image ? (
                   <Image
                     src={speaker.image}
                     alt={speaker.name}
                     fill
-                    className="object-cover grayscale transition-all duration-500 group-hover:scale-110 group-hover:grayscale-0"
+                    className="object-cover grayscale transition-all duration-500 group-hover:scale-105 group-hover:grayscale-0"
                     sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
                   />
                 ) : (
@@ -42,40 +45,38 @@ export default function FeaturedSpeakers() {
                     </span>
                   </div>
                 )}
-              </div>
-
-              {/* Speaker Info */}
-              <div className="flex flex-col gap-2 p-6">
-                <h3 className="text-2xl font-light text-white transition-colors group-hover:text-white lg:text-3xl">
-                  {speaker.name}
-                </h3>
-                <p className="text-sm uppercase tracking-wider text-gray-400 transition-colors group-hover:text-gray-300">
-                  {speaker.title} @ {speaker.company}
-                </p>
+                
+                {/* Overlay Gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 transition-opacity group-hover:opacity-60" />
+                
+                {/* Text Content (Over Image) */}
+                <div className="absolute bottom-0 left-0 w-full p-4 transition-transform duration-300 group-hover:translate-y-0">
+                   <h3 className="text-lg font-bold text-white leading-tight">
+                    {speaker.name}
+                  </h3>
+                  <p className="mt-1 text-xs font-medium uppercase tracking-wide text-gray-300">
+                    {speaker.company}
+                  </p>
+                  <p className="text-xs text-gray-500 truncate mt-0.5">
+                    {speaker.title}
+                  </p>
+                </div>
               </div>
             </div>
           ))}
         </div>
 
         {/* CTA Section */}
-        <div className="mt-16 text-center lg:mt-24">
-          <h3 className="mb-8 text-3xl font-light text-white sm:text-4xl lg:text-5xl">
-            More speakers coming soon
-          </h3>
+        <div className="mt-20 text-center">
           <Link
             href="#"
-            className="group inline-flex items-center justify-center gap-3 rounded-full border border-white/20 bg-white/5 px-8 py-4 text-base font-medium uppercase tracking-wider text-white transition-all duration-300 hover:border-white/40 hover:bg-white/10 hover:shadow-[0_0_30px_rgba(255,255,255,0.1)]"
+            className="group inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-8 py-3 text-sm font-medium text-white transition-all hover:bg-white/10 hover:border-white/30"
           >
             Call for proposals
-            <span
-              aria-hidden
-              className="text-xl transition-transform duration-300 group-hover:translate-x-1"
-            >
-              →
-            </span>
+            <span className="transition-transform group-hover:translate-x-1">→</span>
           </Link>
-          <p className="mt-6 text-sm text-gray-400 lg:text-base">
-            We accept talks until Dec 31, 2025
+          <p className="mt-4 text-xs text-gray-500">
+            Applications open until Dec 31, 2025
           </p>
         </div>
       </div>

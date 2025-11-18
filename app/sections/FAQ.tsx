@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { Plus, Minus } from 'lucide-react';
 
 const FAQ_ITEMS = [
   {
@@ -25,117 +26,125 @@ const FAQ_ITEMS = [
   },
 ];
 
+function TypingHeading({ text }: { text: string }) {
+    const [displayText, setDisplayText] = useState('');
+    const [isVisible, setIsVisible] = useState(false);
+    const headingRef = useRef<HTMLSpanElement>(null);
+  
+    useEffect(() => {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting && !isVisible) {
+            setIsVisible(true);
+          }
+        },
+        { threshold: 0.3 }
+      );
+  
+      const currentRef = headingRef.current;
+      if (currentRef) {
+        observer.observe(currentRef);
+      }
+  
+      return () => {
+        if (currentRef) {
+          observer.unobserve(currentRef);
+        }
+      };
+    }, [isVisible]);
+  
+    useEffect(() => {
+      if (!isVisible) return;
+  
+      let currentIndex = 0;
+      let isDeleting = false;
+      let timeoutId: NodeJS.Timeout;
+  
+      const animate = () => {
+        if (!isDeleting) {
+          // Typing forward
+          if (currentIndex <= text.length) {
+            setDisplayText(text.slice(0, currentIndex));
+            currentIndex++;
+            timeoutId = setTimeout(animate, 100);
+          } else {
+            // Pause at end before deleting
+            timeoutId = setTimeout(() => {
+              isDeleting = true;
+              animate();
+            }, 2000);
+          }
+        } else {
+          // Deleting backward
+          if (currentIndex > 0) {
+            currentIndex--;
+            setDisplayText(text.slice(0, currentIndex));
+            timeoutId = setTimeout(animate, 50);
+          } else {
+            // Pause at start before typing again
+            timeoutId = setTimeout(() => {
+              isDeleting = false;
+              animate();
+            }, 500);
+          }
+        }
+      };
+  
+      animate();
+  
+      return () => clearTimeout(timeoutId);
+    }, [text, isVisible]);
+  
+    return (
+      <span ref={headingRef} className="text-glow">
+        {displayText}
+        <span className="animate-pulse text-white/50">|</span>
+      </span>
+    );
+  }
+
 export default function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
-  const [displayText, setDisplayText] = useState('');
-  const [isVisible, setIsVisible] = useState(false);
-  const headingRef = useRef<HTMLHeadingElement>(null);
-  const fullText = 'Questions & Answers';
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !isVisible) {
-          setIsVisible(true);
-        }
-      },
-      { threshold: 0.3 }
-    );
-
-    const currentRef = headingRef.current;
-    if (currentRef) {
-      observer.observe(currentRef);
-    }
-
-    return () => {
-      if (currentRef) {
-        observer.unobserve(currentRef);
-      }
-    };
-  }, [isVisible]);
-
-  useEffect(() => {
-    if (!isVisible) return;
-
-    let currentIndex = 0;
-    let isDeleting = false;
-    let timeoutId: NodeJS.Timeout;
-
-    const animate = () => {
-      if (!isDeleting) {
-        // Typing forward
-        if (currentIndex <= fullText.length) {
-          setDisplayText(fullText.slice(0, currentIndex));
-          currentIndex++;
-          timeoutId = setTimeout(animate, 100);
-        } else {
-          // Pause at end before deleting
-          timeoutId = setTimeout(() => {
-            isDeleting = true;
-            animate();
-          }, 2000);
-        }
-      } else {
-        // Deleting backward
-        if (currentIndex > 0) {
-          currentIndex--;
-          setDisplayText(fullText.slice(0, currentIndex));
-          timeoutId = setTimeout(animate, 50);
-        } else {
-          // Pause at start before typing again
-          timeoutId = setTimeout(() => {
-            isDeleting = false;
-            animate();
-          }, 500);
-        }
-      }
-    };
-
-    animate();
-
-    return () => clearTimeout(timeoutId);
-  }, [isVisible]);
 
   return (
-    <section id="faq" className="relative py-12 pt-8 px-4 sm:px-6 lg:px-8 lg:py-16 lg:pt-12">
-      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-zinc-900/80 to-black/60"></div>
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-zinc-700/40 via-transparent to-transparent"></div>
-      <div className="relative mx-auto max-w-6xl">
-        <h2 ref={headingRef} className="text-5xl font-light tracking-tight text-white sm:text-6xl lg:text-7xl text-center min-h-[1.2em]">
-          {displayText}
-          <span className="animate-pulse">|</span>
-        </h2>
-        <p className="mx-auto mt-6 max-w-3xl text-lg text-gray-300 sm:text-xl lg:text-2xl text-center">
-          Tap into the details so you know what to expect before you arrive.
-        </p>
+    <section id="faq" className="relative py-24 lg:py-32">
+      <div className="relative mx-auto max-w-4xl px-6 lg:px-8">
+        <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold tracking-tighter text-white sm:text-5xl lg:text-6xl min-h-[1.2em]">
+                <TypingHeading text="Questions & Answers" />
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-400">
+            Everything you need to know about the event.
+            </p>
+        </div>
 
-        <div className="mt-12 divide-y divide-gray-700/50 rounded-3xl border border-gray-700/70 bg-zinc-900/80 backdrop-blur-xl shadow-2xl">
+        <div className="space-y-4">
           {FAQ_ITEMS.map((item, index) => {
             const isOpen = openIndex === index;
 
             return (
-              <div key={item.question} className="transition-colors hover:bg-zinc-800/30">
+              <div 
+                key={item.question} 
+                className={`glass-card rounded-2xl overflow-hidden transition-all duration-300 ${isOpen ? 'bg-white/5 border-white/20' : 'bg-transparent border-white/5'}`}
+              >
                 <button
                   type="button"
                   onClick={() => setOpenIndex(isOpen ? null : index)}
-                  className="flex w-full items-center justify-between gap-4 px-6 py-6 text-left transition-all hover:px-7"
+                  className="flex w-full items-center justify-between p-6 text-left"
                   aria-expanded={isOpen}
-                  aria-controls={`faq-panel-${index}`}
                 >
-                  <span className="text-lg font-semibold text-white">{item.question}</span>
-                  <span
-                    className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-gray-600 bg-zinc-800/50 text-2xl font-bold text-gray-100 transition-all hover:border-gray-500 hover:bg-zinc-700/50"
-                    aria-hidden="true"
-                  >
-                    {isOpen ? '−' : '+'}
+                  <span className="text-lg font-medium text-white pr-8">{item.question}</span>
+                  <span className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition-all ${isOpen ? 'rotate-45 bg-white/20' : ''}`}>
+                    {isOpen ? <Plus className="h-4 w-4 rotate-45" /> : <Plus className="h-4 w-4" />}
                   </span>
                 </button>
+                
                 <div
-                  id={`faq-panel-${index}`}
-                  hidden={!isOpen}
-                  className="px-6 pb-6 text-base leading-relaxed text-gray-300"
+                  className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-48 opacity-100' : 'max-h-0 opacity-0'}`}
                 >
-                  {item.answer}
+                  <div className="px-6 pb-6 text-base leading-relaxed text-gray-400">
+                    {item.answer}
+                  </div>
                 </div>
               </div>
             );
