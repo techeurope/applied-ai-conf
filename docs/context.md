@@ -88,18 +88,24 @@ Conference data split by domain:
 
 ## Current State
 
-**Active Sections (in order):**
+**Landing Page Sections (in order):**
 
 1. **Hero:** Fluid wave background, massive mono typography ("Applied / AI Conf"), consistent CTA styling, and a concise two-line pitch.
 2. **FeaturedSpeakers:** Two-per-row layout with large grayscale cards, strong gradients, and a placeholder slot for upcoming speakers.
 3. **Overview:** Glass cards detailing focus areas and attendee profiles.
-4. **PartnershipTiers:** “Coming soon” copy for Platinum/Gold/Silver tiers, refreshed stats (700 attendees, 65% senior ICs/founders, 45% decision makers), and CTA buttons matching the hero.
+4. **PartnershipTiers:** "Coming soon" copy for Platinum/Gold/Silver tiers, refreshed stats (700 attendees, 65% senior ICs/founders, 45% decision makers), and CTA buttons matching the hero.
 5. **Team:** Mirrors the speaker card aesthetic with grayscale photos and inline X/LinkedIn icons that use local assets (`public/team`).
 6. **FAQ:** Glass-card accordion with static heading.
+
+**Static Pages:**
+
+- **Imprint** (`/imprint`): Legal information, company details, contact info, and disclaimer per German TMG regulations. Uses Nav + Footer layout, no Hero.
+- **Privacy** (`/privacy`): GDPR-compliant privacy policy covering data collection, processing, retention, and user rights. Uses Nav + Footer layout, no Hero.
 
 **Navigation & CTAs:**
 
 - **Header:** Floating pill with Logo and "Get Tickets" CTA.
+- **Footer:** Links to Imprint, Privacy pages.
 - **Primary CTA:** "Get Tickets" (links to Luma).
 - **Secondary CTAs:** "Become a Partner" (email/form links).
 
@@ -109,6 +115,7 @@ Conference data split by domain:
 - Speaker section implementation (completed, refined)
 - Hero updates (completed, refined)
 - Partnership page (completed via PartnershipTiers section)
+- Static pages (Imprint, Privacy) (completed)
 
 ## Implementation Guidelines
 

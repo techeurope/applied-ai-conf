@@ -1,5 +1,6 @@
 import type { FooterLink } from "@/types";
 
 export const FOOTER_LINKS = [
-  { label: "Partners", href: "/partners" },
+  { label: "Imprint", href: "/imprint" },
+  { label: "Privacy", href: "/privacy" },
 ] satisfies FooterLink[];
