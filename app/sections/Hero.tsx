@@ -16,11 +16,11 @@ export default function Hero() {
       {/* Main Content */}
       <div className="relative z-10 mx-auto flex w-full max-w-[90rem] flex-col items-center px-4 sm:px-6 lg:px-8 animate-fade-in-up">
         {/* 1. Tech Europe Presents... */}
-        <div className="mb-10 font-mono text-base sm:text-lg tracking-widest text-gray-400 uppercase">
+        <div className="mb-10 font-mono text-base sm:text-lg tracking-widest text-gray-400">
           <span className="text-white font-bold text-lg sm:text-xl">
             {"{"}Tech: Europe{"}"}
           </span>{" "}
-          presents
+          <span className="uppercase">presents</span>
         </div>
 
         {/* 2. Main Title */}
