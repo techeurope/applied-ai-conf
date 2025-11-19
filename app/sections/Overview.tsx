@@ -16,7 +16,7 @@ export default function Overview() {
             Applied AI
           </h2>
           <p className="mx-auto mt-6 max-w-3xl text-lg text-gray-400 leading-relaxed">
-            The first edition of Applied AI Conf by {'{'}Tech: Europe{'}'}.
+            The first edition of <span className="font-mono text-white">Applied AI Conf</span> by <a href="https://techeurope.io" target="_blank" rel="noopener noreferrer" className="font-mono text-white hover:text-gray-300 transition-colors">{'{'}Tech: Europe{'}'}</a>.
             <br />
             A one-day technical gathering for builders, product owners, and partners.
           </p>
