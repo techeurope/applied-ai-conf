@@ -67,15 +67,18 @@ export default function PrivacyPage() {
               <li><strong className="text-white">Analytics:</strong> To analyze website usage and improve our services (legal basis: consent, Art. 6(1)(a) GDPR, where required)</li>
             </ul>
             
-            <h2 className="text-2xl font-mono font-bold text-white mt-12 mb-6">4. Cookies and Tracking Technologies</h2>
-            <p className="mb-6">We use cookies and similar tracking technologies to enhance your experience on our website. Cookies are small text files stored on your device that help us:</p>
+            <h2 className="text-2xl font-mono font-bold text-white mt-12 mb-6">4. Cookies and Similar Technologies</h2>
+            <p className="mb-6">We use only technically necessary cookies and similar technologies to operate this website and provide its basic functions. These may be required to:</p>
             <ul className="list-disc list-inside mb-8 space-y-2">
-              <li>Remember your preferences</li>
-              <li>Analyze website traffic and usage patterns</li>
-              <li>Improve website functionality</li>
+              <li>enable basic website functionality</li>
+              <li>remember your settings (for example, language or cookie preferences)</li>
+              <li>ensure the security and stability of the website</li>
             </ul>
             <p className="mb-8">
-              You can control cookies through your browser settings. However, disabling cookies may limit certain functionalities of our website.
+              We do not use cookies for analytics, marketing, or cross-site tracking purposes.
+            </p>
+            <p className="mb-8">
+              You can control or delete cookies through your browser settings. If you disable all cookies, some parts of the website may not function properly.
             </p>
             
             <h2 className="text-2xl font-mono font-bold text-white mt-12 mb-6">5. Third-Party Services</h2>
