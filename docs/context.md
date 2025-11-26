@@ -94,18 +94,18 @@ Conference data split by domain:
 2. **FeaturedSpeakers:** Two-per-row layout with large grayscale cards, strong gradients, and a placeholder slot for upcoming speakers.
 3. **Overview:** Glass cards detailing focus areas and attendee profiles.
 4. **PartnershipTiers:** "Coming soon" copy for Platinum/Gold/Silver tiers, refreshed stats (700 attendees, 65% senior ICs/founders, 45% decision makers), and CTA buttons matching the hero.
-5. **Team:** Mirrors the speaker card aesthetic with grayscale photos and inline X/LinkedIn icons that use local assets (`public/team`).
-6. **FAQ:** Glass-card accordion with static heading.
+5. **FAQ:** Glass-card accordion with static heading.
 
 **Static Pages:**
 
+- **Team** (`/team`): Dedicated page showcasing team members with grayscale photos and social links, mirroring speaker card aesthetic. Uses Nav + Footer layout, no Hero.
 - **Imprint** (`/imprint`): Legal information, company details, contact info, and disclaimer per German TMG regulations. Uses Nav + Footer layout, no Hero.
 - **Privacy** (`/privacy`): GDPR-compliant privacy policy covering data collection, processing, retention, and user rights. Uses Nav + Footer layout, no Hero.
 
 **Navigation & CTAs:**
 
 - **Header:** Floating pill with Logo and "Get Tickets" CTA.
-- **Footer:** Links to Imprint, Privacy pages.
+- **Footer:** Links to Team, Imprint, Privacy pages.
 - **Primary CTA:** "Get Tickets" (links to Luma).
 - **Secondary CTAs:** "Become a Partner" (email/form links).
 

@@ -1,5 +1,5 @@
 import { Navigation, Footer } from "@/components";
-import { Hero, FeaturedSpeakers, Overview, PartnershipTiers, Team, FAQ } from "@/sections";
+import { Hero, FeaturedSpeakers, Overview, PartnershipTiers, FAQ } from "@/sections";
 
 export default function Home() {
   return (
@@ -10,7 +10,6 @@ export default function Home() {
         <FeaturedSpeakers />
         <Overview />
         <PartnershipTiers />
-        <Team />
         <FAQ />
       </main>
       <Footer />
