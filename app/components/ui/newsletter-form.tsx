@@ -44,14 +44,9 @@ export function NewsletterForm({ className = "" }: NewsletterFormProps) {
   if (status === "success") {
     return (
       <div className={`w-full ${className}`}>
-        <div className="glass rounded-2xl p-6 text-center border border-emerald-500/30 bg-emerald-500/5">
-          <div className="flex items-center justify-center gap-3 text-emerald-400">
-            <Check className="h-6 w-6" />
-            <span className="text-lg font-medium">You&apos;re on the list</span>
-          </div>
-          <p className="mt-2 text-sm text-gray-400">
-            We&apos;ll keep you updated on all things Applied AI Conf.
-          </p>
+        <div className="h-12 flex items-center justify-center gap-2 text-emerald-400 bg-emerald-500/10 rounded-full px-6 border border-emerald-500/20">
+          <Check className="h-4 w-4" />
+          <span className="text-sm font-medium">You&apos;re on the list!</span>
         </div>
       </div>
     );
@@ -59,37 +54,32 @@ export function NewsletterForm({ className = "" }: NewsletterFormProps) {
 
   return (
     <div className={`w-full ${className}`}>
-      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your email"
-            required
-            disabled={status === "loading"}
-            className="w-full h-14 px-6 rounded-full bg-white/5 border border-white/10 text-white placeholder:text-gray-500 focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all disabled:opacity-50 font-sans"
-          />
-        </div>
+      <form onSubmit={handleSubmit} className="relative w-full flex items-center">
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Enter your email"
+          required
+          disabled={status === "loading"}
+          className="w-full h-12 pl-6 pr-12 rounded-full bg-white/5 border border-white/10 text-white placeholder:text-gray-500 focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all disabled:opacity-50 font-sans text-sm backdrop-blur-sm"
+        />
         <button
           type="submit"
           disabled={status === "loading" || !email}
-          className="group h-14 px-8 rounded-full bg-white text-black font-semibold transition-all hover:bg-gray-100 hover:scale-105 hover:shadow-[0_0_30px_rgba(255,255,255,0.3)] disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-none flex items-center justify-center gap-2"
+          className="absolute right-1 h-10 w-10 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all disabled:opacity-0 disabled:pointer-events-none flex items-center justify-center"
+          aria-label="Subscribe"
         >
           {status === "loading" ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
+            <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
-            <>
-              Subscribe
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </>
+            <ArrowRight className="h-4 w-4" />
           )}
         </button>
       </form>
       {status === "error" && (
-        <p className="mt-3 text-sm text-red-400 text-center">{errorMessage}</p>
+        <p className="absolute top-full mt-2 left-0 w-full text-xs text-red-400 text-center">{errorMessage}</p>
       )}
     </div>
   );
 }
-

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Next.js 15 conference website for "Applied AI Conf by {Tech: Europe}" - an event series, with the first edition focused on Applied AI. Scheduled for May 28, 2026 at Delta Campus in Berlin. Built with React 19, TypeScript, Tailwind CSS v4, and React Three Fiber shader graphics.
+Next.js 15 conference website for "Applied AI Conf by {Tech: Europe}" - an event series, with the first edition focused on Applied AI. Scheduled for May 28, 2026 at The Delta Campus in Berlin. Built with React 19, TypeScript, Tailwind CSS v4, and React Three Fiber shader graphics.
 
 ## Architecture
 
@@ -90,7 +90,7 @@ Conference data split by domain:
 
 **Landing Page Sections (in order):**
 
-1. **Hero:** Fluid wave background, massive mono typography ("Applied / AI Conf"), consistent CTA styling, beehiiv newsletter embed, and a concise two-line pitch.
+1. **Hero:** Fluid wave background, massive mono typography ("Applied / AI Conf"), consolidated action bar (newsletter + tickets), and a concise two-line pitch.
 2. **FeaturedSpeakers:** Two-per-row layout with large grayscale cards, strong gradients, and a placeholder slot for upcoming speakers.
 3. **Overview:** Glass cards detailing focus areas and attendee profiles.
 4. **PartnershipTiers:** "Coming soon" copy for Platinum/Gold/Silver tiers, refreshed stats (700 attendees, 65% senior ICs/founders, 45% decision makers), and CTA buttons matching the hero.
@@ -105,7 +105,7 @@ Conference data split by domain:
 **Navigation & CTAs:**
 
 - **Header:** Floating pill with Logo and "Get Tickets" CTA.
-- **Footer:** Links to Team, Imprint, Privacy pages.
+- **Footer:** Links to Team, Imprint, Privacy pages. Includes social icons (X, LinkedIn).
 - **Primary CTA:** "Get Tickets" (links to Luma).
 - **Secondary CTAs:** "Become a Partner" (email/form links).
 

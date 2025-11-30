@@ -1,10 +1,32 @@
+"use client";
+
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { NAVIGATION_ACTIONS, NAVIGATION_LINKS } from '@/data/navigation';
 
 export default function Navigation() {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Show nav when scrolled past 400px (approx height of hero title area)
+      const show = window.scrollY > 400;
+      setIsVisible(show);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <nav className="fixed top-6 left-0 right-0 z-50 flex justify-center px-4">
-      <div className="glass flex items-center gap-6 rounded-full px-6 py-3 transition-all duration-300 hover:border-white/20 hover:bg-white/10">
+    <nav 
+      className={`fixed top-6 left-0 right-0 z-50 flex justify-center px-4 transition-all duration-500 ease-in-out ${
+        isVisible 
+          ? 'translate-y-0 opacity-100' 
+          : '-translate-y-20 opacity-0 pointer-events-none'
+      }`}
+    >
+      <div className="glass flex items-center gap-6 rounded-full px-6 py-3 transition-all duration-300 hover:border-white/20 hover:bg-white/10 shadow-lg shadow-black/20 backdrop-blur-xl">
         {/* Left side: Conference Name */}
         <div className="flex items-center gap-3">
           <Link href="/" className="text-sm font-mono font-bold tracking-wide text-white transition-colors hover:text-gray-300">
