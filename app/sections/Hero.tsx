@@ -2,6 +2,7 @@ import { CONFERENCE_INFO } from "@/data/conference";
 import { NAVIGATION_ACTIONS } from "@/data/navigation";
 import Image from "next/image";
 import { FluidWaveBackground } from "@/components/ui/fluid-wave-background";
+import { NewsletterForm } from "@/components/ui/newsletter-form";
 import { Linkedin } from "lucide-react";
 
 export default function Hero() {
@@ -89,6 +90,14 @@ export default function Hero() {
               <Linkedin className="h-6 w-6" />
             </a>
           </div>
+        </div>
+
+        {/* Newsletter Signup */}
+        <div className="mt-16 w-full max-w-xl">
+          <p className="mb-4 text-sm text-gray-400 font-mono tracking-wide uppercase">
+            Stay updated
+          </p>
+          <NewsletterForm />
         </div>
       </div>
     </section>

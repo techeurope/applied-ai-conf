@@ -19,7 +19,7 @@ Next.js 15 conference website for "Applied AI Conf by {Tech: Europe}" - an event
 ```
 app/
 ├── components/          # Reusable UI components
-│   ├── ui/            # Low-level UI primitives (shader backgrounds, button, label, slider)
+│   ├── ui/            # Low-level UI primitives (shader backgrounds, newsletter form, button, label, slider)
 │   ├── Navigation.tsx # Floating pill navigation
 │   ├── Footer.tsx     # Site footer
 │   └── index.ts       # Component exports
@@ -90,7 +90,7 @@ Conference data split by domain:
 
 **Landing Page Sections (in order):**
 
-1. **Hero:** Fluid wave background, massive mono typography ("Applied / AI Conf"), consistent CTA styling, and a concise two-line pitch.
+1. **Hero:** Fluid wave background, massive mono typography ("Applied / AI Conf"), consistent CTA styling, beehiiv newsletter embed, and a concise two-line pitch.
 2. **FeaturedSpeakers:** Two-per-row layout with large grayscale cards, strong gradients, and a placeholder slot for upcoming speakers.
 3. **Overview:** Glass cards detailing focus areas and attendee profiles.
 4. **PartnershipTiers:** "Coming soon" copy for Platinum/Gold/Silver tiers, refreshed stats (700 attendees, 65% senior ICs/founders, 45% decision makers), and CTA buttons matching the hero.
@@ -111,7 +111,7 @@ Conference data split by domain:
 
 **Todo Items** (from `todo.md`):
 
-- Email waitlist/newsletter functionality (backend integration needed)
+- Newsletter signup via beehiiv embed (completed, integrated in Hero)
 - Speaker section implementation (completed, refined)
 - Hero updates (completed, refined)
 - Partnership page (completed via PartnershipTiers section)
@@ -124,6 +124,15 @@ Conference data split by domain:
 3. **Components:** Prefer `lucide-react` for icons.
 4. **Responsiveness:** Ensure all grids (`grid-cols-`) break down gracefully to single columns on mobile.
 5. **Animations:** Use CSS animations for simple fades and IntersectionObserver for complex reveal effects.
+
+## Environment Variables
+
+```
+# Beehiiv Newsletter Integration
+# Get from: beehiiv dashboard > Settings > Integrations > API
+BEEHIIV_API_KEY=your_api_key_here
+BEEHIIV_PUBLICATION_ID=your_publication_id_here
+```
 
 ## Technical Notes
 

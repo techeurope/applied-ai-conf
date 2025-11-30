@@ -26,9 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${kodeMono.variable} ${inter.variable} antialiased`}
-      >
+      <body className={`${kodeMono.variable} ${inter.variable} antialiased`}>
         {children}
       </body>
     </html>
