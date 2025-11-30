@@ -137,6 +137,6 @@ BEEHIIV_PUBLICATION_ID=your_publication_id_here
 ## Technical Notes
 
 - Graphics stack uses React Three Fiber (@react-three/fiber) with Three.js.
-- `FluidWaveBackground` controls are preset for the production look; UI controls code has been removed for cleanliness.
+- `LidarScapeBackground` uses a custom shader to create a scrolling "lidar" terrain effect. Includes developer UI for tuning parameters.
 - Images use Next.js `Image` component with `grayscale` effect on hover.
 - Global CSS includes custom scrollbar and loader styles.

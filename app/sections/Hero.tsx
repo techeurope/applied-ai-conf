@@ -1,7 +1,7 @@
 import { CONFERENCE_INFO } from "@/data/conference";
 import { NAVIGATION_ACTIONS } from "@/data/navigation";
 import Image from "next/image";
-import { FluidWaveBackground } from "@/components/ui/fluid-wave-background";
+import { LidarScapeBackground } from "@/components/ui/lidar-scape-background";
 import { NewsletterForm } from "@/components/ui/newsletter-form";
 import { Linkedin } from "lucide-react";
 
@@ -10,12 +10,12 @@ export default function Hero() {
 
   return (
     <section className="relative flex min-h-[110vh] w-full flex-col items-center justify-center overflow-hidden py-32 text-center">
-      {/* Background Fluid Wave - Slightly darkened for text contrast */}
-      <FluidWaveBackground />
-      <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+      {/* Background - Lidar Scape */}
+      <LidarScapeBackground />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black pointer-events-none" />
 
       {/* Main Content */}
-      <div className="relative z-10 mx-auto flex w-full max-w-[90rem] flex-col items-center px-4 sm:px-6 lg:px-8 animate-fade-in-up">
+      <div className="relative z-10 mx-auto flex w-full max-w-[90rem] flex-col items-center px-4 sm:px-6 lg:px-8">
         {/* 1. Tech Europe Presents... */}
         <div className="mb-10 font-mono text-base sm:text-lg tracking-widest text-gray-400">
           <a
@@ -33,7 +33,7 @@ export default function Hero() {
         <h1 className="mb-12 w-full text-6xl font-bold tracking-tighter text-white sm:text-7xl md:text-8xl lg:text-[10rem] xl:text-[12rem] leading-[0.92] text-glow font-mono select-none">
           Applied
           <br />
-          <span className="text-white/40 block mt-3 sm:mt-4 lg:mt-5">
+          <span className="text-white block mt-3 sm:mt-4 lg:mt-5">
             AI Conf
           </span>
         </h1>
