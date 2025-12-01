@@ -90,7 +90,7 @@ Conference data split by domain:
 
 **Landing Page Sections (in order):**
 
-1. **Hero:** Fluid wave background, massive mono typography ("Applied / AI Conf"), consolidated action bar (newsletter + tickets), and a concise two-line pitch.
+1. **Hero:** Fluid wave background, massive mono typography ("Applied / AI Conf"). Features a "HUD" style grid layout containing the intro pitch, venue info, date, newsletter subscription (via modal), and ticket action.
 2. **FeaturedSpeakers:** Two-per-row layout with large grayscale cards, strong gradients, and a placeholder slot for upcoming speakers.
 3. **Overview:** Glass cards detailing focus areas and attendee profiles.
 4. **PartnershipTiers:** "Coming soon" copy for Platinum/Gold/Silver tiers, refreshed stats (700 attendees, 65% senior ICs/founders, 45% decision makers), and CTA buttons matching the hero.

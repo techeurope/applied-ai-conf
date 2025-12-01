@@ -1,9 +1,8 @@
 import { CONFERENCE_INFO } from "@/data/conference";
 import { NAVIGATION_ACTIONS } from "@/data/navigation";
-import Image from "next/image";
 import { LidarScapeBackground } from "@/components/ui/lidar-scape-background";
-import { NewsletterForm } from "@/components/ui/newsletter-form";
-import { Linkedin } from "lucide-react";
+import { NewsletterModal } from "@/components/ui/newsletter-form";
+import { MapPin, Calendar, ArrowRight, Ticket, Mail } from "lucide-react";
 
 export default function Hero() {
   const ticketAction = NAVIGATION_ACTIONS[0];
@@ -15,7 +14,7 @@ export default function Hero() {
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black pointer-events-none" />
 
       {/* Main Content */}
-      <div className="relative z-10 mx-auto flex w-full max-w-[90rem] flex-col items-center px-4 sm:px-6 lg:px-8 space-y-8">
+      <div className="relative z-10 mx-auto flex w-full max-w-[90rem] flex-col items-center px-4 sm:px-6 lg:px-8 space-y-10">
         {/* 1. Tech Europe Presents... */}
         <div className="font-mono text-sm sm:text-base tracking-widest text-gray-500">
           <a
@@ -38,49 +37,93 @@ export default function Hero() {
           </span>
         </h1>
 
-        {/* 3. Intro Sentence - Balanced visual weight */}
-        <div className="max-w-3xl mx-auto px-4">
-          <p className="text-xl sm:text-2xl text-gray-300 leading-relaxed font-normal drop-shadow-md">
-            One day of talks & workshops from founders & engineers sharing
-            lessons learned from actually shipping AI into production
-          </p>
-        </div>
+        {/* 3. HUD / Bento Grid - Integrated Actions */}
+        <div className="w-full max-w-5xl mx-auto">
+          {/* Grid Container with borders */}
+          <div className="grid grid-cols-1 md:grid-cols-12 border border-white/10 bg-white/5 rounded-2xl overflow-hidden backdrop-blur-sm">
+            
+            {/* Top Row: Intro Text (Full Width) */}
+            <div className="col-span-1 md:col-span-12 p-6 sm:p-10 border-b border-white/10 flex items-center justify-center bg-black/20">
+              <p className="text-xl sm:text-2xl text-gray-200 leading-relaxed font-normal drop-shadow-md">
+                One day of talks & workshops from founders & engineers sharing
+                lessons learned from actually shipping AI into production
+              </p>
+            </div>
 
-        {/* 4. Venue Pill - Solid black background for readability */}
-        <div className="inline-flex items-center justify-center rounded-full bg-black/60 border border-white/10 backdrop-blur-xl px-6 py-3 text-sm text-gray-300 font-sans tracking-wide shadow-lg">
-          <a
-            href="https://www.thedelta.io/berlin/welcome"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-white font-medium hover:underline underline-offset-4 transition-all"
-          >
-            The Delta Campus
-          </a>
-          <span className="mx-3 text-gray-600">·</span>
-          Berlin
-          <span className="mx-3 text-gray-600">·</span>
-          {CONFERENCE_INFO.dateDisplay}
-        </div>
+            {/* Middle Row Left: Venue (Single Line) */}
+            <div className="col-span-1 md:col-span-3 p-5 flex items-center justify-center gap-3 border-b md:border-b-0 md:border-r border-white/10 bg-black/40 hover:bg-black/50 transition-colors group relative">
+              <a
+                href="https://www.thedelta.io/berlin/welcome"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute inset-0 z-10"
+              >
+                <span className="sr-only">View Venue</span>
+              </a>
+              <MapPin className="h-5 w-5 text-white/80 shrink-0" />
+              <span className="text-base font-medium text-white hover:text-gray-300 transition-colors text-left">
+                The Delta Campus
+              </span>
+            </div>
 
-        {/* Actions & Newsletter - Slight top margin to separate from content */}
-        <div className="flex w-full max-w-2xl flex-col items-center gap-4 pt-4">
-          <div className="flex w-full flex-col sm:flex-row items-center justify-center gap-4">
-            {/* Newsletter Input */}
-            <NewsletterForm className="w-full sm:max-w-sm" />
+            {/* Middle Row Middle: Date (Single Line) */}
+            <div className="col-span-1 md:col-span-3 p-5 flex items-center justify-center gap-3 border-b md:border-b-0 md:border-r border-white/10 bg-black/40 hover:bg-black/50 transition-colors">
+              <Calendar className="h-5 w-5 text-white/80 shrink-0" />
+              <div className="text-base font-medium text-white">
+                {CONFERENCE_INFO.dateDisplay}
+              </div>
+            </div>
 
-            {/* Ticket Button */}
-            <a
-              href={ticketAction.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full sm:w-auto whitespace-nowrap px-8 h-12 rounded-full bg-white text-black font-semibold text-sm hover:bg-gray-100 transition-all hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] flex items-center justify-center"
-            >
-              {ticketAction.label}
-            </a>
+            {/* Middle Row Right 1: Newsletter (Modal Trigger) */}
+            <div className="col-span-1 md:col-span-3 p-0 border-b md:border-b-0 md:border-r border-white/10 bg-black/40 hover:bg-white transition-colors cursor-pointer group relative">
+              <NewsletterModal>
+                <button className="w-full h-full flex items-center justify-center gap-3 focus:outline-none cursor-pointer p-5 absolute inset-0 z-10">
+                  <Mail className="h-5 w-5 text-white/80 group-hover:text-black transition-colors shrink-0" />
+                  <span className="text-base font-medium text-white group-hover:text-black transition-colors">
+                    Receive Updates
+                  </span>
+                </button>
+              </NewsletterModal>
+              {/* Visual placeholder to maintain height if needed, though absolute positioning covers it */}
+              <div className="p-5 opacity-0 pointer-events-none flex items-center justify-center gap-3">
+                 <Mail className="h-5 w-5" />
+                 <span className="text-base font-medium">Receive Updates</span>
+              </div>
+            </div>
+
+            {/* Middle Row Right 2: Ticket Action (Spinning Gradient Border) */}
+            <div className="col-span-1 md:col-span-3 p-0 relative overflow-hidden group bg-gray-100 rounded-br-2xl">
+              
+              {/* Rotating Rectangle (Beam) - rotates from bottom edge at button center */}
+              <div 
+                className="absolute bottom-[50%] left-[-12.5%] w-[125%] h-[200%] origin-bottom animate-[spin_4s_linear_infinite]"
+                style={{
+                  background: 'linear-gradient(to bottom, #ef4444 0%, #f97316 25%, #eab308 50%, #a855f7 75%, transparent 100%)'
+                }}
+              />
+              
+              {/* White Background Layer (Masks center, leaves 2px border) */}
+              <div className="absolute top-[2px] left-[2px] right-[2px] bottom-[2px] bg-white z-10 transition-colors duration-300 group-hover:bg-gray-50 rounded-br-xl" />
+
+              <a
+                href={ticketAction.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute inset-0 z-30"
+              >
+                <span className="sr-only">{ticketAction.label}</span>
+              </a>
+              
+              <div className="relative z-20 w-full h-full p-5 flex items-center justify-center gap-3">
+                <Ticket className="h-5 w-5 text-black shrink-0" />
+                <div className="flex items-center gap-2 text-lg font-bold text-black">
+                  Get Tickets
+                  <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1 ml-1" />
+                </div>
+              </div>
+            </div>
+            
           </div>
-          <p className="text-xs text-gray-500 font-mono tracking-wide uppercase">
-            Get notified about speakers & early bird tickets
-          </p>
         </div>
       </div>
     </section>

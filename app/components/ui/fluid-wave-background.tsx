@@ -380,7 +380,6 @@ export function FluidWaveBackground() {
             <h3 className="text-white font-semibold text-lg">Wave Controls</h3>
             <Button 
               variant="ghost" 
-              size="sm" 
               onClick={() => setControls({
                 animationSpeed: 0.05, 
                 waveSpeedX: 0.02,

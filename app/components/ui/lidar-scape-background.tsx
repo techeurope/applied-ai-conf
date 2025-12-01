@@ -256,7 +256,6 @@ export function LidarScapeBackground() {
             <h3 className="text-white font-semibold text-lg">Lidar Controls</h3>
             <Button 
               variant="ghost" 
-              size="sm" 
               onClick={() => setControls({
                 speed: 0.004,
                 noiseScale: 0.07,
