@@ -194,7 +194,7 @@ function LidarGrid({ controls }: { controls: LidarControls }) {
 }
 
 export function LidarScapeBackground() {
-  const [controls, setControls] = useState<LidarControls>({
+  const [controls] = useState<LidarControls>({
     speed: 0.004,
     noiseScale: 0.07,
     noiseStrength: 1.7,

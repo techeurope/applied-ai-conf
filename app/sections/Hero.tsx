@@ -42,7 +42,7 @@ export default function Hero() {
             {/* Top Row: Intro Text (Full Width) */}
             <div className="col-span-1 md:col-span-12 p-6 sm:p-10 border-b border-white/10 flex items-center justify-center bg-black/20">
               <p className="text-xl sm:text-2xl text-gray-200 leading-relaxed font-normal drop-shadow-md">
-                Shipping AI into production from Europe's best founders &
+                Shipping AI into production from Europe&apos;s best founders &
                 engineers
               </p>
             </div>
