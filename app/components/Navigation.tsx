@@ -2,21 +2,33 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { NAVIGATION_ACTIONS, NAVIGATION_LINKS } from '@/data/navigation';
 
 export default function Navigation() {
   const [isVisible, setIsVisible] = useState(false);
+  const pathname = usePathname();
+  const isHomePage = pathname === '/';
 
   useEffect(() => {
+    // On subpages, always show navigation
+    if (!isHomePage) {
+      setIsVisible(true);
+      return;
+    }
+
+    // On homepage, show nav when scrolled past 400px
     const handleScroll = () => {
-      // Show nav when scrolled past 400px (approx height of hero title area)
       const show = window.scrollY > 400;
       setIsVisible(show);
     };
 
+    // Check initial scroll position
+    handleScroll();
+
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isHomePage]);
 
   return (
     <nav 

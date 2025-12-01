@@ -32,21 +32,18 @@ export default function Hero() {
         <h1 className="w-full text-6xl font-bold tracking-tighter text-white sm:text-7xl md:text-8xl lg:text-[10rem] xl:text-[12rem] leading-[0.9] text-glow font-mono select-none">
           Applied
           <br />
-          <span className="text-white block mt-2 sm:mt-4">
-            AI Conf
-          </span>
+          <span className="text-white block mt-2 sm:mt-4">AI Conf</span>
         </h1>
 
         {/* 3. HUD / Bento Grid - Integrated Actions */}
         <div className="w-full max-w-5xl mx-auto">
           {/* Grid Container with borders */}
           <div className="grid grid-cols-1 md:grid-cols-12 border border-white/10 bg-white/5 rounded-2xl overflow-hidden backdrop-blur-sm">
-            
             {/* Top Row: Intro Text (Full Width) */}
             <div className="col-span-1 md:col-span-12 p-6 sm:p-10 border-b border-white/10 flex items-center justify-center bg-black/20">
               <p className="text-xl sm:text-2xl text-gray-200 leading-relaxed font-normal drop-shadow-md">
-                One day of talks & workshops from founders & engineers sharing
-                lessons learned from actually shipping AI into production
+                Shipping AI into production from Europe's best founders &
+                engineers
               </p>
             </div>
 
@@ -62,7 +59,7 @@ export default function Hero() {
               </a>
               <MapPin className="h-5 w-5 text-white/80 shrink-0" />
               <span className="text-base font-medium text-white hover:text-gray-300 transition-colors text-left">
-                The Delta Campus
+                Berlin
               </span>
             </div>
 
@@ -74,37 +71,20 @@ export default function Hero() {
               </div>
             </div>
 
-            {/* Middle Row Right 1: Newsletter (Modal Trigger) */}
-            <div className="col-span-1 md:col-span-3 p-0 border-b md:border-b-0 md:border-r border-white/10 bg-black/40 hover:bg-white transition-colors cursor-pointer group relative">
+            {/* Middle Row Right 1: Newsletter */}
+            <div className="col-span-1 md:col-span-3 p-0 border-b md:border-b-0 md:border-r border-white/10 bg-black/40 hover:bg-black/50 transition-colors group">
               <NewsletterModal>
-                <button className="w-full h-full flex items-center justify-center gap-3 focus:outline-none cursor-pointer p-5 absolute inset-0 z-10">
-                  <Mail className="h-5 w-5 text-white/80 group-hover:text-black transition-colors shrink-0" />
-                  <span className="text-base font-medium text-white group-hover:text-black transition-colors">
+                <button className="w-full h-full flex items-center justify-center gap-3 focus:outline-none cursor-pointer p-5">
+                  <Mail className="h-5 w-5 text-white/80 group-hover:text-white transition-colors shrink-0" />
+                  <span className="text-base font-medium text-white group-hover:text-white transition-colors">
                     Receive Updates
                   </span>
                 </button>
               </NewsletterModal>
-              {/* Visual placeholder to maintain height if needed, though absolute positioning covers it */}
-              <div className="p-5 opacity-0 pointer-events-none flex items-center justify-center gap-3">
-                 <Mail className="h-5 w-5" />
-                 <span className="text-base font-medium">Receive Updates</span>
-              </div>
             </div>
 
-            {/* Middle Row Right 2: Ticket Action (Spinning Gradient Border) */}
-            <div className="col-span-1 md:col-span-3 p-0 relative overflow-hidden group bg-gray-100 rounded-br-2xl">
-              
-              {/* Rotating Rectangle (Beam) - rotates from bottom edge at button center */}
-              <div 
-                className="absolute bottom-[50%] left-[-12.5%] w-[125%] h-[200%] origin-bottom animate-[spin_4s_linear_infinite]"
-                style={{
-                  background: 'linear-gradient(to bottom, #ef4444 0%, #f97316 25%, #eab308 50%, #a855f7 75%, transparent 100%)'
-                }}
-              />
-              
-              {/* White Background Layer (Masks center, leaves 2px border) */}
-              <div className="absolute top-[2px] left-[2px] right-[2px] bottom-[2px] bg-white z-10 transition-colors duration-300 group-hover:bg-gray-50 rounded-br-xl" />
-
+            {/* Middle Row Right 2: Ticket Action (Simple White) */}
+            <div className="col-span-1 md:col-span-3 p-0 relative overflow-hidden group bg-white hover:bg-gray-50 transition-colors rounded-br-2xl">
               <a
                 href={ticketAction.href}
                 target="_blank"
@@ -113,7 +93,7 @@ export default function Hero() {
               >
                 <span className="sr-only">{ticketAction.label}</span>
               </a>
-              
+
               <div className="relative z-20 w-full h-full p-5 flex items-center justify-center gap-3">
                 <Ticket className="h-5 w-5 text-black shrink-0" />
                 <div className="flex items-center gap-2 text-lg font-bold text-black">
@@ -122,7 +102,6 @@ export default function Hero() {
                 </div>
               </div>
             </div>
-            
           </div>
         </div>
       </div>

@@ -3,10 +3,6 @@
 import { useRef, useMemo, useState, useEffect } from "react"
 import { Canvas, useFrame } from "@react-three/fiber"
 import * as THREE from "three"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Slider } from "@/components/ui/slider"
-import { Settings, X } from "lucide-react"
 
 interface LidarControls {
   speed: number
@@ -39,7 +35,7 @@ function LidarGrid({ controls }: { controls: LidarControls }) {
       uGlowIntensity: { value: controls.glowIntensity },
       uFogDensity: { value: controls.fogDensity },
     }),
-    []
+    [controls.speed, controls.noiseScale, controls.noiseStrength, controls.gridSize, controls.lineThickness, controls.colorR, controls.colorG, controls.colorB, controls.glowIntensity, controls.fogDensity]
   )
 
   useEffect(() => {
@@ -198,7 +194,6 @@ function LidarGrid({ controls }: { controls: LidarControls }) {
 }
 
 export function LidarScapeBackground() {
-  const [showControls, setShowControls] = useState(false)
   const [controls, setControls] = useState<LidarControls>({
     speed: 0.004,
     noiseScale: 0.07,
@@ -214,9 +209,9 @@ export function LidarScapeBackground() {
     blurAmount: 0,       // New: Start with no blur
   })
 
-  const updateControl = (key: keyof LidarControls, value: number) => {
-    setControls((prev) => ({ ...prev, [key]: value }))
-  }
+  // const updateControl = (key: keyof LidarControls, value: number) => {
+  //   setControls((prev) => ({ ...prev, [key]: value }))
+  // }
 
   return (
     <div className="absolute inset-0 bg-black w-full h-full">
@@ -249,8 +244,9 @@ export function LidarScapeBackground() {
       </div>
       */}
 
-      {/* Controls Panel (Hidden) */}
-      {false && showControls && (
+      {/* Controls Panel (Hidden - commented out) */}
+      {/* 
+      {showControls && (
         <div className="absolute top-36 right-4 z-50 bg-black/90 backdrop-blur-md border border-white/20 rounded-lg p-6 w-80 max-h-[70vh] overflow-y-auto custom-scrollbar shadow-2xl animate-fade-in">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-white font-semibold text-lg">Lidar Controls</h3>
@@ -277,7 +273,6 @@ export function LidarScapeBackground() {
           </div>
 
           <div className="space-y-6">
-            {/* Background Visibility Controls - Moved to top for easy access */}
             <div className="border-b border-white/20 pb-6 mb-2">
               <h4 className="text-white font-medium mb-3 text-sm text-emerald-400">Background Visibility</h4>
               
@@ -415,6 +410,7 @@ export function LidarScapeBackground() {
           </div>
         </div>
       )}
+      */}
     </div>
   )
 }

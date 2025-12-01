@@ -5,3 +5,4 @@ export { default as Overview } from './Overview';
 export { default as Audience } from './Audience';
 export { default as PartnershipTiers } from './PartnershipTiers';
 export { default as FAQ } from './FAQ';
+export { default as CallToAction } from './CallToAction';

@@ -53,7 +53,7 @@ Data lives in `app/data/` as typed constants, imported into components/sections.
 
 ### Component Organization
 
-- **Sections** (`app/sections/`): Full-page sections with business logic (Hero, Overview, PartnershipTiers, FAQ)
+- **Sections** (`app/sections/`): Full-page sections with business logic (Hero, FeaturedSpeakers, PartnershipTiers, CallToAction)
 - **Components** (`app/components/`): Reusable UI elements (Navigation, Footer, shader backgrounds, UI primitives)
 - **Main Page** (`app/page.tsx`): Composes sections in order
 
@@ -90,11 +90,14 @@ Conference data split by domain:
 
 **Landing Page Sections (in order):**
 
-1. **Hero:** Fluid wave background, massive mono typography ("Applied / AI Conf"). Features a "HUD" style grid layout containing the intro pitch, venue info, date, newsletter subscription (via modal), and ticket action.
+1. **Hero:** Lidar scape background, massive mono typography ("Applied / AI Conf"). Features a "HUD" style grid layout containing the intro pitch, venue info, date, newsletter subscription (via modal), and ticket action with spinning gradient border.
 2. **FeaturedSpeakers:** Two-per-row layout with large grayscale cards, strong gradients, and a placeholder slot for upcoming speakers.
-3. **Overview:** Glass cards detailing focus areas and attendee profiles.
-4. **PartnershipTiers:** "Coming soon" copy for Platinum/Gold/Silver tiers, refreshed stats (700 attendees, 65% senior ICs/founders, 45% decision makers), and CTA buttons matching the hero.
-5. **FAQ:** Glass-card accordion with static heading.
+3. **PartnershipTiers:** Partner CTA section with "Become a Partner" and "Get Info" buttons.
+4. **CallToAction:** Final CTA section with "Want to get updates and buy tickets?" heading and two hot elements (spinning gradient borders) for newsletter signup and ticket purchase.
+
+**Deactivated Sections (still in codebase but not rendered):**
+- **Overview:** Glass cards detailing focus areas and attendee profiles.
+- **FAQ:** Glass-card accordion with static heading.
 
 **Static Pages:**
 
