@@ -91,7 +91,7 @@ Conference data split by domain:
 **Landing Page Sections (in order):**
 
 1. **Hero:** Lidar scape background, massive mono typography ("Applied / AI Conf"). Features a "HUD" style grid layout containing the intro pitch, venue info, date, newsletter subscription (via modal), and ticket action with spinning gradient border.
-2. **FeaturedSpeakers:** Two-per-row layout with large grayscale cards, strong gradients, and a placeholder slot for upcoming speakers.
+2. **FeaturedSpeakers:** Three-per-row layout. Default state: clean grayscale images, white HUD name boxes. Hover state: Green "CRT monitor" aesthetic with scanlines, glowing text, and green accents.
 3. **PartnershipTiers:** Partner CTA section with "Become a Partner" and "Get Info" buttons.
 4. **CallToAction:** Final CTA section with "Want to get updates and buy tickets?" heading and two hot elements (spinning gradient borders) for newsletter signup and ticket purchase.
 

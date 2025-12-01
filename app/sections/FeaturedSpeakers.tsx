@@ -41,10 +41,10 @@ export default function FeaturedSpeakers() {
           {speakers.map((speaker) => (
             <div
               key={speaker.name}
-              className="group relative flex flex-col overflow-hidden rounded-2xl glass-card transition-all hover:-translate-y-2 hover:shadow-2xl hover:shadow-white/5"
+              className="group relative flex flex-col transition-all hover:-translate-y-2"
             >
-              {/* Speaker Image - Taller aspect ratio */}
-              <div className="relative aspect-[3/4] w-full overflow-hidden bg-zinc-900">
+              {/* Speaker Image - Clean, no effects */}
+              <div className="relative aspect-[3/4] w-full overflow-hidden bg-zinc-900 rounded-xl border border-white/10 shadow-[0_0_20px_rgba(255,255,255,0.05)] transition-colors duration-300 group-hover:border-green-900/60 group-hover:shadow-[0_0_20px_rgba(0,255,0,0.05)]">
                 {speaker.image ? (
                   <Image
                     src={speaker.image}
@@ -61,18 +61,34 @@ export default function FeaturedSpeakers() {
                   </div>
                 )}
                 
-                {/* Overlay Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-80 transition-opacity group-hover:opacity-60" />
+                {/* Simple gradient for depth */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-90 z-10" />
+              </div>
+              
+              {/* HUD-style name box - extends outside image */}
+              <div className="relative -mt-16 -mx-2 border border-white/20 bg-black/90 backdrop-blur-md px-4 py-4 z-30 rounded-xl shadow-[0_0_15px_rgba(255,255,255,0.05)] overflow-hidden transition-all duration-300 group-hover:border-green-500/30 group-hover:shadow-[0_0_15px_rgba(0,255,0,0.1)]">
+                {/* Radial Background */}
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,0,0,1)_0%,rgba(0,0,0,1)_40%,transparent_100%)] z-0" />
                 
-                {/* Text Content */}
-                <div className="absolute bottom-0 left-0 w-full p-10 transition-transform duration-300 group-hover:translate-y-0">
-                   <h3 className="text-4xl font-bold text-white leading-tight mb-3">
-                    {speaker.name}
+                {/* Scanlines - White/Alpha (Only on hover) */}
+                <div className="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(255,255,255,0.05)_50%)] bg-[length:100%_4px] z-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                
+                {/* Corner accents */}
+                <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-white/30 rounded-tl-lg z-10 transition-colors duration-300 group-hover:border-green-500/60" />
+                <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-white/30 rounded-tr-lg z-10 transition-colors duration-300 group-hover:border-green-500/60" />
+                <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-white/30 rounded-bl-lg z-10 transition-colors duration-300 group-hover:border-green-500/60" />
+                <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-white/30 rounded-br-lg z-10 transition-colors duration-300 group-hover:border-green-500/60" />
+                
+                <div className="relative z-10">
+                  <h3 className="font-mono text-2xl sm:text-3xl md:text-4xl font-bold text-white leading-[0.95] tracking-tight drop-shadow-sm transition-colors duration-300 group-hover:text-green-400 group-hover:drop-shadow-[0_0_5px_rgba(0,255,0,0.5)]">
+                    {speaker.name.split(" ").slice(0, -1).join(" ")}
+                    <br />
+                    {speaker.name.split(" ").slice(-1)[0]}
                   </h3>
-                  <p className="text-sm font-medium text-gray-300">
-                    <span className="uppercase tracking-wide text-white/90">{speaker.title}</span>
-                    <span className="mx-2 text-gray-500">@</span>
-                    <span className="text-white font-semibold">{speaker.company}</span>
+                  <p className="text-xs font-medium text-gray-400 mt-3 font-mono uppercase tracking-widest transition-colors duration-300 group-hover:text-green-700">
+                    {speaker.title}
+                    <span className="mx-2 text-white/30 transition-colors duration-300 group-hover:text-green-900">/</span>
+                    <span className="text-white/70 transition-colors duration-300 group-hover:text-green-600">{speaker.company}</span>
                   </p>
                 </div>
               </div>
