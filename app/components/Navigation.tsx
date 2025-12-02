@@ -45,12 +45,12 @@ export default function Navigation() {
           <Link href="/" className="text-sm font-mono font-bold tracking-wide text-white transition-colors hover:text-gray-300">
             Applied AI Conf
           </Link>
-          <span className="text-sm text-white/70">by</span>
+          <span className="hidden sm:inline text-sm text-white/70">by</span>
           <a
             href="https://techeurope.io"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm font-mono text-white hover:text-gray-300 transition-colors"
+            className="hidden sm:inline text-sm font-mono text-white hover:text-gray-300 transition-colors"
           >
             {"{"}Tech: Europe{"}"}
           </a>
