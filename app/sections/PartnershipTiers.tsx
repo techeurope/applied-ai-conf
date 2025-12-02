@@ -252,12 +252,9 @@ export default function PartnershipTiers() {
               </Canvas>
             </div>
             <div className="relative z-10 flex flex-col items-center justify-center">
-              <h3 className="text-3xl sm:text-4xl font-mono font-bold tracking-tight text-white text-center mb-1 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+              <h3 className="text-3xl sm:text-4xl font-mono font-bold tracking-tight text-white text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                 Platinum
               </h3>
-              <p className="text-lg font-mono text-white/90 text-center font-bold tracking-wide uppercase drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                2 slots
-              </p>
             </div>
           </div>
 
@@ -269,24 +266,18 @@ export default function PartnershipTiers() {
               </Canvas>
             </div>
             <div className="relative z-10 flex flex-col items-center justify-center">
-              <h3 className="text-2xl sm:text-3xl font-mono font-bold tracking-tight text-white text-center mb-1 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+              <h3 className="text-2xl sm:text-3xl font-mono font-bold tracking-tight text-white text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                 Gold
               </h3>
-              <p className="text-base font-mono text-white/90 text-center font-bold tracking-wide uppercase drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                8 slots
-              </p>
             </div>
           </div>
 
           {/* Community Box - Spans 3 columns, Smaller */}
           <div className="md:col-span-3 group relative flex flex-col items-center justify-center p-6 rounded-2xl border-2 border-cyan-500/30 bg-transparent overflow-hidden transition-all duration-300 hover:shadow-[0_0_60px_rgba(34,211,238,0.15)] hover:scale-[1.02] hover:border-cyan-500/50 min-h-[140px] md:min-h-[160px]">
             <div className="relative z-10 flex flex-col items-center justify-center">
-              <h3 className="text-xl sm:text-2xl font-mono font-bold tracking-tight text-white text-center mb-1 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+              <h3 className="text-xl sm:text-2xl font-mono font-bold tracking-tight text-white text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                 Community
               </h3>
-              <p className="text-sm font-mono text-white/90 text-center font-bold tracking-wide uppercase drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                unlimited
-              </p>
             </div>
           </div>
         </div>
