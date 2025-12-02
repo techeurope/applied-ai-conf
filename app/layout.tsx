@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Kode_Mono, Inter } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const kodeMono = Kode_Mono({
@@ -28,6 +29,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${kodeMono.variable} ${inter.variable} antialiased`}>
         {children}
+        <Analytics />
       </body>
     </html>
   );
