@@ -224,27 +224,6 @@ function GoldShader() {
   );
 }
 
-// ... existing imports ...
-
-// Pure Energy shader for Community - electric pulse
-// (Removing EnergyShader function completely to clean up)
-
-// ... rest of file ...
-
-// Community scanlines background
-function CommunityBackground() {
-  return (
-    <div
-      className="absolute inset-0 rounded-2xl pointer-events-none"
-      style={{
-        background:
-          "linear-gradient(transparent 50%, rgba(34, 211, 238, 0.04) 50%)",
-        backgroundSize: "100% 4px",
-      }}
-    />
-  );
-}
-
 export default function PartnershipTiers() {
   return (
     <section
