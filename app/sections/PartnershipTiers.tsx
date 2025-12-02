@@ -62,16 +62,16 @@ function PlatinumShader() {
       float shine = pow(metal, 5.0);
       
       // Platinum/Silver color palette
-      vec3 darkSilver = vec3(0.2, 0.22, 0.25);
-      vec3 mainSilver = vec3(0.8, 0.85, 0.9); 
-      vec3 brightSilver = vec3(1.0, 1.0, 1.0);
+      vec3 darkSilver = vec3(0.1, 0.12, 0.15);
+      vec3 mainSilver = vec3(0.5, 0.55, 0.6); 
+      vec3 brightSilver = vec3(0.9, 0.9, 1.0);
       
       // Mix colors based on "metal" value
       vec3 col = mix(darkSilver, mainSilver, metal);
-      col += brightSilver * shine * 0.9; // Additive shine, slightly stronger
+      col += brightSilver * shine * 0.7; // Additive shine, slightly stronger
       
       // Cool glow for Platinum
-      col += vec3(0.1, 0.15, 0.2) * 0.2;
+      col += vec3(0.05, 0.1, 0.15) * 0.2;
 
       // Vignette
       float vignette = 1.0 - length(uv - 0.5) * 0.6;
@@ -174,9 +174,9 @@ function GoldShader() {
       float shine = pow(metal, 5.0);
       
       // Gold color palette
-      vec3 darkGold = vec3(0.3, 0.15, 0.02); // Darker base
-      vec3 mainGold = vec3(0.8, 0.6, 0.1);   // Slightly less saturated main gold
-      vec3 brightGold = vec3(1.0, 0.9, 0.6); // Highlights kept bright
+      vec3 darkGold = vec3(0.2, 0.1, 0.01); // Darker base
+      vec3 mainGold = vec3(0.6, 0.4, 0.05); // Darker main gold
+      vec3 brightGold = vec3(0.9, 0.7, 0.4); // Slightly dimmer highlights
       
       // Mix colors based on "metal" value
       vec3 col = mix(darkGold, mainGold, metal);
@@ -259,47 +259,46 @@ export default function PartnershipTiers() {
         {/* Tier Boxes */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-16 items-center">
           {/* Platinum Box - Spans 5 columns, Taller */}
-          <div className="md:col-span-5 group relative flex flex-col items-center justify-center p-10 rounded-2xl border-2 border-white/60 bg-zinc-950/80 overflow-hidden transition-all duration-300 shadow-[0_0_40px_rgba(255,255,255,0.15)] hover:shadow-[0_0_80px_rgba(255,255,255,0.3)] hover:scale-[1.02] hover:border-white min-h-[250px] md:min-h-[300px]">
-            <div className="absolute inset-0">
+          <div className="md:col-span-5 group relative flex flex-col items-center justify-center p-6 rounded-2xl border-2 border-white/60 bg-zinc-950/80 overflow-hidden transition-all duration-300 shadow-[0_0_40px_rgba(255,255,255,0.15)] hover:shadow-[0_0_80px_rgba(255,255,255,0.3)] hover:scale-[1.02] hover:border-white min-h-[200px] md:min-h-[220px]">
+            <div className="absolute inset-0 opacity-80">
               <Canvas camera={{ position: [0, 0, 1], fov: 75 }}>
                 <PlatinumShader />
               </Canvas>
             </div>
-            <div className="relative z-10 flex flex-col items-center justify-center bg-white/90 backdrop-blur-md rounded-xl px-8 py-4 shadow-2xl border border-white/50">
-              <h3 className="text-4xl sm:text-5xl font-mono font-bold tracking-tight text-black text-center mb-1">
+            <div className="relative z-10 flex flex-col items-center justify-center">
+              <h3 className="text-3xl sm:text-4xl font-mono font-bold tracking-tight text-white text-center mb-1 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                 Platinum
               </h3>
-              <p className="text-xl font-mono text-black/80 text-center font-bold tracking-wide uppercase">
+              <p className="text-lg font-mono text-white/90 text-center font-bold tracking-wide uppercase drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                 2 slots
               </p>
             </div>
           </div>
 
           {/* Gold Box - Spans 4 columns */}
-          <div className="md:col-span-4 group relative flex flex-col items-center justify-center p-10 rounded-2xl border-2 border-amber-500/40 bg-zinc-950/90 overflow-hidden transition-all duration-300 hover:shadow-[0_0_60px_rgba(245,158,11,0.25)] hover:scale-[1.02] hover:border-amber-500/60 min-h-[220px] md:min-h-[260px]">
-            <div className="absolute inset-0">
+          <div className="md:col-span-4 group relative flex flex-col items-center justify-center p-6 rounded-2xl border-2 border-amber-500/40 bg-zinc-950/90 overflow-hidden transition-all duration-300 hover:shadow-[0_0_60px_rgba(245,158,11,0.25)] hover:scale-[1.02] hover:border-amber-500/60 min-h-[180px] md:min-h-[200px]">
+            <div className="absolute inset-0 opacity-80">
               <Canvas camera={{ position: [0, 0, 1], fov: 75 }}>
                 <GoldShader />
               </Canvas>
             </div>
-            <div className="relative z-10 flex flex-col items-center justify-center bg-white/90 backdrop-blur-md rounded-xl px-6 py-3 shadow-2xl border border-amber-500/30">
-              <h3 className="text-3xl sm:text-4xl font-mono font-bold tracking-tight text-black text-center mb-1">
+            <div className="relative z-10 flex flex-col items-center justify-center">
+              <h3 className="text-2xl sm:text-3xl font-mono font-bold tracking-tight text-white text-center mb-1 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                 Gold
               </h3>
-              <p className="text-lg font-mono text-black/80 text-center font-bold tracking-wide uppercase">
+              <p className="text-base font-mono text-white/90 text-center font-bold tracking-wide uppercase drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                 8 slots
               </p>
             </div>
           </div>
 
           {/* Community Box - Spans 3 columns, Smaller */}
-          <div className="md:col-span-3 group relative flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-cyan-500/30 bg-zinc-950/90 overflow-hidden transition-all duration-300 hover:shadow-[0_0_60px_rgba(34,211,238,0.15)] hover:scale-[1.02] hover:border-cyan-500/50 min-h-[150px] md:min-h-[180px]">
-            <CommunityBackground />
-            <div className="relative z-10 flex flex-col items-center justify-center bg-white/90 backdrop-blur-md rounded-xl px-5 py-3 shadow-2xl border border-cyan-500/30">
-              <h3 className="text-2xl sm:text-3xl font-mono font-bold tracking-tight text-black text-center mb-1">
+          <div className="md:col-span-3 group relative flex flex-col items-center justify-center p-6 rounded-2xl border-2 border-cyan-500/30 bg-transparent overflow-hidden transition-all duration-300 hover:shadow-[0_0_60px_rgba(34,211,238,0.15)] hover:scale-[1.02] hover:border-cyan-500/50 min-h-[140px] md:min-h-[160px]">
+            <div className="relative z-10 flex flex-col items-center justify-center">
+              <h3 className="text-xl sm:text-2xl font-mono font-bold tracking-tight text-white text-center mb-1 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                 Community
               </h3>
-              <p className="text-lg font-mono text-black/80 text-center font-bold tracking-wide uppercase">
+              <p className="text-sm font-mono text-white/90 text-center font-bold tracking-wide uppercase drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                 unlimited
               </p>
             </div>
