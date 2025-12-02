@@ -97,7 +97,10 @@ function PlatinumShader() {
     }
   });
 
-  const aspect = useMemo(() => size.width / size.height, [size.width, size.height]);
+  const aspect = useMemo(
+    () => size.width / size.height,
+    [size.width, size.height]
+  );
 
   useEffect(() => {
     if (meshRef.current) {
@@ -197,7 +200,10 @@ function GoldShader() {
     }
   }, [size.width, size.height]);
 
-  const aspect = useMemo(() => size.width / size.height, [size.width, size.height]);
+  const aspect = useMemo(
+    () => size.width / size.height,
+    [size.width, size.height]
+  );
 
   useEffect(() => {
     if (meshRef.current) {
@@ -228,11 +234,12 @@ function GoldShader() {
 // Community scanlines background
 function CommunityBackground() {
   return (
-    <div 
+    <div
       className="absolute inset-0 rounded-2xl pointer-events-none"
       style={{
-        background: 'linear-gradient(transparent 50%, rgba(34, 211, 238, 0.04) 50%)',
-        backgroundSize: '100% 4px',
+        background:
+          "linear-gradient(transparent 50%, rgba(34, 211, 238, 0.04) 50%)",
+        backgroundSize: "100% 4px",
       }}
     />
   );
@@ -250,9 +257,9 @@ export default function PartnershipTiers() {
           <h2 className="text-5xl font-mono font-bold tracking-tighter sm:text-6xl md:text-7xl lg:text-8xl text-glow">
             Partners
           </h2>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-400 leading-relaxed">
-            Be part of the European AI movement. Join founders and engineers who
-            are shaping how we build with AI.
+          <p className="mx-auto mt-6 max-w-3xl text-lg text-gray-400 leading-relaxed">
+            Get in front of 700+ European founders and engineers using AI in
+            real-world products.
           </p>
         </div>
 
@@ -308,10 +315,13 @@ export default function PartnershipTiers() {
         {/* CTA */}
         <div className="text-center">
           <p className="mb-6 text-lg text-gray-400">
-            Want to get your brand in front of the European AI scene?
+            Ready to explore a partnership? Leave your details and we&apos;ll
+            reach out.
           </p>
           <Link
-            href="mailto:info@techeurope.io"
+            href="https://tally.so/r/Me1ZKM"
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-flex h-14 items-center justify-center rounded-full bg-white px-10 text-lg font-semibold text-black transition-all hover:bg-gray-100 hover:scale-105 hover:shadow-[0_0_30px_rgba(255,255,255,0.4)]"
           >
             Become a Partner
