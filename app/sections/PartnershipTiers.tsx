@@ -257,9 +257,9 @@ export default function PartnershipTiers() {
           <h2 className="text-5xl font-mono font-bold tracking-tighter sm:text-6xl md:text-7xl lg:text-8xl text-glow">
             Partners
           </h2>
-          <p className="mx-auto mt-6 max-w-3xl text-lg text-gray-400 leading-relaxed">
-            Get in front of 700+ European founders and engineers using AI in
-            real-world products.
+          <p className="mx-auto mt-6 text-lg text-gray-400 leading-relaxed">
+            Get in front of 700+ European founders and engineers who are using
+            AI in real-world products.
           </p>
         </div>
 
