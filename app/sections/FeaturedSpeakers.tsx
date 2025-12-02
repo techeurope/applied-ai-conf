@@ -4,6 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { SPEAKERS } from "@/data/speakers";
 import type { Speaker } from "@/types";
+import { LangdockLogo, ChocoLogo, TactoLogo, LegoraLogo } from "@/components";
+
+const COMPANY_LOGOS: Record<string, React.ComponentType<{ className?: string }>> = {
+  Langdock: LangdockLogo,
+  Choco: ChocoLogo,
+  Tacto: TactoLogo,
+  Legora: LegoraLogo,
+};
 
 export default function FeaturedSpeakers() {
   const speakers: Speaker[] = [...SPEAKERS];
@@ -23,12 +31,12 @@ export default function FeaturedSpeakers() {
   return (
     <section
       id="speakers"
-      className="relative w-full bg-black py-24 lg:py-32"
+      className="relative w-full bg-black py-24 lg:py-32 min-h-screen flex flex-col justify-center"
     >
       <div className="mx-auto w-full max-w-7xl px-6 lg:px-8">
         {/* Header */}
         <div className="mb-20 text-center">
-          <h2 className="text-4xl font-mono font-bold tracking-tighter text-white sm:text-5xl lg:text-6xl text-glow">
+          <h2 className="text-5xl font-mono font-bold tracking-tighter sm:text-6xl md:text-7xl lg:text-8xl text-glow">
             Speakers
           </h2>
           <p className="mt-4 text-lg text-gray-400">
@@ -85,11 +93,32 @@ export default function FeaturedSpeakers() {
                     <br />
                     {speaker.name.split(" ").slice(-1)[0]}
                   </h3>
-                  <p className="text-xs font-medium text-gray-400 mt-3 font-mono uppercase tracking-widest transition-colors duration-300 group-hover:text-green-700">
-                    {speaker.title}
-                    <span className="mx-2 text-white/30 transition-colors duration-300 group-hover:text-green-900">/</span>
-                    <span className="text-white/70 transition-colors duration-300 group-hover:text-green-600">{speaker.company}</span>
-                  </p>
+                  <div className="flex items-center gap-2 mt-3">
+                    <span className="text-xs font-medium text-gray-400 font-mono uppercase tracking-widest transition-colors duration-300 group-hover:text-green-700">
+                      {speaker.title}
+                    </span>
+                    <span className="text-white/30 transition-colors duration-300 group-hover:text-green-900">/</span>
+                    {COMPANY_LOGOS[speaker.company] ? (
+                      (() => {
+                        const LogoComponent = COMPANY_LOGOS[speaker.company];
+                        return (
+                          <LogoComponent className="h-4 w-auto text-white/70 transition-all duration-300 group-hover:text-green-500" />
+                        );
+                      })()
+                    ) : speaker.companyLogo ? (
+                      <Image
+                        src={speaker.companyLogo}
+                        alt={speaker.company}
+                        width={80}
+                        height={20}
+                        className="h-4 w-auto opacity-70 transition-all duration-300 group-hover:opacity-100 [filter:brightness(0)_invert(1)] group-hover:[filter:brightness(0)_saturate(100%)_invert(48%)_sepia(79%)_saturate(2476%)_hue-rotate(86deg)_brightness(118%)_contrast(119%)]"
+                      />
+                    ) : (
+                      <span className="text-xs font-medium text-white/70 font-mono uppercase tracking-widest transition-colors duration-300 group-hover:text-green-600">
+                        {speaker.company}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

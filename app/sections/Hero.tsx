@@ -15,8 +15,8 @@ export default function Hero() {
 
       {/* Main Content */}
       <div className="relative z-10 mx-auto flex w-full max-w-[90rem] flex-col items-center px-4 sm:px-6 lg:px-8 space-y-10">
-        {/* 1. Tech Europe Presents... */}
-        <div className="font-mono text-sm sm:text-base tracking-widest text-gray-500">
+        {/* 1. Tech Europe */}
+        <div className="font-mono text-xl sm:text-2xl md:text-3xl tracking-widest">
           <a
             href="https://techeurope.io"
             target="_blank"
@@ -24,15 +24,14 @@ export default function Hero() {
             className="text-white font-bold hover:text-gray-300 transition-colors"
           >
             {"{"}Tech: Europe{"}"}
-          </a>{" "}
-          <span className="uppercase">presents</span>
+          </a>
         </div>
 
         {/* 2. Main Title */}
-        <h1 className="w-full text-6xl font-bold tracking-tighter text-white sm:text-7xl md:text-8xl lg:text-[10rem] xl:text-[12rem] leading-[0.9] text-glow font-mono select-none">
-          Applied
+        <h1 className="w-full text-6xl font-bold tracking-tighter sm:text-7xl md:text-8xl lg:text-[10rem] xl:text-[12rem] leading-[0.9] font-mono select-none">
+          <span className="text-glow">Applied</span>
           <br />
-          <span className="text-white block mt-2 sm:mt-4">AI Conf</span>
+          <span className="text-glow block mt-2 sm:mt-4">AI Conf</span>
         </h1>
 
         {/* 3. HUD / Bento Grid - Integrated Actions */}
@@ -42,7 +41,8 @@ export default function Hero() {
             {/* Top Row: Intro Text (Full Width) */}
             <div className="col-span-1 md:col-span-12 p-6 sm:p-10 border-b border-white/10 flex items-center justify-center bg-black/20">
               <p className="text-xl sm:text-2xl text-gray-200 leading-relaxed font-normal drop-shadow-md">
-                Europe&apos;s top builders are shipping AI into production
+                Europe&apos;s top founders & builders are shipping AI into
+                production
               </p>
             </div>
 

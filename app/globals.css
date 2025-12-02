@@ -78,7 +78,7 @@ body {
   }
 
   .text-glow {
-    @apply text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-white/50;
+    @apply text-transparent bg-clip-text bg-gradient-to-b from-white via-gray-300 to-gray-500;
   }
   
   .text-glow-hover {

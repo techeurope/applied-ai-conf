@@ -4,11 +4,14 @@ import Link from "next/link";
 
 export default function PartnershipTiers() {
   return (
-    <section id="tiers" className="relative overflow-hidden py-24 lg:py-32">
+    <section
+      id="tiers"
+      className="relative overflow-hidden py-24 lg:py-32 min-h-screen flex flex-col justify-center"
+    >
       <div className="mx-auto w-full max-w-4xl px-6 lg:px-8">
         {/* Header */}
         <div className="mb-10 text-center">
-          <h2 className="text-4xl font-mono font-bold tracking-tighter text-white sm:text-5xl lg:text-6xl text-glow">
+          <h2 className="text-5xl font-mono font-bold tracking-tighter sm:text-6xl md:text-7xl lg:text-8xl text-glow">
             Partners
           </h2>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-400 leading-relaxed">

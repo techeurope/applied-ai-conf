@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { Ticket } from 'lucide-react';
 import { NAVIGATION_ACTIONS, NAVIGATION_LINKS } from '@/data/navigation';
 
 export default function Navigation() {
@@ -40,10 +41,19 @@ export default function Navigation() {
     >
       <div className="glass flex items-center gap-6 rounded-full px-6 py-3 transition-all duration-300 hover:border-white/20 hover:bg-white/10 shadow-lg shadow-black/20 backdrop-blur-xl">
         {/* Left side: Conference Name */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <Link href="/" className="text-sm font-mono font-bold tracking-wide text-white transition-colors hover:text-gray-300">
             Applied AI Conf
           </Link>
+          <span className="text-sm text-white/70">by</span>
+          <a
+            href="https://techeurope.io"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm font-mono text-white hover:text-gray-300 transition-colors"
+          >
+            {"{"}Tech: Europe{"}"}
+          </a>
         </div>
 
         {NAVIGATION_LINKS.length > 0 && (
@@ -68,8 +78,9 @@ export default function Navigation() {
         <div className="flex items-center gap-4">
           {NAVIGATION_ACTIONS.map((action) => {
             const isExternal = action.href.startsWith('http');
+            const isTicket = action.label.toLowerCase().includes('ticket');
             const classes = action.variant === 'primary'
-              ? "text-sm font-medium text-white hover:text-gray-300 transition-colors"
+              ? "flex items-center gap-2.5 text-sm font-medium text-white hover:text-gray-300 transition-colors"
               : "text-sm text-gray-400 hover:text-white transition-colors";
 
             if (isExternal) {
@@ -81,6 +92,7 @@ export default function Navigation() {
                   rel="noopener noreferrer"
                   className={classes}
                 >
+                  {isTicket && <Ticket className="h-4 w-4" />}
                   {action.label}
                 </a>
               );
@@ -88,6 +100,7 @@ export default function Navigation() {
 
             return (
               <Link key={action.label} href={action.href} className={classes}>
+                {isTicket && <Ticket className="h-4 w-4" />}
                 {action.label}
               </Link>
             );
