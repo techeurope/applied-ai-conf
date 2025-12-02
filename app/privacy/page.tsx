@@ -1,5 +1,4 @@
-import Navigation from "@/components/Navigation";
-import Footer from "@/components/Footer";
+import SubpageLayout from "@/components/SubpageLayout";
 
 export const metadata = {
   title: "Privacy Policy - Applied AI Conf by {Tech: Europe}",
@@ -8,12 +7,8 @@ export const metadata = {
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-black">
-      <Navigation />
-      
-      <main className="flex-1 w-full">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <h1 className="text-4xl font-bold font-mono text-white mb-12">Privacy Policy</h1>
+    <SubpageLayout>
+      <h1 className="text-4xl font-bold font-mono text-white mb-12">Privacy Policy</h1>
           
           <div className="prose prose-invert max-w-none text-gray-400">
             <p className="mb-8">
@@ -162,11 +157,7 @@ export default function PrivacyPage() {
             
             <p className="text-sm text-gray-500 mt-12">Last updated: November 19, 2025</p>
           </div>
-        </div>
-      </main>
-      
-      <Footer />
-    </div>
+    </SubpageLayout>
   );
 }
 

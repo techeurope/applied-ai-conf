@@ -22,6 +22,7 @@ app/
 │   ├── ui/            # Low-level UI primitives (shader backgrounds, newsletter form, button, label, slider)
 │   ├── Navigation.tsx # Floating pill navigation
 │   ├── Footer.tsx     # Site footer
+│   ├── SubpageLayout.tsx # Shared layout wrapper for subpages (Nav + Footer + spacing)
 │   └── index.ts       # Component exports
 ├── lib/                # Utility functions
 │   └── utils.ts       # Shared utilities (cn for className merging)
@@ -54,8 +55,9 @@ Data lives in `app/data/` as typed constants, imported into components/sections.
 ### Component Organization
 
 - **Sections** (`app/sections/`): Full-page sections with business logic (Hero, FeaturedSpeakers, PartnershipTiers, CallToAction)
-- **Components** (`app/components/`): Reusable UI elements (Navigation, Footer, shader backgrounds, UI primitives)
+- **Components** (`app/components/`): Reusable UI elements (Navigation, Footer, SubpageLayout, shader backgrounds, UI primitives)
 - **Main Page** (`app/page.tsx`): Composes sections in order
+- **Subpages** (`app/*/page.tsx`): Static pages (Team, Imprint, Privacy, Code of Conduct) use SubpageLayout for consistent spacing and structure
 
 ### Styling Approach
 
@@ -84,6 +86,7 @@ Conference data split by domain:
 - `conference.ts`: Title, tagline, location, date
 - `partnerships.ts`: Partnership tiers, audience segments, focus areas
 - `navigation.ts`: Header links and action buttons
+- `footer.ts`: Footer navigation links
 - `speakers.ts`, `faqs.ts`: Section specific content
 
 ## Current State
@@ -104,11 +107,12 @@ Conference data split by domain:
 - **Team** (`/team`): Dedicated page showcasing team members with grayscale photos and social links, mirroring speaker card aesthetic. Uses Nav + Footer layout, no Hero.
 - **Imprint** (`/imprint`): Legal information, company details, contact info, and disclaimer per German TMG regulations. Uses Nav + Footer layout, no Hero.
 - **Privacy** (`/privacy`): GDPR-compliant privacy policy covering data collection, processing, retention, and user rights. Uses Nav + Footer layout, no Hero.
+- **Code of Conduct** (`/code-of-conduct`): Community guidelines adapted from JSConf EU Code of Conduct, covering anti-harassment policies, enforcement, reporting procedures, and inclusive language expectations. Uses Nav + Footer layout, no Hero.
 
 **Navigation & CTAs:**
 
 - **Header:** Floating pill with Logo and "Get Tickets" CTA.
-- **Footer:** Links to Team, Imprint, Privacy pages. Includes social icons (X, LinkedIn).
+- **Footer:** Links to Team, Imprint, Privacy, and Code of Conduct pages. Includes social icons (X, LinkedIn).
 - **Primary CTA:** "Get Tickets" (links to Luma).
 - **Secondary CTAs:** "Become a Partner" (email/form links).
 

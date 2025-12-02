@@ -1,5 +1,4 @@
-import Navigation from "@/components/Navigation";
-import Footer from "@/components/Footer";
+import SubpageLayout from "@/components/SubpageLayout";
 
 export const metadata = {
   title: "Imprint - Applied AI Conf by {Tech: Europe}",
@@ -8,12 +7,8 @@ export const metadata = {
 
 export default function ImprintPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-black">
-      <Navigation />
-      
-      <main className="flex-1 w-full">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <h1 className="text-4xl font-bold font-mono text-white mb-12">Imprint</h1>
+    <SubpageLayout>
+      <h1 className="text-4xl font-bold font-mono text-white mb-12">Imprint</h1>
           
           <div className="prose prose-invert max-w-none">
             <h2 className="text-2xl font-mono font-bold text-white mt-12 mb-4">Information according to § 5 TMG</h2>
@@ -71,11 +66,7 @@ export default function ImprintPage() {
             
             <p className="text-sm text-gray-500 mt-12">Last updated: November 19, 2025</p>
           </div>
-        </div>
-      </main>
-      
-      <Footer />
-    </div>
+    </SubpageLayout>
   );
 }
 
