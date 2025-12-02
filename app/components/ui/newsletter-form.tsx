@@ -123,7 +123,7 @@ export function InlineNewsletterForm() {
     return (
       <div className="h-full flex items-center justify-center gap-2 text-emerald-400">
         <Check className="h-4 w-4" />
-        <span className="text-sm font-medium">Subscribed!</span>
+        <span className="text-sm font-medium">You&apos;re on the list!</span>
       </div>
     );
   }
@@ -133,9 +133,11 @@ export function InlineNewsletterForm() {
       <div className="relative w-full">
         <input
           type="email"
+          name="email"
+          autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="Enter email for updates"
+          placeholder="Receive updates via email"
           required
           disabled={status === "loading"}
           className="w-full h-10 pl-4 pr-10 rounded-full bg-white/5 border border-white/10 text-white placeholder:text-gray-500 text-sm focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all disabled:opacity-50"
@@ -199,9 +201,11 @@ export function CTANewsletterForm() {
     <form onSubmit={handleSubmit} className="relative w-full">
       <input
         type="email"
+        name="email"
+        autoComplete="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        placeholder="Enter your email for updates"
+        placeholder="Receive updates via email"
         required
         disabled={status === "loading"}
         className="w-full h-14 pl-6 pr-14 rounded-full bg-zinc-950 text-white placeholder:text-gray-500 text-base focus:outline-none focus:bg-zinc-900 transition-all disabled:opacity-50"
