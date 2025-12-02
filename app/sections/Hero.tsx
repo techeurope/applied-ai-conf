@@ -1,8 +1,8 @@
 import { CONFERENCE_INFO } from "@/data/conference";
 import { NAVIGATION_ACTIONS } from "@/data/navigation";
 import { LidarScapeBackground } from "@/components/ui/lidar-scape-background";
-import { NewsletterModal } from "@/components/ui/newsletter-form";
-import { MapPin, Calendar, ArrowRight, Ticket, Mail } from "lucide-react";
+import { InlineNewsletterForm } from "@/components/ui/newsletter-form";
+import { MapPin, Calendar, Ticket } from "lucide-react";
 
 export default function Hero() {
   const ticketAction = NAVIGATION_ACTIONS[0];
@@ -46,8 +46,8 @@ export default function Hero() {
               </p>
             </div>
 
-            {/* Middle Row Left: Venue (Single Line) */}
-            <div className="col-span-1 md:col-span-3 p-5 flex items-center justify-center gap-3 border-b md:border-b-0 md:border-r border-white/10 bg-black/40 hover:bg-black/50 transition-colors group relative">
+            {/* Middle Row Left: Venue */}
+            <div className="col-span-1 md:col-span-2 p-4 flex items-center justify-center gap-2 border-b md:border-b-0 md:border-r border-white/10 bg-black/40 hover:bg-black/50 transition-colors group relative">
               <a
                 href="https://www.thedelta.io/berlin/welcome"
                 target="_blank"
@@ -56,33 +56,26 @@ export default function Hero() {
               >
                 <span className="sr-only">View Venue</span>
               </a>
-              <MapPin className="h-5 w-5 text-white/80 shrink-0" />
-              <span className="text-base font-medium text-white hover:text-gray-300 transition-colors text-left">
+              <MapPin className="h-4 w-4 text-white/80 shrink-0" />
+              <span className="text-sm font-medium text-white hover:text-gray-300 transition-colors">
                 Berlin
               </span>
             </div>
 
-            {/* Middle Row Middle: Date (Single Line) */}
-            <div className="col-span-1 md:col-span-3 p-5 flex items-center justify-center gap-3 border-b md:border-b-0 md:border-r border-white/10 bg-black/40 hover:bg-black/50 transition-colors">
-              <Calendar className="h-5 w-5 text-white/80 shrink-0" />
-              <div className="text-base font-medium text-white">
+            {/* Middle Row: Date */}
+            <div className="col-span-1 md:col-span-2 p-4 flex items-center justify-center gap-2 border-b md:border-b-0 md:border-r border-white/10 bg-black/40 hover:bg-black/50 transition-colors">
+              <Calendar className="h-4 w-4 text-white/80 shrink-0" />
+              <div className="text-sm font-medium text-white">
                 {CONFERENCE_INFO.dateDisplay}
               </div>
             </div>
 
-            {/* Middle Row Right 1: Newsletter */}
-            <div className="col-span-1 md:col-span-3 p-0 border-b md:border-b-0 md:border-r border-white/10 bg-black/40 hover:bg-black/50 transition-colors group">
-              <NewsletterModal>
-                <button className="w-full h-full flex items-center justify-center gap-3 focus:outline-none cursor-pointer p-5">
-                  <Mail className="h-5 w-5 text-white/80 group-hover:text-white transition-colors shrink-0" />
-                  <span className="text-base font-medium text-white group-hover:text-white transition-colors">
-                    Receive Updates
-                  </span>
-                </button>
-              </NewsletterModal>
+            {/* Middle Row: Newsletter Email Field */}
+            <div className="col-span-1 md:col-span-5 p-2 border-b md:border-b-0 md:border-r border-white/10 bg-black/40">
+              <InlineNewsletterForm />
             </div>
 
-            {/* Middle Row Right 2: Ticket Action (Simple White) */}
+            {/* Middle Row Right: Ticket Action (Simple White) */}
             <div className="col-span-1 md:col-span-3 p-0 relative overflow-hidden group bg-white hover:bg-gray-50 transition-colors rounded-br-2xl">
               <a
                 href={ticketAction.href}
@@ -95,10 +88,9 @@ export default function Hero() {
 
               <div className="relative z-20 w-full h-full p-5 flex items-center justify-center gap-3">
                 <Ticket className="h-5 w-5 text-black shrink-0" />
-                <div className="flex items-center gap-2 text-lg font-bold text-black">
+                <span className="text-base font-bold text-black">
                   Get Tickets
-                  <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1 ml-1" />
-                </div>
+                </span>
               </div>
             </div>
           </div>

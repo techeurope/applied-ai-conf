@@ -1,7 +1,6 @@
 "use client";
 
-import { NewsletterModal } from "@/components/ui/newsletter-form";
-import { Mail } from "lucide-react";
+import { CTANewsletterForm } from "@/components/ui/newsletter-form";
 
 export default function CallToAction() {
   return (
@@ -20,12 +19,12 @@ export default function CallToAction() {
           </p>
         </div>
 
-        {/* CTA - Single Button */}
+        {/* CTA - Newsletter with spinning border */}
         <div className="flex justify-center">
-          <div className="relative overflow-hidden group rounded-2xl">
+          <div className="relative overflow-hidden group rounded-full w-full max-w-md">
             {/* Rotating Rectangle (Beam) */}
             <div
-              className="absolute bottom-[50%] left-[-25%] w-[150%] h-[300%] origin-bottom animate-[spin_6s_linear_infinite]"
+              className="absolute bottom-[50%] left-[-50%] w-[200%] h-[600%] origin-bottom animate-[spin_6s_linear_infinite]"
               style={{
                 background:
                   "linear-gradient(to bottom, #3b82f6 0%, #8b5cf6 25%, #ec4899 50%, #f97316 75%, transparent 100%)",
@@ -33,16 +32,12 @@ export default function CallToAction() {
             />
 
             {/* Dark Background Layer */}
-            <div className="absolute top-[2px] left-[2px] right-[2px] bottom-[2px] bg-zinc-950 z-10 transition-colors duration-300 group-hover:bg-zinc-900 rounded-[14px]" />
+            <div className="absolute top-[2px] left-[2px] right-[2px] bottom-[2px] bg-zinc-950 z-10 rounded-full" />
 
-            <NewsletterModal>
-              <button className="relative z-20 py-5 px-10 flex items-center justify-center gap-3 focus:outline-none cursor-pointer">
-                <Mail className="h-5 w-5 text-white/80 group-hover:text-white transition-colors shrink-0" />
-                <span className="text-lg font-semibold text-white">
-                  Receive updates
-                </span>
-              </button>
-            </NewsletterModal>
+            {/* Newsletter Form */}
+            <div className="relative z-20 p-1">
+              <CTANewsletterForm />
+            </div>
           </div>
         </div>
       </div>

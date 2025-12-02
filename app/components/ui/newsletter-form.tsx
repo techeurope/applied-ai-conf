@@ -90,6 +90,138 @@ export function NewsletterForm({ className = "", variant = "default" }: Newslett
   );
 }
 
+// Inline compact newsletter form for Hero HUD - button integrated inside input
+export function InlineNewsletterForm() {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+
+    setStatus("loading");
+
+    try {
+      const response = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      if (response.ok) {
+        setStatus("success");
+        setEmail("");
+      } else {
+        setStatus("error");
+      }
+    } catch {
+      setStatus("error");
+    }
+  };
+
+  if (status === "success") {
+    return (
+      <div className="h-full flex items-center justify-center gap-2 text-emerald-400">
+        <Check className="h-4 w-4" />
+        <span className="text-sm font-medium">Subscribed!</span>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="h-full flex items-center px-2">
+      <div className="relative w-full">
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Enter email for updates"
+          required
+          disabled={status === "loading"}
+          className="w-full h-10 pl-4 pr-10 rounded-full bg-white/5 border border-white/10 text-white placeholder:text-gray-500 text-sm focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all disabled:opacity-50"
+        />
+        <button
+          type="submit"
+          disabled={status === "loading" || !email}
+          className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all disabled:opacity-0 disabled:pointer-events-none flex items-center justify-center"
+          aria-label="Subscribe"
+        >
+          {status === "loading" ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <ArrowRight className="h-4 w-4" />
+          )}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+// CTA newsletter form with larger styling for bottom section
+export function CTANewsletterForm() {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+
+    setStatus("loading");
+
+    try {
+      const response = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      if (response.ok) {
+        setStatus("success");
+        setEmail("");
+      } else {
+        setStatus("error");
+      }
+    } catch {
+      setStatus("error");
+    }
+  };
+
+  if (status === "success") {
+    return (
+      <div className="h-14 flex items-center justify-center gap-2 text-emerald-400 px-6">
+        <Check className="h-5 w-5" />
+        <span className="text-base font-medium">You&apos;re on the list!</span>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="relative w-full">
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="Enter your email for updates"
+        required
+        disabled={status === "loading"}
+        className="w-full h-14 pl-6 pr-14 rounded-full bg-zinc-950 text-white placeholder:text-gray-500 text-base focus:outline-none focus:bg-zinc-900 transition-all disabled:opacity-50"
+      />
+      <button
+        type="submit"
+        disabled={status === "loading" || !email}
+        className="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all disabled:opacity-0 disabled:pointer-events-none flex items-center justify-center"
+        aria-label="Subscribe"
+      >
+        {status === "loading" ? (
+          <Loader2 className="h-5 w-5 animate-spin" />
+        ) : (
+          <ArrowRight className="h-5 w-5" />
+        )}
+      </button>
+    </form>
+  );
+}
+
 export function NewsletterModal({ children }: { children: React.ReactNode }) {
   return (
     <Dialog.Root>
