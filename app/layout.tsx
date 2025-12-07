@@ -16,8 +16,34 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Applied AI Conf by {Tech: Europe} - Applied AI",
-  description: "First edition - May 28, 2026 at Delta Campus, Berlin",
+  title: "Applied AI Conf by {Tech: Europe}",
+  description:
+    "Europe's top founders & builders are shipping AI into production - May 28, 2026 at Delta Campus, Berlin",
+  metadataBase: new URL("https://appliedai.events"),
+  openGraph: {
+    title: "Applied AI Conf by {Tech: Europe}",
+    description:
+      "Europe's top founders & builders are shipping AI into production - May 28, 2026 at Delta Campus, Berlin",
+    url: "https://conference.techeurope.io",
+    siteName: "Applied AI Conf by {Tech: Europe}",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 1200,
+        alt: "Applied AI Conf - Berlin | May 28, 2026",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Applied AI Conf by {Tech: Europe}",
+    description:
+      "Europe's top founders & builders are shipping AI into production - May 28, 2026 at Delta Campus, Berlin",
+    images: ["/og-image.jpg"],
+  },
 };
 
 export default function RootLayout({
