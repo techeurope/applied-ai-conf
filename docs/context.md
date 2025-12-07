@@ -2,11 +2,11 @@
 
 ## Overview
 
-Next.js 15 conference website for "Applied AI Conf by {Tech: Europe}" - an event series, with the first edition focused on Applied AI. Scheduled for May 28, 2026 at The Delta Campus in Berlin. Built with React 19, TypeScript, Tailwind CSS v4, and React Three Fiber shader graphics.
+Next.js 16 conference website for "Applied AI Conf by {Tech: Europe}" - an event series, with the first edition focused on Applied AI. Scheduled for May 28, 2026 at The Delta Campus in Berlin. Built with React 19, TypeScript, Tailwind CSS v4, and React Three Fiber shader graphics.
 
 ## Architecture
 
-**Framework:** Next.js 15.5.6 with App Router
+**Framework:** Next.js 16.0.7 with App Router
 **Language:** TypeScript (strict mode)
 **Styling:** Tailwind CSS v4 with PostCSS
 **Graphics:** React Three Fiber with Three.js for shader-based backgrounds
