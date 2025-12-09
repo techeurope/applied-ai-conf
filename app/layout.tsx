@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   title: "Applied AI Conf by {Tech: Europe}",
   description:
     "Europe's top founders & builders are shipping AI into production - May 28, 2026 at Delta Campus, Berlin",
-  metadataBase: new URL("https://appliedai.events"),
+  metadataBase: new URL("https://conference.techeurope.io"),
   openGraph: {
     title: "Applied AI Conf by {Tech: Europe}",
     description:
