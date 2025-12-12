@@ -1,16 +1,20 @@
 "use client";
 
-import { useState } from "react";
 import {
   ChevronDown,
-  ChevronUp,
   Download,
   Maximize2,
   Minimize2,
   RotateCcw,
+  MousePointer,
+  Image,
+  Type,
+  Palette,
+  MapPin,
 } from "lucide-react";
 import { SPEAKERS } from "@/data/speakers";
-import type { AssetConfig, PreviewMode } from "../store";
+import type { AssetConfig, PreviewMode, ElementType } from "../store";
+import { useSpeakerAssetStore } from "../store";
 
 // Resolution options
 export const RESOLUTIONS = {
@@ -20,36 +24,6 @@ export const RESOLUTIONS = {
 } as const;
 
 export type ResolutionKey = keyof typeof RESOLUTIONS;
-
-// Control section component
-function ControlSection({
-  title,
-  children,
-  defaultOpen = false,
-}: {
-  title: string;
-  children: React.ReactNode;
-  defaultOpen?: boolean;
-}) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-
-  return (
-    <div className="border border-white/10 rounded-lg overflow-hidden">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-3 py-2 bg-white/5 hover:bg-white/10 transition-colors"
-      >
-        <span className="text-sm font-mono text-gray-300">{title}</span>
-        {isOpen ? (
-          <ChevronUp className="w-4 h-4 text-gray-400" />
-        ) : (
-          <ChevronDown className="w-4 h-4 text-gray-400" />
-        )}
-      </button>
-      {isOpen && <div className="p-3 space-y-3">{children}</div>}
-    </div>
-  );
-}
 
 // Slider control
 function SliderControl({
@@ -135,6 +109,360 @@ function TextControl({
   );
 }
 
+// Element info display
+const ELEMENT_INFO: Record<
+  NonNullable<ElementType>,
+  { label: string; icon: typeof Type; description: string }
+> = {
+  image: {
+    label: "Speaker Image",
+    icon: Image,
+    description: "The speaker's photo",
+  },
+  name: {
+    label: "Speaker Name",
+    icon: Type,
+    description: "The speaker's name text",
+  },
+  subtitle: {
+    label: "Title",
+    icon: Type,
+    description: "Job title text",
+  },
+  logo: {
+    label: "Company Logo",
+    icon: Image,
+    description: "Company logo image",
+  },
+  branding: {
+    label: "Conference Branding",
+    icon: Type,
+    description: "Conference name text",
+  },
+  dateLocation: {
+    label: "Date & Location",
+    icon: MapPin,
+    description: "Event date and location",
+  },
+  background: {
+    label: "Background",
+    icon: Palette,
+    description: "Background styling",
+  },
+};
+
+// Contextual controls for each element type
+function ElementControls({
+  config,
+  updateConfig,
+  updatePosition,
+}: {
+  config: AssetConfig;
+  updateConfig: <K extends keyof AssetConfig>(
+    key: K,
+    value: Partial<AssetConfig[K]>
+  ) => void;
+  updatePosition: (
+    element: keyof AssetConfig,
+    position: { x?: number; y?: number }
+  ) => void;
+}) {
+  const selectedElement = useSpeakerAssetStore((s) => s.selectedElement);
+
+  if (!selectedElement) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        <MousePointer className="w-8 h-8 mx-auto mb-3 opacity-50" />
+        <p className="text-sm">Click on an element in the preview to edit it</p>
+        <p className="text-xs mt-1 text-gray-600">
+          Drag elements to reposition them
+        </p>
+      </div>
+    );
+  }
+
+  const elementInfo = ELEMENT_INFO[selectedElement];
+  const Icon = elementInfo.icon;
+
+  return (
+    <div className="space-y-4">
+      {/* Element header */}
+      <div className="flex items-center gap-2 pb-2 border-b border-white/10">
+        <Icon className="w-4 h-4 text-amber-500" />
+        <div>
+          <h3 className="text-sm font-mono text-white">{elementInfo.label}</h3>
+          <p className="text-xs text-gray-500">{elementInfo.description}</p>
+        </div>
+      </div>
+
+      {/* Element-specific controls */}
+      <div className="space-y-3">
+        {selectedElement === "image" && (
+          <>
+            <SliderControl
+              label="Size"
+              value={config.image.size}
+              onChange={(v) => updateConfig("image", { size: v })}
+              min={0.5}
+              max={4}
+              step={0.1}
+            />
+            <SliderControl
+              label="Position X"
+              value={config.image.position.x}
+              onChange={(v) => updatePosition("image", { x: v })}
+              min={-2}
+              max={2}
+              step={0.05}
+            />
+            <SliderControl
+              label="Position Y"
+              value={config.image.position.y}
+              onChange={(v) => updatePosition("image", { y: v })}
+              min={-2}
+              max={2}
+              step={0.05}
+            />
+          </>
+        )}
+
+        {selectedElement === "name" && (
+          <>
+            <SliderControl
+              label="Font Size"
+              value={config.name.fontSize}
+              onChange={(v) => updateConfig("name", { fontSize: v })}
+              min={0.1}
+              max={0.5}
+              step={0.01}
+            />
+            <ColorControl
+              label="Color"
+              value={config.name.color}
+              onChange={(v) => updateConfig("name", { color: v })}
+            />
+            <SliderControl
+              label="Letter Spacing"
+              value={config.name.letterSpacing}
+              onChange={(v) => updateConfig("name", { letterSpacing: v })}
+              min={-0.1}
+              max={0.2}
+              step={0.01}
+            />
+            <SliderControl
+              label="Position X"
+              value={config.name.position.x}
+              onChange={(v) => updatePosition("name", { x: v })}
+              min={-2}
+              max={2}
+              step={0.05}
+            />
+            <SliderControl
+              label="Position Y"
+              value={config.name.position.y}
+              onChange={(v) => updatePosition("name", { y: v })}
+              min={-2}
+              max={2}
+              step={0.05}
+            />
+          </>
+        )}
+
+        {selectedElement === "subtitle" && (
+          <>
+            <SliderControl
+              label="Font Size"
+              value={config.subtitle.fontSize}
+              onChange={(v) => updateConfig("subtitle", { fontSize: v })}
+              min={0.05}
+              max={0.3}
+              step={0.01}
+            />
+            <ColorControl
+              label="Color"
+              value={config.subtitle.color}
+              onChange={(v) => updateConfig("subtitle", { color: v })}
+            />
+            <SliderControl
+              label="Letter Spacing"
+              value={config.subtitle.letterSpacing}
+              onChange={(v) => updateConfig("subtitle", { letterSpacing: v })}
+              min={-0.1}
+              max={0.2}
+              step={0.01}
+            />
+            <SliderControl
+              label="Position X"
+              value={config.subtitle.position.x}
+              onChange={(v) => updatePosition("subtitle", { x: v })}
+              min={-2}
+              max={2}
+              step={0.05}
+            />
+            <SliderControl
+              label="Position Y"
+              value={config.subtitle.position.y}
+              onChange={(v) => updatePosition("subtitle", { y: v })}
+              min={-2}
+              max={2}
+              step={0.05}
+            />
+          </>
+        )}
+
+        {selectedElement === "logo" && (
+          <>
+            <SliderControl
+              label="Scale"
+              value={config.logo.scale}
+              onChange={(v) => updateConfig("logo", { scale: v })}
+              min={0.05}
+              max={0.3}
+              step={0.01}
+            />
+            <SliderControl
+              label="Opacity"
+              value={config.logo.opacity}
+              onChange={(v) => updateConfig("logo", { opacity: v })}
+              min={0.1}
+              max={1}
+              step={0.05}
+            />
+            <SliderControl
+              label="Position X"
+              value={config.logo.position.x}
+              onChange={(v) => updatePosition("logo", { x: v })}
+              min={-2}
+              max={2}
+              step={0.05}
+            />
+            <SliderControl
+              label="Position Y"
+              value={config.logo.position.y}
+              onChange={(v) => updatePosition("logo", { y: v })}
+              min={-2}
+              max={2}
+              step={0.05}
+            />
+          </>
+        )}
+
+        {selectedElement === "branding" && (
+          <>
+            <TextControl
+              label="Text"
+              value={config.branding.text}
+              onChange={(v) => updateConfig("branding", { text: v })}
+            />
+            <SliderControl
+              label="Font Size"
+              value={config.branding.fontSize}
+              onChange={(v) => updateConfig("branding", { fontSize: v })}
+              min={0.05}
+              max={0.25}
+              step={0.01}
+            />
+            <ColorControl
+              label="Color"
+              value={config.branding.color}
+              onChange={(v) => updateConfig("branding", { color: v })}
+            />
+            <SliderControl
+              label="Letter Spacing"
+              value={config.branding.letterSpacing}
+              onChange={(v) => updateConfig("branding", { letterSpacing: v })}
+              min={0}
+              max={0.2}
+              step={0.01}
+            />
+            <SliderControl
+              label="Position X"
+              value={config.branding.position.x}
+              onChange={(v) => updatePosition("branding", { x: v })}
+              min={-2}
+              max={2}
+              step={0.05}
+            />
+            <SliderControl
+              label="Position Y"
+              value={config.branding.position.y}
+              onChange={(v) => updatePosition("branding", { y: v })}
+              min={-2}
+              max={2}
+              step={0.05}
+            />
+          </>
+        )}
+
+        {selectedElement === "dateLocation" && (
+          <>
+            <TextControl
+              label="Text"
+              value={config.dateLocation.text}
+              onChange={(v) => updateConfig("dateLocation", { text: v })}
+            />
+            <SliderControl
+              label="Font Size"
+              value={config.dateLocation.fontSize}
+              onChange={(v) => updateConfig("dateLocation", { fontSize: v })}
+              min={0.03}
+              max={0.2}
+              step={0.01}
+            />
+            <ColorControl
+              label="Color"
+              value={config.dateLocation.color}
+              onChange={(v) => updateConfig("dateLocation", { color: v })}
+            />
+            <SliderControl
+              label="Letter Spacing"
+              value={config.dateLocation.letterSpacing}
+              onChange={(v) => updateConfig("dateLocation", { letterSpacing: v })}
+              min={-0.1}
+              max={0.2}
+              step={0.01}
+            />
+            <SliderControl
+              label="Position X"
+              value={config.dateLocation.position.x}
+              onChange={(v) => updatePosition("dateLocation", { x: v })}
+              min={-2}
+              max={2}
+              step={0.05}
+            />
+            <SliderControl
+              label="Position Y"
+              value={config.dateLocation.position.y}
+              onChange={(v) => updatePosition("dateLocation", { y: v })}
+              min={-2}
+              max={2}
+              step={0.05}
+            />
+          </>
+        )}
+
+        {selectedElement === "background" && (
+          <>
+            <SliderControl
+              label="Overlay Opacity"
+              value={config.background.overlayOpacity}
+              onChange={(v) => updateConfig("background", { overlayOpacity: v })}
+              min={0}
+              max={1}
+              step={0.05}
+            />
+            <ColorControl
+              label="Grid Color"
+              value={config.background.gridColor}
+              onChange={(v) => updateConfig("background", { gridColor: v })}
+            />
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 interface ControlPanelProps {
   // Preview mode
   previewMode: PreviewMode;
@@ -172,6 +500,9 @@ export function ControlPanel({
   updateConfig,
   resetConfig,
 }: ControlPanelProps) {
+  const { selectedElement, setSelectedElement, resetElement, updatePosition } =
+    useSpeakerAssetStore();
+
   return (
     <div className="w-full lg:w-96 border-l border-white/10 p-4 space-y-4 overflow-y-auto">
       {/* Preview Mode Toggle */}
@@ -254,157 +585,74 @@ export function ControlPanel({
         {isExporting ? "Exporting..." : "Download PNG"}
       </button>
 
-      {/* Advanced Controls */}
-      {showAdvanced && (
-        <div className="space-y-3 pt-4 border-t border-white/10">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-mono text-gray-300">
-              Style Controls
-            </span>
+      {/* Divider */}
+      <div className="border-t border-white/10 pt-4">
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-sm font-mono text-gray-300">
+            Element Controls
+          </span>
+          <div className="flex gap-2">
+            {selectedElement && selectedElement !== "background" && (
+              <button
+                onClick={() => resetElement(selectedElement)}
+                className="flex items-center gap-1 text-xs text-gray-500 hover:text-amber-500 transition-colors"
+                title={`Reset ${ELEMENT_INFO[selectedElement].label}`}
+              >
+                <RotateCcw className="w-3 h-3" />
+                Reset Element
+              </button>
+            )}
             <button
-              onClick={resetConfig}
+              onClick={() => {
+                resetConfig();
+                setSelectedElement(null);
+              }}
               className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors"
+              title="Reset all elements"
             >
               <RotateCcw className="w-3 h-3" />
-              Reset
+              Reset All
             </button>
           </div>
-
-          {/* Image Controls */}
-          <ControlSection title="Image" defaultOpen>
-            <SliderControl
-              label="Size"
-              value={config.image.size}
-              onChange={(v) => updateConfig("image", { size: v })}
-              min={1}
-              max={3}
-              step={0.1}
-            />
-            <SliderControl
-              label="Position Y"
-              value={config.image.positionY}
-              onChange={(v) => updateConfig("image", { positionY: v })}
-              min={-1}
-              max={2}
-              step={0.1}
-            />
-          </ControlSection>
-
-          {/* Name Controls */}
-          <ControlSection title="Speaker Name">
-            <SliderControl
-              label="Font Size"
-              value={config.name.fontSize}
-              onChange={(v) => updateConfig("name", { fontSize: v })}
-              min={0.1}
-              max={0.5}
-              step={0.01}
-            />
-            <ColorControl
-              label="Color"
-              value={config.name.color}
-              onChange={(v) => updateConfig("name", { color: v })}
-            />
-            <SliderControl
-              label="Letter Spacing"
-              value={config.name.letterSpacing}
-              onChange={(v) => updateConfig("name", { letterSpacing: v })}
-              min={-0.1}
-              max={0.2}
-              step={0.01}
-            />
-          </ControlSection>
-
-          {/* Subtitle Controls */}
-          <ControlSection title="Title">
-            <SliderControl
-              label="Font Size"
-              value={config.subtitle.fontSize}
-              onChange={(v) => updateConfig("subtitle", { fontSize: v })}
-              min={0.05}
-              max={0.3}
-              step={0.01}
-            />
-            <ColorControl
-              label="Color"
-              value={config.subtitle.color}
-              onChange={(v) => updateConfig("subtitle", { color: v })}
-            />
-          </ControlSection>
-
-          {/* Branding Controls */}
-          <ControlSection title="Conference Branding">
-            <TextControl
-              label="Text"
-              value={config.branding.text}
-              onChange={(v) => updateConfig("branding", { text: v })}
-            />
-            <SliderControl
-              label="Font Size"
-              value={config.branding.fontSize}
-              onChange={(v) => updateConfig("branding", { fontSize: v })}
-              min={0.05}
-              max={0.25}
-              step={0.01}
-            />
-            <ColorControl
-              label="Color"
-              value={config.branding.color}
-              onChange={(v) => updateConfig("branding", { color: v })}
-            />
-            <SliderControl
-              label="Letter Spacing"
-              value={config.branding.letterSpacing}
-              onChange={(v) => updateConfig("branding", { letterSpacing: v })}
-              min={0}
-              max={0.2}
-              step={0.01}
-            />
-          </ControlSection>
-
-          {/* Date/Location Controls */}
-          <ControlSection title="Date & Location">
-            <TextControl
-              label="Text"
-              value={config.dateLocation.text}
-              onChange={(v) => updateConfig("dateLocation", { text: v })}
-            />
-            <SliderControl
-              label="Font Size"
-              value={config.dateLocation.fontSize}
-              onChange={(v) => updateConfig("dateLocation", { fontSize: v })}
-              min={0.03}
-              max={0.2}
-              step={0.01}
-            />
-            <ColorControl
-              label="Color"
-              value={config.dateLocation.color}
-              onChange={(v) => updateConfig("dateLocation", { color: v })}
-            />
-          </ControlSection>
-
-          {/* Background Controls */}
-          <ControlSection title="Background">
-            <SliderControl
-              label="Overlay Opacity"
-              value={config.background.overlayOpacity}
-              onChange={(v) => updateConfig("background", { overlayOpacity: v })}
-              min={0}
-              max={1}
-              step={0.05}
-            />
-            <ColorControl
-              label="Grid Color"
-              value={config.background.gridColor}
-              onChange={(v) => updateConfig("background", { gridColor: v })}
-            />
-          </ControlSection>
         </div>
-      )}
+
+        {/* Contextual Element Controls */}
+        <ElementControls
+          config={config}
+          updateConfig={updateConfig}
+          updatePosition={updatePosition}
+        />
+      </div>
+
+      {/* Quick selection buttons */}
+      <div className="border-t border-white/10 pt-4">
+        <span className="text-xs text-gray-500 font-mono block mb-2">
+          Quick Select
+        </span>
+        <div className="flex flex-wrap gap-1">
+          {(
+            Object.keys(ELEMENT_INFO) as Array<keyof typeof ELEMENT_INFO>
+          ).map((key) => {
+            const info = ELEMENT_INFO[key];
+            const Icon = info.icon;
+            return (
+              <button
+                key={key}
+                onClick={() => setSelectedElement(key)}
+                className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-mono transition-all ${
+                  selectedElement === key
+                    ? "bg-amber-600 text-white"
+                    : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                }`}
+                title={info.label}
+              >
+                <Icon className="w-3 h-3" />
+                <span className="hidden sm:inline">{info.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
-
-
-

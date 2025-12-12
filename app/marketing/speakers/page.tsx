@@ -3,7 +3,6 @@
 import { useState, useRef, Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
-import { Settings } from "lucide-react";
 import { SPEAKERS } from "@/data/speakers";
 import { useSpeakerAssetStore } from "./store";
 import {
@@ -52,8 +51,7 @@ export default function SpeakerAssetsPage() {
     config,
     updateConfig,
     resetConfig,
-    showAdvanced,
-    setShowAdvanced,
+    setSelectedElement,
   } = useSpeakerAssetStore();
 
   const selectedSpeaker = SPEAKERS[selectedSpeakerIndex];
@@ -61,17 +59,24 @@ export default function SpeakerAssetsPage() {
   const handleExport = () => {
     if (!rendererRef.current || isExporting) return;
 
+    // Deselect element before export to hide selection indicators
+    setSelectedElement(null);
+
     setIsExporting(true);
-    try {
-      const filename = selectedSpeaker.name.toLowerCase().replace(/\s+/g, "_");
-      exportHighRes(
-        rendererRef.current,
-        RESOLUTIONS[selectedResolution],
-        filename
-      );
-    } finally {
-      setIsExporting(false);
-    }
+    
+    // Small delay to allow selection indicator to be removed
+    setTimeout(() => {
+      try {
+        const filename = selectedSpeaker.name.toLowerCase().replace(/\s+/g, "_");
+        exportHighRes(
+          rendererRef.current!,
+          RESOLUTIONS[selectedResolution],
+          filename
+        );
+      } finally {
+        setIsExporting(false);
+      }
+    }, 100);
   };
 
   return (
@@ -83,20 +88,9 @@ export default function SpeakerAssetsPage() {
             Speaker Marketing Assets
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Generate 1:1 speaker images for social media
+            Click elements to edit • Drag to reposition
           </p>
         </div>
-        <button
-          onClick={() => setShowAdvanced(!showAdvanced)}
-          className={`flex items-center gap-2 px-3 py-2 rounded-lg border font-mono text-sm transition-all ${
-            showAdvanced
-              ? "bg-amber-600 text-white border-amber-600"
-              : "bg-transparent text-gray-400 border-white/20 hover:border-white/40"
-          }`}
-        >
-          <Settings className="w-4 h-4" />
-          Advanced
-        </button>
       </div>
 
       <div className="flex flex-col lg:flex-row h-[calc(100vh-73px)]">
@@ -121,6 +115,7 @@ export default function SpeakerAssetsPage() {
               gl={{ preserveDrawingBuffer: true, antialias: true }}
               camera={{ position: [0, 0, 5], fov: 45 }}
               dpr={[1, 2]}
+              flat // Disable tone mapping for accurate colors
             >
               <Suspense fallback={null}>
                 <SpeakerAssetScene
@@ -143,7 +138,7 @@ export default function SpeakerAssetsPage() {
           setSelectedResolution={setSelectedResolution}
           isExporting={isExporting}
           onExport={handleExport}
-          showAdvanced={showAdvanced}
+          showAdvanced={true}
           config={config}
           updateConfig={updateConfig}
           resetConfig={resetConfig}

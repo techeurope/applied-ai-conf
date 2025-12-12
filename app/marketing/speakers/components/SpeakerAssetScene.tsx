@@ -4,9 +4,11 @@ import { useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { SPEAKERS } from "@/data/speakers";
 import type { AssetConfig } from "../store";
+import { useSpeakerAssetStore } from "../store";
 import { LidarGridBackground } from "./LidarGridBackground";
 import { SpeakerImage } from "./SpeakerImage";
 import { SpeakerTextOverlay } from "./SpeakerTextOverlay";
+import { BackgroundClickArea, SelectableElement } from "./SelectableElement";
 
 export interface RendererRef {
   gl: THREE.WebGLRenderer;
@@ -26,6 +28,7 @@ export function SpeakerAssetScene({
   config,
 }: SpeakerAssetSceneProps) {
   const { gl, scene, camera } = useThree();
+  const { selectedElement, setSelectedElement } = useSpeakerAssetStore();
 
   if (!rendererRef.current || rendererRef.current.gl !== gl) {
     rendererRef.current = { gl, scene, camera };
@@ -33,14 +36,24 @@ export function SpeakerAssetScene({
 
   return (
     <>
+      {/* Background click area for deselection */}
+      <BackgroundClickArea />
+
       {/* Dark background plane */}
       <mesh position={[0, 0, -10]}>
         <planeGeometry args={[50, 50]} />
         <meshBasicMaterial color="#05070f" />
       </mesh>
 
-      {/* Lidar background */}
-      <LidarGridBackground gridColor={config.background.gridColor} />
+      {/* Lidar background - selectable for background controls */}
+      <group
+        onPointerDown={(e) => {
+          e.stopPropagation();
+          setSelectedElement("background");
+        }}
+      >
+        <LidarGridBackground gridColor={config.background.gridColor} />
+      </group>
 
       {/* Semi-transparent overlay for readability */}
       <mesh position={[0, 0, -0.5]}>
@@ -54,11 +67,7 @@ export function SpeakerAssetScene({
 
       {/* Speaker image */}
       {speaker.image && (
-        <SpeakerImage
-          imageUrl={speaker.image}
-          size={config.image.size}
-          positionY={config.image.positionY}
-        />
+        <SpeakerImage imageUrl={speaker.image} config={config} />
       )}
 
       {/* Text content */}
@@ -68,9 +77,14 @@ export function SpeakerAssetScene({
         company={speaker.company}
         config={config}
       />
+
+      {/* Selection indicator overlay */}
+      {selectedElement === "background" && (
+        <mesh position={[0, 0, -0.49]}>
+          <planeGeometry args={[6, 6]} />
+          <meshBasicMaterial color="#ab7030" transparent opacity={0.1} />
+        </mesh>
+      )}
     </>
   );
 }
-
-
-

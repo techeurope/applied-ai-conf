@@ -2,43 +2,61 @@
 
 import { Suspense } from "react";
 import { useLoader } from "@react-three/fiber";
-import { TextureLoader } from "three";
+import { TextureLoader, SRGBColorSpace } from "three";
+import { useSpeakerAssetStore } from "../store";
+import type { AssetConfig } from "../store";
+import { SelectableElement } from "./SelectableElement";
 
 interface SpeakerImageMeshProps {
   imageUrl: string;
   size: number;
-  positionY: number;
 }
 
-function SpeakerImageMesh({ imageUrl, size, positionY }: SpeakerImageMeshProps) {
+function SpeakerImageMesh({ imageUrl, size }: SpeakerImageMeshProps) {
   const texture = useLoader(TextureLoader, imageUrl);
+  const selectedElement = useSpeakerAssetStore((s) => s.selectedElement);
+
+  // Ensure proper color rendering (web images are sRGB)
+  texture.colorSpace = SRGBColorSpace;
 
   return (
-    <mesh position={[0, positionY, 0]}>
-      <planeGeometry args={[size, size]} />
-      <meshBasicMaterial map={texture} />
-    </mesh>
+    <group>
+      {/* Selection outline */}
+      {selectedElement === "image" && (
+        <mesh position={[0, 0, -0.01]}>
+          <planeGeometry args={[size + 0.08, size + 0.08]} />
+          <meshBasicMaterial color="#ab7030" transparent opacity={0.4} />
+        </mesh>
+      )}
+      <mesh>
+        <planeGeometry args={[size, size]} />
+        <meshBasicMaterial map={texture} />
+      </mesh>
+    </group>
   );
 }
 
 interface SpeakerImageProps {
   imageUrl: string;
-  size: number;
-  positionY: number;
+  config: AssetConfig;
 }
 
-export function SpeakerImage({ imageUrl, size, positionY }: SpeakerImageProps) {
+export function SpeakerImage({ imageUrl, config }: SpeakerImageProps) {
+  const updatePosition = useSpeakerAssetStore((s) => s.updatePosition);
+
   return (
-    <Suspense fallback={null}>
-      <SpeakerImageMesh
-        key={imageUrl}
-        imageUrl={imageUrl}
-        size={size}
-        positionY={positionY}
-      />
-    </Suspense>
+    <SelectableElement
+      elementType="image"
+      position={config.image.position}
+      onPositionChange={(pos) => updatePosition("image", pos)}
+    >
+      <Suspense fallback={null}>
+        <SpeakerImageMesh
+          key={imageUrl}
+          imageUrl={imageUrl}
+          size={config.image.size}
+        />
+      </Suspense>
+    </SelectableElement>
   );
 }
-
-
-
