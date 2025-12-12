@@ -6,6 +6,13 @@ import {
   Maximize2,
   Minimize2,
   RotateCcw,
+  Undo2,
+  Redo2,
+  AlignHorizontalJustifyCenter,
+  AlignVerticalJustifyCenter,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
   MousePointer,
   Image,
   Type,
@@ -168,8 +175,10 @@ function ElementControls({
   ) => void;
 }) {
   const selectedElement = useSpeakerAssetStore((s) => s.selectedElement);
+  const selectedElements = useSpeakerAssetStore((s) => s.selectedElements);
+  const alignSelectedToActive = useSpeakerAssetStore((s) => s.alignSelectedToActive);
 
-  if (!selectedElement) {
+  if (!selectedElements.length) {
     return (
       <div className="text-center py-8 text-gray-500">
         <MousePointer className="w-8 h-8 mx-auto mb-3 opacity-50" />
@@ -177,6 +186,54 @@ function ElementControls({
         <p className="text-xs mt-1 text-gray-600">
           Drag elements to reposition them
         </p>
+      </div>
+    );
+  }
+
+  if (selectedElements.length > 1) {
+    return (
+      <div className="space-y-4">
+        <div className="pb-2 border-b border-white/10">
+          <h3 className="text-sm font-mono text-white">
+            Multi-selection ({selectedElements.length})
+          </h3>
+          <p className="text-xs text-gray-500">
+            Align selected elements to the active one (last clicked)
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => alignSelectedToActive("y")}
+            className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/40 transition-all"
+            title="align row (same y)"
+            aria-label="align row (same y)"
+          >
+            <AlignHorizontalJustifyCenter className="w-5 h-5 text-white" />
+          </button>
+          <button
+            onClick={() => alignSelectedToActive("x")}
+            className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/40 transition-all"
+            title="align column (same x)"
+            aria-label="align column (same x)"
+          >
+            <AlignVerticalJustifyCenter className="w-5 h-5 text-white" />
+          </button>
+          <span className="text-[11px] text-gray-600">
+            shift-add • ctrl/cmd-toggle
+          </span>
+        </div>
+
+        <div className="flex flex-wrap gap-1">
+          {selectedElements.map((el) => (
+            <span
+              key={el}
+              className="px-2 py-1 rounded bg-white/5 text-xs font-mono text-gray-300"
+            >
+              {el}
+            </span>
+          ))}
+        </div>
       </div>
     );
   }
@@ -328,6 +385,55 @@ function ElementControls({
               max={1}
               step={0.05}
             />
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs">
+                <span className="text-gray-400">Align</span>
+                <span className="text-gray-500 font-mono">
+                  {config.logo.align}
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  onClick={() => updateConfig("logo", { align: "left" })}
+                  className={`flex items-center justify-center h-10 rounded-lg border font-mono text-xs transition-all ${
+                    config.logo.align === "left"
+                      ? "bg-white text-black border-white"
+                      : "bg-transparent text-white border-white/20 hover:border-white/40"
+                  }`}
+                  title="logo align left"
+                  aria-label="logo align left"
+                >
+                  <AlignLeft className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => updateConfig("logo", { align: "center" })}
+                  className={`flex items-center justify-center h-10 rounded-lg border font-mono text-xs transition-all ${
+                    config.logo.align === "center"
+                      ? "bg-white text-black border-white"
+                      : "bg-transparent text-white border-white/20 hover:border-white/40"
+                  }`}
+                  title="logo align center"
+                  aria-label="logo align center"
+                >
+                  <AlignCenter className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => updateConfig("logo", { align: "right" })}
+                  className={`flex items-center justify-center h-10 rounded-lg border font-mono text-xs transition-all ${
+                    config.logo.align === "right"
+                      ? "bg-white text-black border-white"
+                      : "bg-transparent text-white border-white/20 hover:border-white/40"
+                  }`}
+                  title="logo align right"
+                  aria-label="logo align right"
+                >
+                  <AlignRight className="w-4 h-4" />
+                </button>
+              </div>
+              <p className="text-[11px] text-gray-600 leading-snug">
+                Controls which edge stays fixed when the logo width changes.
+              </p>
+            </div>
             <SliderControl
               label="Position X"
               value={config.logo.position.x}
@@ -500,11 +606,18 @@ export function ControlPanel({
   updateConfig,
   resetConfig,
 }: ControlPanelProps) {
-  const { selectedElement, setSelectedElement, resetElement, updatePosition } =
+  const { selectedElement, selectedElements, setSelectedElement, resetElement, updatePosition, clearSelection } =
     useSpeakerAssetStore();
+  const undo = useSpeakerAssetStore((s) => s.undo);
+  const redo = useSpeakerAssetStore((s) => s.redo);
+  const canUndo = useSpeakerAssetStore((s) => s.historyPast.length > 0);
+  const canRedo = useSpeakerAssetStore((s) => s.historyFuture.length > 0);
 
   return (
-    <div className="w-full lg:w-96 border-l border-white/10 p-4 space-y-4 overflow-y-auto">
+    <div
+      data-speaker-asset-controls
+      className="w-full lg:w-96 border-l border-white/10 p-4 space-y-4 overflow-y-auto"
+    >
       {/* Preview Mode Toggle */}
       <div className="space-y-2">
         <label className="text-sm text-gray-400 font-mono">Preview Size</label>
@@ -585,6 +698,36 @@ export function ControlPanel({
         {isExporting ? "Exporting..." : "Download PNG"}
       </button>
 
+      {/* Undo / Redo */}
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          onClick={undo}
+          disabled={!canUndo}
+          className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg border font-mono text-sm transition-all ${
+            canUndo
+              ? "bg-transparent text-white border-white/20 hover:border-white/40"
+              : "bg-transparent text-gray-600 border-white/10 cursor-not-allowed"
+          }`}
+          title="Undo (Ctrl/Cmd+Z)"
+        >
+          <Undo2 className="w-4 h-4" />
+          Undo
+        </button>
+        <button
+          onClick={redo}
+          disabled={!canRedo}
+          className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg border font-mono text-sm transition-all ${
+            canRedo
+              ? "bg-transparent text-white border-white/20 hover:border-white/40"
+              : "bg-transparent text-gray-600 border-white/10 cursor-not-allowed"
+          }`}
+          title="Redo (Ctrl/Cmd+Shift+Z)"
+        >
+          <Redo2 className="w-4 h-4" />
+          Redo
+        </button>
+      </div>
+
       {/* Divider */}
       <div className="border-t border-white/10 pt-4">
         <div className="flex items-center justify-between mb-4">
@@ -592,7 +735,7 @@ export function ControlPanel({
             Element Controls
           </span>
           <div className="flex gap-2">
-            {selectedElement && selectedElement !== "background" && (
+            {selectedElements.length === 1 && selectedElement && selectedElement !== "background" && (
               <button
                 onClick={() => resetElement(selectedElement)}
                 className="flex items-center gap-1 text-xs text-gray-500 hover:text-amber-500 transition-colors"
@@ -602,10 +745,19 @@ export function ControlPanel({
                 Reset Element
               </button>
             )}
+            {selectedElements.length > 1 && (
+              <button
+                onClick={clearSelection}
+                className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors"
+                title="Clear selection"
+              >
+                Clear
+              </button>
+            )}
             <button
               onClick={() => {
                 resetConfig();
-                setSelectedElement(null);
+                clearSelection();
               }}
               className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors"
               title="Reset all elements"
@@ -638,9 +790,17 @@ export function ControlPanel({
             return (
               <button
                 key={key}
-                onClick={() => setSelectedElement(key)}
+                onClick={(e) => {
+                  // Match preview behavior: ctrl/cmd toggles, shift adds, default selects single.
+                  const multiToggle = e.ctrlKey || e.metaKey;
+                  const multiAdd = e.shiftKey;
+                  const store = useSpeakerAssetStore.getState();
+                  if (multiToggle) store.toggleSelectedElement(key);
+                  else if (multiAdd) store.addSelectedElement(key);
+                  else store.setSelectedElement(key);
+                }}
                 className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-mono transition-all ${
-                  selectedElement === key
+                  selectedElements.includes(key)
                     ? "bg-amber-600 text-white"
                     : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
                 }`}

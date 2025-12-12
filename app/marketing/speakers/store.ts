@@ -14,11 +14,15 @@ export type ElementType =
   | "background"
   | null;
 
+export type SelectableElementType = Exclude<ElementType, null>;
+
 // Position for draggable elements
 export interface Position {
   x: number;
   y: number;
 }
+
+export type HorizontalAlign = "left" | "center" | "right";
 
 // Asset configuration types
 export interface TextStyle {
@@ -37,6 +41,7 @@ export interface LogoStyle {
   scale: number;
   opacity: number;
   position: Position;
+  align: HorizontalAlign;
 }
 
 export interface BackgroundStyle {
@@ -61,6 +66,14 @@ export interface AssetConfig {
   background: BackgroundStyle;
 }
 
+const HISTORY_LIMIT = 100;
+const cloneConfig = (config: AssetConfig): AssetConfig => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sc = (globalThis as any).structuredClone as undefined | ((v: any) => any);
+  if (typeof sc === "function") return sc(config);
+  return JSON.parse(JSON.stringify(config)) as AssetConfig;
+};
+
 // Default configuration
 export const DEFAULT_ASSET_CONFIG: AssetConfig = {
   image: {
@@ -83,6 +96,7 @@ export const DEFAULT_ASSET_CONFIG: AssetConfig = {
     scale: 0.12,
     opacity: 0.8,
     position: { x: 0, y: -1.38 },
+    align: "center",
   },
   branding: {
     fontSize: 0.1,
@@ -116,17 +130,31 @@ interface SpeakerAssetStore {
   previewMode: PreviewMode;
   setPreviewMode: (mode: PreviewMode) => void;
 
-  // Selected element
-  selectedElement: ElementType;
-  setSelectedElement: (element: ElementType) => void;
+  // Selection
+  selectedElement: ElementType; // active element (backwards-compatible)
+  selectedElements: SelectableElementType[];
+  setSelectedElement: (element: ElementType) => void; // selects single (or clears)
+  toggleSelectedElement: (element: SelectableElementType) => void;
+  addSelectedElement: (element: SelectableElementType) => void;
+  clearSelection: () => void;
 
   // Asset configuration
   config: AssetConfig;
+  historyPast: AssetConfig[];
+  historyFuture: AssetConfig[];
+  canUndo: () => boolean;
+  canRedo: () => boolean;
+  undo: () => void;
+  redo: () => void;
+  pushHistory: () => void;
   updateConfig: <K extends keyof AssetConfig>(
     key: K,
     value: Partial<AssetConfig[K]>
   ) => void;
   updatePosition: (element: keyof AssetConfig, position: Partial<Position>) => void;
+  setPositions: (positions: Partial<Record<keyof AssetConfig, Position>>) => void;
+  setPositionsNoHistory: (positions: Partial<Record<keyof AssetConfig, Position>>) => void;
+  alignSelectedToActive: (axis: "x" | "y") => void;
   resetConfig: () => void;
   resetElement: (element: keyof AssetConfig) => void;
 
@@ -176,6 +204,7 @@ function migrateConfig(storedConfig: Partial<AssetConfig>): AssetConfig {
       ...DEFAULT_ASSET_CONFIG.logo,
       ...storedConfig.logo,
       position: storedConfig.logo.position || DEFAULT_ASSET_CONFIG.logo.position,
+      align: (storedConfig.logo as Partial<LogoStyle>).align || DEFAULT_ASSET_CONFIG.logo.align,
     };
   }
 
@@ -212,14 +241,80 @@ export const useSpeakerAssetStore = create<SpeakerAssetStore>()(
       previewMode: "fixed",
       setPreviewMode: (mode) => set({ previewMode: mode }),
 
-      // Selected element
+      // Selection
       selectedElement: null,
-      setSelectedElement: (element) => set({ selectedElement: element }),
+      selectedElements: [],
+      setSelectedElement: (element) =>
+        set(() => ({
+          selectedElement: element,
+          selectedElements: element ? [element] : [],
+        })),
+      toggleSelectedElement: (element) =>
+        set((state) => {
+          const exists = state.selectedElements.includes(element);
+          const next = exists
+            ? state.selectedElements.filter((e) => e !== element)
+            : [...state.selectedElements, element];
+          return {
+            selectedElements: next,
+            selectedElement: next.length ? next[next.length - 1] : null,
+          };
+        }),
+      addSelectedElement: (element) =>
+        set((state) => {
+          const exists = state.selectedElements.includes(element);
+          const next = exists ? state.selectedElements : [...state.selectedElements, element];
+          return {
+            selectedElements: next,
+            selectedElement: element,
+          };
+        }),
+      clearSelection: () => set({ selectedElement: null, selectedElements: [] }),
 
       // Asset configuration
       config: DEFAULT_ASSET_CONFIG,
+      historyPast: [],
+      historyFuture: [],
+      canUndo: () => useSpeakerAssetStore.getState().historyPast.length > 0,
+      canRedo: () => useSpeakerAssetStore.getState().historyFuture.length > 0,
+      pushHistory: () =>
+        set((state) => ({
+          historyPast: [...state.historyPast, cloneConfig(state.config)].slice(
+            -HISTORY_LIMIT
+          ),
+          historyFuture: [],
+        })),
+      undo: () =>
+        set((state) => {
+          if (state.historyPast.length === 0) return state;
+          const previous = state.historyPast[state.historyPast.length - 1];
+          return {
+            config: previous,
+            historyPast: state.historyPast.slice(0, -1),
+            historyFuture: [cloneConfig(state.config), ...state.historyFuture].slice(
+              0,
+              HISTORY_LIMIT
+            ),
+          };
+        }),
+      redo: () =>
+        set((state) => {
+          if (state.historyFuture.length === 0) return state;
+          const next = state.historyFuture[0];
+          return {
+            config: next,
+            historyPast: [...state.historyPast, cloneConfig(state.config)].slice(
+              -HISTORY_LIMIT
+            ),
+            historyFuture: state.historyFuture.slice(1),
+          };
+        }),
       updateConfig: (key, value) =>
         set((state) => ({
+          historyPast: [...state.historyPast, cloneConfig(state.config)].slice(
+            -HISTORY_LIMIT
+          ),
+          historyFuture: [],
           config: {
             ...state.config,
             [key]: { ...state.config[key], ...value },
@@ -230,6 +325,10 @@ export const useSpeakerAssetStore = create<SpeakerAssetStore>()(
           const elementConfig = state.config[element];
           if ("position" in elementConfig) {
             return {
+              historyPast: [...state.historyPast, cloneConfig(state.config)].slice(
+                -HISTORY_LIMIT
+              ),
+              historyFuture: [],
               config: {
                 ...state.config,
                 [element]: {
@@ -241,9 +340,89 @@ export const useSpeakerAssetStore = create<SpeakerAssetStore>()(
           }
           return state;
         }),
-      resetConfig: () => set({ config: DEFAULT_ASSET_CONFIG }),
+      setPositions: (positions) =>
+        set((state) => {
+          const nextConfig: AssetConfig = { ...state.config };
+          (Object.keys(positions) as Array<keyof AssetConfig>).forEach((key) => {
+            const pos = positions[key];
+            if (!pos) return;
+            const current = nextConfig[key];
+            if (current && typeof current === "object" && "position" in current) {
+              (nextConfig as any)[key] = {
+                ...(current as any),
+                position: pos,
+              };
+            }
+          });
+          return {
+            historyPast: [...state.historyPast, cloneConfig(state.config)].slice(
+              -HISTORY_LIMIT
+            ),
+            historyFuture: [],
+            config: nextConfig,
+          };
+        }),
+      setPositionsNoHistory: (positions) =>
+        set((state) => {
+          const nextConfig: AssetConfig = { ...state.config };
+          (Object.keys(positions) as Array<keyof AssetConfig>).forEach((key) => {
+            const pos = positions[key];
+            if (!pos) return;
+            const current = nextConfig[key];
+            if (current && typeof current === "object" && "position" in current) {
+              (nextConfig as any)[key] = {
+                ...(current as any),
+                position: pos,
+              };
+            }
+          });
+          return { config: nextConfig };
+        }),
+      alignSelectedToActive: (axis) =>
+        set((state) => {
+          const active = state.selectedElement;
+          if (!active) return state;
+
+          const activeConfig = state.config[active as keyof AssetConfig] as any;
+          const activePos: Position | undefined =
+            activeConfig && typeof activeConfig === "object" && "position" in activeConfig
+              ? activeConfig.position
+              : undefined;
+          if (!activePos) return state;
+
+          const nextConfig: AssetConfig = { ...state.config };
+          state.selectedElements.forEach((el) => {
+            const cfg = nextConfig[el as keyof AssetConfig] as any;
+            if (!cfg || typeof cfg !== "object" || !("position" in cfg)) return;
+            const currentPos = cfg.position as Position;
+            const nextPos: Position =
+              axis === "x"
+                ? { x: activePos.x, y: currentPos.y }
+                : { x: currentPos.x, y: activePos.y };
+            (nextConfig as any)[el] = { ...cfg, position: nextPos };
+          });
+          return {
+            historyPast: [...state.historyPast, cloneConfig(state.config)].slice(
+              -HISTORY_LIMIT
+            ),
+            historyFuture: [],
+            config: nextConfig,
+          };
+        }),
+      resetConfig: () =>
+        set((state) => ({
+          historyPast: [...state.historyPast, cloneConfig(state.config)].slice(
+            -HISTORY_LIMIT
+          ),
+          historyFuture: [],
+          config: DEFAULT_ASSET_CONFIG,
+        })),
       resetElement: (element) =>
         set((state) => ({
+          historyPast: [...state.historyPast, cloneConfig(state.config)].slice(
+            -HISTORY_LIMIT
+          ),
+          historyFuture: [],
           config: {
             ...state.config,
             [element]: DEFAULT_ASSET_CONFIG[element],
@@ -256,18 +435,25 @@ export const useSpeakerAssetStore = create<SpeakerAssetStore>()(
     }),
     {
       name: "speaker-asset-preferences",
-      version: 2, // Increment version to trigger migration
+      version: 3, // Increment version to trigger migration
       migrate: (persistedState, version) => {
-        if (version < 2) {
-          // Migrate from old config format
+        if (version < 3) {
+          // Migrate persisted config to current shape (positions + logo align, etc.)
           const state = persistedState as { config?: Partial<AssetConfig> };
           return {
             ...persistedState,
+            selectedElement: null,
+            selectedElements: [],
             config: state.config ? migrateConfig(state.config) : DEFAULT_ASSET_CONFIG,
-          };
+          } as unknown;
         }
         return persistedState;
       },
+      // Only persist the meaningful settings, not transient UI selection state.
+      partialize: (state) => ({
+        previewMode: state.previewMode,
+        config: state.config,
+      }),
     }
   )
 );

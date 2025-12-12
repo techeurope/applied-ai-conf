@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, Suspense } from "react";
+import { useEffect, useRef, useState, Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
 import { SPEAKERS } from "@/data/speakers";
@@ -44,6 +44,7 @@ export default function SpeakerAssetsPage() {
     useState<ResolutionKey>("2K");
   const [isExporting, setIsExporting] = useState(false);
   const rendererRef = useRef<RendererRef | null>(null);
+  const previewRef = useRef<HTMLDivElement | null>(null);
 
   const {
     previewMode,
@@ -52,9 +53,59 @@ export default function SpeakerAssetsPage() {
     updateConfig,
     resetConfig,
     setSelectedElement,
+    clearSelection,
+    undo,
+    redo,
   } = useSpeakerAssetStore();
 
   const selectedSpeaker = SPEAKERS[selectedSpeakerIndex];
+
+  // Deselect when clicking outside the preview (but keep selection while using controls)
+  useEffect(() => {
+    const onPointerDown = (e: PointerEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+
+      const previewEl = previewRef.current;
+      if (previewEl && previewEl.contains(target)) return;
+
+      const controlsEl = document.querySelector(
+        "[data-speaker-asset-controls]"
+      ) as HTMLElement | null;
+      if (controlsEl && controlsEl.contains(target)) return;
+
+      clearSelection();
+    };
+
+    document.addEventListener("pointerdown", onPointerDown, true);
+    return () => document.removeEventListener("pointerdown", onPointerDown, true);
+  }, [clearSelection]);
+
+  // Keyboard shortcuts: undo/redo
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName?.toLowerCase();
+      if (tag === "input" || tag === "textarea" || tag === "select" || target?.isContentEditable) {
+        return;
+      }
+
+      const isMod = e.ctrlKey || e.metaKey;
+      if (!isMod) return;
+
+      if (e.key.toLowerCase() === "z") {
+        e.preventDefault();
+        if (e.shiftKey) redo();
+        else undo();
+      } else if (e.key.toLowerCase() === "y") {
+        e.preventDefault();
+        redo();
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown, true);
+    return () => document.removeEventListener("keydown", onKeyDown, true);
+  }, [undo, redo]);
 
   const handleExport = () => {
     if (!rendererRef.current || isExporting) return;
@@ -97,6 +148,7 @@ export default function SpeakerAssetsPage() {
         {/* Preview Panel */}
         <div className="flex-1 flex items-center justify-center p-8 overflow-hidden">
           <div
+            ref={previewRef}
             className={`relative aspect-square border border-white/10 rounded-lg overflow-hidden ${
               previewMode === "fixed"
                 ? "w-full max-w-[512px]"

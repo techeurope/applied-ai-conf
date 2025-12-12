@@ -26,11 +26,17 @@ export function SelectableElement({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
   const [initialPosition, setInitialPosition] = useState<Position | null>(null);
+  const [groupInitialPositions, setGroupInitialPositions] = useState<
+    Record<string, Position> | null
+  >(null);
+  const [dragHasCommittedHistory, setDragHasCommittedHistory] = useState(false);
 
   const { camera, size } = useThree();
-  const { selectedElement, setSelectedElement } = useSpeakerAssetStore();
+  const { selectedElements, setSelectedElement, toggleSelectedElement, addSelectedElement } =
+    useSpeakerAssetStore();
 
-  const isSelected = selectedElement === elementType;
+  const isSelected =
+    elementType !== null && selectedElements.includes(elementType as any);
 
   // Convert screen coordinates to world coordinates
   const screenToWorld = useCallback(
@@ -60,17 +66,43 @@ export function SelectableElement({
       if (disabled) return;
       
       e.stopPropagation();
-      setSelectedElement(elementType);
+
+      const native = e.nativeEvent;
+      const multiToggle = native.ctrlKey || native.metaKey; // ctrl/cmd toggles
+      const multiAdd = native.shiftKey; // shift adds
+
+      if (elementType) {
+        if (multiToggle) {
+          toggleSelectedElement(elementType as any);
+        } else if (multiAdd) {
+          addSelectedElement(elementType as any);
+        } else {
+          setSelectedElement(elementType);
+        }
+      } else {
+        setSelectedElement(null);
+      }
       
       // Start drag
       setIsDragging(true);
       setDragStart({ x: e.clientX, y: e.clientY });
       setInitialPosition(position);
+      setDragHasCommittedHistory(false);
+      // Snapshot initial positions for all selected elements so we can drag as a group
+      const state = useSpeakerAssetStore.getState();
+      const initialMap: Record<string, Position> = {};
+      state.selectedElements.forEach((el) => {
+        const cfg = (state.config as any)[el];
+        if (cfg && typeof cfg === "object" && "position" in cfg) {
+          initialMap[el] = { ...(cfg.position as Position) };
+        }
+      });
+      setGroupInitialPositions(initialMap);
 
       // Capture pointer
       (e.target as HTMLElement)?.setPointerCapture?.(e.pointerId);
     },
-    [disabled, elementType, position, setSelectedElement]
+    [disabled, elementType, position, setSelectedElement, toggleSelectedElement, addSelectedElement]
   );
 
   const handlePointerMove = useCallback(
@@ -85,6 +117,12 @@ export function SelectableElement({
         y: e.clientY - dragStart.y,
       };
 
+      // Only create one undo step per drag (first meaningful movement)
+      if (!dragHasCommittedHistory && (Math.abs(deltaScreen.x) > 2 || Math.abs(deltaScreen.y) > 2)) {
+        useSpeakerAssetStore.getState().pushHistory();
+        setDragHasCommittedHistory(true);
+      }
+
       // Convert to world space (approximate scaling based on camera)
       // The camera is at z=5 with fov=45, so we need to scale accordingly
       const worldScale = (camera.position.z * 2 * Math.tan((45 * Math.PI) / 360)) / size.height;
@@ -94,9 +132,36 @@ export function SelectableElement({
         y: initialPosition.y - deltaScreen.y * worldScale, // Invert Y
       };
 
-      onPositionChange?.(newPosition);
+      // If multiple elements are selected, drag them as a group (preserve relative offsets)
+      const state = useSpeakerAssetStore.getState();
+      if (groupInitialPositions && state.selectedElements.length > 1) {
+        const delta: Position = {
+          x: newPosition.x - initialPosition.x,
+          y: newPosition.y - initialPosition.y,
+        };
+
+        const positions: Partial<Record<keyof any, Position>> = {};
+        state.selectedElements.forEach((el) => {
+          const start = groupInitialPositions[el];
+          if (!start) return;
+          (positions as any)[el] = { x: start.x + delta.x, y: start.y + delta.y };
+        });
+        state.setPositionsNoHistory(positions as any);
+      } else {
+        onPositionChange?.(newPosition);
+      }
     },
-    [isDragging, dragStart, initialPosition, disabled, camera, size, onPositionChange]
+    [
+      isDragging,
+      dragStart,
+      initialPosition,
+      disabled,
+      camera,
+      size,
+      onPositionChange,
+      groupInitialPositions,
+      dragHasCommittedHistory,
+    ]
   );
 
   const handlePointerUp = useCallback(
@@ -107,6 +172,8 @@ export function SelectableElement({
       setIsDragging(false);
       setDragStart(null);
       setInitialPosition(null);
+      setGroupInitialPositions(null);
+      setDragHasCommittedHistory(false);
 
       // Release pointer
       (e.target as HTMLElement)?.releasePointerCapture?.(e.pointerId);
@@ -148,15 +215,15 @@ export function SelectableElement({
 
 // Simple hit area for background clicks
 export function BackgroundClickArea() {
-  const { setSelectedElement } = useSpeakerAssetStore();
+  const { clearSelection } = useSpeakerAssetStore();
 
   const handlePointerDown = useCallback(
     (e: ThreeEvent<PointerEvent>) => {
       // Only deselect if this is the first object hit (no other object intercepted)
       // The event will only reach here if no other object stopped propagation
-      setSelectedElement(null);
+      clearSelection();
     },
-    [setSelectedElement]
+    [clearSelection]
   );
 
   return (

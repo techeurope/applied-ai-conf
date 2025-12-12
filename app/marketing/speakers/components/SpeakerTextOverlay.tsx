@@ -114,7 +114,17 @@ export function SpeakerTextOverlay({
   company,
   config,
 }: SpeakerTextOverlayProps) {
-  const { updatePosition, selectedElement } = useSpeakerAssetStore();
+  const { updatePosition, selectedElements } = useSpeakerAssetStore();
+
+  const logoAspect =
+    COMPANY_LOGOS[company.toLowerCase()]?.aspectRatio ?? 4;
+  const logoWidth = config.logo.scale * logoAspect;
+  const logoOffsetX =
+    config.logo.align === "left"
+      ? logoWidth / 2
+      : config.logo.align === "right"
+        ? -logoWidth / 2
+        : 0;
 
   return (
     <>
@@ -131,7 +141,7 @@ export function SpeakerTextOverlay({
           anchorY="middle"
           font={FONT_KODE_MONO_BOLD}
           letterSpacing={config.name.letterSpacing}
-          outlineWidth={selectedElement === "name" ? 0.005 : 0}
+          outlineWidth={selectedElements.includes("name") ? 0.005 : 0}
           outlineColor="#ab7030"
         >
           {name}
@@ -151,7 +161,7 @@ export function SpeakerTextOverlay({
           anchorY="middle"
           font={FONT_KODE_MONO_REGULAR}
           letterSpacing={config.subtitle.letterSpacing}
-          outlineWidth={selectedElement === "subtitle" ? 0.003 : 0}
+          outlineWidth={selectedElements.includes("subtitle") ? 0.003 : 0}
           outlineColor="#ab7030"
         >
           {title}
@@ -164,30 +174,21 @@ export function SpeakerTextOverlay({
         position={config.logo.position}
         onPositionChange={(pos) => updatePosition("logo", pos)}
       >
-        <group>
+        {/* Offset the logo inside its draggable anchor so alignment works:
+            - left: left edge stays fixed (logo grows to the right)
+            - center: grows in both directions
+            - right: right edge stays fixed (logo grows to the left) */}
+        <group position={[logoOffsetX, 0, 0]}>
           {/* Selection outline for logo */}
-          {selectedElement === "logo" && (
+          {selectedElements.includes("logo") && (
             <mesh position={[0, 0, -0.01]}>
               <planeGeometry
-                args={[
-                  config.logo.scale *
-                    (COMPANY_LOGOS[company.toLowerCase()]?.aspectRatio || 4) +
-                    0.05,
-                  config.logo.scale + 0.03,
-                ]}
+                args={[logoWidth + 0.05, config.logo.scale + 0.03]}
               />
-              <meshBasicMaterial
-                color="#ab7030"
-                transparent
-                opacity={0.3}
-              />
+              <meshBasicMaterial color="#ab7030" transparent opacity={0.3} />
             </mesh>
           )}
-          <CompanyLogo
-            company={company}
-            scale={config.logo.scale}
-            opacity={config.logo.opacity}
-          />
+          <CompanyLogo company={company} scale={config.logo.scale} opacity={config.logo.opacity} />
         </group>
       </SelectableElement>
 
@@ -204,7 +205,7 @@ export function SpeakerTextOverlay({
           anchorY="middle"
           font={FONT_KODE_MONO_BOLD}
           letterSpacing={config.branding.letterSpacing}
-          outlineWidth={selectedElement === "branding" ? 0.003 : 0}
+          outlineWidth={selectedElements.includes("branding") ? 0.003 : 0}
           outlineColor="#ab7030"
         >
           {config.branding.text}
@@ -224,7 +225,7 @@ export function SpeakerTextOverlay({
           anchorY="middle"
           font={FONT_KODE_MONO_REGULAR}
           letterSpacing={config.dateLocation.letterSpacing}
-          outlineWidth={selectedElement === "dateLocation" ? 0.002 : 0}
+          outlineWidth={selectedElements.includes("dateLocation") ? 0.002 : 0}
           outlineColor="#ab7030"
         >
           {config.dateLocation.text}

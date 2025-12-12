@@ -14,7 +14,7 @@ interface SpeakerImageMeshProps {
 
 function SpeakerImageMesh({ imageUrl, size }: SpeakerImageMeshProps) {
   const texture = useLoader(TextureLoader, imageUrl);
-  const selectedElement = useSpeakerAssetStore((s) => s.selectedElement);
+  const selectedElements = useSpeakerAssetStore((s) => s.selectedElements);
 
   // Ensure proper color rendering (web images are sRGB)
   texture.colorSpace = SRGBColorSpace;
@@ -22,7 +22,7 @@ function SpeakerImageMesh({ imageUrl, size }: SpeakerImageMeshProps) {
   return (
     <group>
       {/* Selection outline */}
-      {selectedElement === "image" && (
+      {selectedElements.includes("image") && (
         <mesh position={[0, 0, -0.01]}>
           <planeGeometry args={[size + 0.08, size + 0.08]} />
           <meshBasicMaterial color="#ab7030" transparent opacity={0.4} />

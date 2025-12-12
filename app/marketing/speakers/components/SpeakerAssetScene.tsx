@@ -28,7 +28,7 @@ export function SpeakerAssetScene({
   config,
 }: SpeakerAssetSceneProps) {
   const { gl, scene, camera } = useThree();
-  const { selectedElement, setSelectedElement } = useSpeakerAssetStore();
+  const { selectedElements, setSelectedElement } = useSpeakerAssetStore();
 
   if (!rendererRef.current || rendererRef.current.gl !== gl) {
     rendererRef.current = { gl, scene, camera };
@@ -79,7 +79,7 @@ export function SpeakerAssetScene({
       />
 
       {/* Selection indicator overlay */}
-      {selectedElement === "background" && (
+      {selectedElements.includes("background") && (
         <mesh position={[0, 0, -0.49]}>
           <planeGeometry args={[6, 6]} />
           <meshBasicMaterial color="#ab7030" transparent opacity={0.1} />
