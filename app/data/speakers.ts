@@ -45,7 +45,7 @@ export const SPEAKERS = [
     name: 'Lucas Hild',
     title: 'CTO',
     company: 'Knowunity',
-    companyLogo: '/logos/knowunity.png',
+    companyLogo: '/logos/knowunity.svg',
     bio: '',
     initial: 'LH',
     accent: 'from-green-400/40 via-emerald-400/30 to-teal-500/40',

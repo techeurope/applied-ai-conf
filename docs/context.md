@@ -56,6 +56,7 @@ Data lives in `app/data/` as typed constants, imported into components/sections.
 
 - **Sections** (`app/sections/`): Full-page sections with business logic (Hero, FeaturedSpeakers, PartnershipTiers, CallToAction)
 - **Components** (`app/components/`): Reusable UI elements (Navigation, Footer, SubpageLayout, shader backgrounds, UI primitives)
+- **Brand/Company Logos** (`app/components/ui/*-logo.tsx`): Inline SVG React components, consumed via `@/components` (e.g. speaker company badges) to avoid image assets + filter hacks.
 - **Main Page** (`app/page.tsx`): Composes sections in order
 - **Subpages** (`app/*/page.tsx`): Static pages (Team, Imprint, Privacy, Code of Conduct) use SubpageLayout for consistent spacing and structure
 

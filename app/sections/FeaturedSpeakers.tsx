@@ -4,7 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { SPEAKERS } from "@/data/speakers";
 import type { Speaker } from "@/types";
-import { LangdockLogo, ChocoLogo, TactoLogo, LegoraLogo } from "@/components";
+import {
+  LangdockLogo,
+  ChocoLogo,
+  TactoLogo,
+  LegoraLogo,
+  KnowunityLogo,
+} from "@/components";
 
 const COMPANY_LOGOS: Record<
   string,
@@ -14,6 +20,7 @@ const COMPANY_LOGOS: Record<
   Choco: ChocoLogo,
   Tacto: TactoLogo,
   Legora: LegoraLogo,
+  Knowunity: KnowunityLogo,
 };
 
 export default function FeaturedSpeakers() {
