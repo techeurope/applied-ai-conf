@@ -6,13 +6,19 @@ import * as THREE from "three";
 
 interface LidarGridBackgroundProps {
   gridColor: string;
+  animationPaused?: boolean;
+  animationTime?: number; // 0-100 range, maps to shader time
 }
 
 function hexToThreeColor(hex: string): THREE.Color {
   return new THREE.Color(hex);
 }
 
-export function LidarGridBackground({ gridColor }: LidarGridBackgroundProps) {
+export function LidarGridBackground({
+  gridColor,
+  animationPaused = false,
+  animationTime = 0,
+}: LidarGridBackgroundProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const color = hexToThreeColor(gridColor);
 
@@ -35,7 +41,15 @@ export function LidarGridBackground({ gridColor }: LidarGridBackgroundProps) {
   useFrame((state) => {
     if (meshRef.current) {
       const material = meshRef.current.material as THREE.ShaderMaterial;
-      material.uniforms.uTime.value = state.clock.elapsedTime;
+
+      if (animationPaused) {
+        // When paused, use the fixed animationTime (scaled to match shader time units)
+        // The slider is 0-100, we map it to 0-1000 for a good range of variation
+        material.uniforms.uTime.value = animationTime * 10;
+      } else {
+        // When playing, use elapsed time
+        material.uniforms.uTime.value = state.clock.elapsedTime;
+      }
     }
   });
 

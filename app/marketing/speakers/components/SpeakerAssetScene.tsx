@@ -52,7 +52,11 @@ export function SpeakerAssetScene({
           setSelectedElement("background");
         }}
       >
-        <LidarGridBackground gridColor={config.background.gridColor} />
+        <LidarGridBackground
+          gridColor={config.background.gridColor}
+          animationPaused={config.background.animationPaused}
+          animationTime={config.background.animationTime}
+        />
       </group>
 
       {/* Semi-transparent overlay for readability */}

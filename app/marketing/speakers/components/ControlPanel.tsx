@@ -18,6 +18,8 @@ import {
   Type,
   Palette,
   MapPin,
+  Play,
+  Pause,
 } from "lucide-react";
 import { SPEAKERS } from "@/data/speakers";
 import type { AssetConfig, PreviewMode, ElementType } from "../store";
@@ -48,15 +50,16 @@ function SliderControl({
   max: number;
   step: number;
 }) {
+  const safeValue = value ?? min;
   return (
     <div className="space-y-1">
       <div className="flex justify-between text-xs">
         <span className="text-gray-400">{label}</span>
-        <span className="text-gray-500 font-mono">{value.toFixed(2)}</span>
+        <span className="text-gray-500 font-mono">{safeValue.toFixed(2)}</span>
       </div>
       <input
         type="range"
-        value={value}
+        value={safeValue}
         onChange={(e) => onChange(parseFloat(e.target.value))}
         min={min}
         max={max}
@@ -562,6 +565,55 @@ function ElementControls({
               value={config.background.gridColor}
               onChange={(v) => updateConfig("background", { gridColor: v })}
             />
+
+            {/* Animation controls */}
+            <div className="space-y-2 pt-2 border-t border-white/10">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-400">Animation</span>
+                <button
+                  onClick={() =>
+                    updateConfig("background", {
+                      animationPaused: !config.background.animationPaused,
+                    })
+                  }
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-mono transition-all ${
+                    config.background.animationPaused
+                      ? "bg-amber-600 text-white border-amber-600"
+                      : "bg-transparent text-white border-white/20 hover:border-white/40"
+                  }`}
+                  title={config.background.animationPaused ? "Resume animation" : "Pause animation"}
+                >
+                  {config.background.animationPaused ? (
+                    <>
+                      <Play className="w-3 h-3" />
+                      Paused
+                    </>
+                  ) : (
+                    <>
+                      <Pause className="w-3 h-3" />
+                      Playing
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {config.background.animationPaused && (
+                <SliderControl
+                  label="Animation Frame"
+                  value={config.background.animationTime ?? 0}
+                  onChange={(v) => updateConfig("background", { animationTime: v })}
+                  min={0}
+                  max={100}
+                  step={0.5}
+                />
+              )}
+
+              <p className="text-[11px] text-gray-600 leading-snug">
+                {config.background.animationPaused
+                  ? "Adjust the slider to set a consistent background frame for all exports."
+                  : "Pause to lock the background to a specific frame for consistent exports."}
+              </p>
+            </div>
           </>
         )}
       </div>

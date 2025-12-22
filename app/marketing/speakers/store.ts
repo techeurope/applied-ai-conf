@@ -47,6 +47,8 @@ export interface LogoStyle {
 export interface BackgroundStyle {
   overlayOpacity: number;
   gridColor: string;
+  animationPaused: boolean;
+  animationTime: number; // Fixed time when paused (0-100 range for UI, maps to shader time)
 }
 
 export interface AssetConfig {
@@ -115,6 +117,8 @@ export const DEFAULT_ASSET_CONFIG: AssetConfig = {
   background: {
     overlayOpacity: 0.4,
     gridColor: "#ab7030",
+    animationPaused: false,
+    animationTime: 0,
   },
 };
 
@@ -228,6 +232,9 @@ function migrateConfig(storedConfig: Partial<AssetConfig>): AssetConfig {
     config.background = {
       ...DEFAULT_ASSET_CONFIG.background,
       ...storedConfig.background,
+      // Ensure animation props exist
+      animationPaused: (storedConfig.background as Partial<BackgroundStyle>).animationPaused ?? DEFAULT_ASSET_CONFIG.background.animationPaused,
+      animationTime: (storedConfig.background as Partial<BackgroundStyle>).animationTime ?? DEFAULT_ASSET_CONFIG.background.animationTime,
     };
   }
 
@@ -435,10 +442,10 @@ export const useSpeakerAssetStore = create<SpeakerAssetStore>()(
     }),
     {
       name: "speaker-asset-preferences",
-      version: 3, // Increment version to trigger migration
+      version: 4, // Increment version to trigger migration
       migrate: (persistedState, version) => {
-        if (version < 3) {
-          // Migrate persisted config to current shape (positions + logo align, etc.)
+        if (version < 4) {
+          // Migrate persisted config to current shape (positions, logo align, animation props)
           const state = persistedState as { config?: Partial<AssetConfig> };
           return {
             ...persistedState,
