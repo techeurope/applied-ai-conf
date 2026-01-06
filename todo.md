@@ -1,4 +1,5 @@
-- waitlist für emails sammeln, newsletter
-- speaker
-- hero
-- parnership auf extra seite
+- favicon
+- add new speaker
+- linkedin link for each speaker
+- seo optimized to get found on google
+- finish marketing material- add a new marketing material: twitter banner
