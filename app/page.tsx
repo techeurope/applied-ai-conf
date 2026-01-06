@@ -3,7 +3,6 @@ import {
   Hero,
   About,
   FeaturedSpeakers,
-  Format,
   PartnershipTiers,
   CallToAction,
   FAQ,
@@ -17,10 +16,9 @@ export default function Home() {
         <Hero />
         <About />
         <FeaturedSpeakers />
-        <Format />
         <PartnershipTiers />
-        <CallToAction />
         <FAQ />
+        <CallToAction />
       </main>
       <Footer />
     </div>
