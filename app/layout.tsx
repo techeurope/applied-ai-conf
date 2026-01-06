@@ -16,14 +16,17 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Applied AI Conf by {Tech: Europe}",
+  title: "Applied AI Conference Berlin | May 28, 2026",
   description:
-    "Europe's top founders & builders are shipping AI into production - May 28, 2026 at Delta Campus, Berlin",
+    "A one-day applied AI conference in Berlin for technical founders, CTOs, and engineers shipping AI into production. Talks, panels, workshops, and live demos.",
   metadataBase: new URL("https://conference.techeurope.io"),
+  alternates: {
+    canonical: "https://conference.techeurope.io",
+  },
   openGraph: {
-    title: "Applied AI Conf by {Tech: Europe}",
+    title: "Applied AI Conference Berlin | May 28, 2026",
     description:
-      "Europe's top founders & builders are shipping AI into production - May 28, 2026 at Delta Campus, Berlin",
+      "A one-day applied AI conference in Berlin for technical founders, CTOs, and engineers shipping AI into production. Talks, panels, workshops, and live demos.",
     url: "https://conference.techeurope.io",
     siteName: "Applied AI Conf by {Tech: Europe}",
     images: [
@@ -31,7 +34,7 @@ export const metadata: Metadata = {
         url: "/og-image.jpg",
         width: 1200,
         height: 1200,
-        alt: "Applied AI Conf - Berlin | May 28, 2026",
+        alt: "Applied AI Conference - Berlin | May 28, 2026",
       },
     ],
     locale: "en_US",
@@ -39,11 +42,43 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Applied AI Conf by {Tech: Europe}",
+    title: "Applied AI Conference Berlin | May 28, 2026",
     description:
-      "Europe's top founders & builders are shipping AI into production - May 28, 2026 at Delta Campus, Berlin",
+      "A one-day applied AI conference in Berlin for technical founders, CTOs, and engineers shipping AI into production.",
     images: ["/og-image.jpg"],
   },
+};
+
+const eventJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Event",
+  name: "Applied AI Conf",
+  description:
+    "A one-day applied AI conference in Berlin for technical founders, CTOs, and engineers shipping AI into production.",
+  startDate: "2026-05-28T09:00:00+02:00",
+  endDate: "2026-05-28T18:00:00+02:00",
+  eventStatus: "https://schema.org/EventScheduled",
+  eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+  location: {
+    "@type": "Place",
+    name: "The Delta Campus",
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Berlin",
+      addressCountry: "DE",
+    },
+  },
+  organizer: {
+    "@type": "Organization",
+    name: "Tech: Europe",
+    url: "https://techeurope.io",
+  },
+  offers: {
+    "@type": "Offer",
+    url: "https://lu.ma/appliedaiconf",
+    availability: "https://schema.org/InStock",
+  },
+  image: "https://conference.techeurope.io/og-image.jpg",
 };
 
 export default function RootLayout({
@@ -53,6 +88,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}
+        />
+      </head>
       <body className={`${kodeMono.variable} ${inter.variable} antialiased`}>
         {children}
         <Analytics />

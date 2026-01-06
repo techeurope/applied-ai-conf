@@ -10,7 +10,8 @@ Next.js 16 conference website for "Applied AI Conf by {Tech: Europe}" - an event
 **Language:** TypeScript (strict mode)
 **Styling:** Tailwind CSS v4 with PostCSS
 **Graphics:** React Three Fiber with Three.js for shader-based backgrounds
-**Fonts:** 
+**Fonts:**
+
 - **Headings/Mono:** Kode Mono (Google Fonts)
 - **Body/UI:** Inter (Google Fonts) for maximum readability
 
@@ -65,9 +66,9 @@ Data lives in `app/data/` as typed constants, imported into components/sections.
 - **Vercel-like Aesthetic:** High contrast, glassmorphism (`.glass`, `.glass-card`), subtle borders (`border-white/10`), and glow effects (`.text-glow`).
 - **Tailwind CSS v4:** Inline theme configuration in `globals.css`.
 - **Dark Theme:** Deep black background (`#05070f`) with cleaner white/gray text.
-- **Typography:** 
-    - `Kode Mono` for titles, numbers, and tech elements.
-    - `Inter` for body text, descriptions, and UI elements to ensure high readability.
+- **Typography:**
+  - `Kode Mono` for titles, numbers, and tech elements.
+  - `Inter` for body text, descriptions, and UI elements to ensure high readability.
 - **Animations:** Fade-ins (`animate-fade-in-up`) and refined shader movements.
 
 ### Interactive Patterns
@@ -88,20 +89,24 @@ Conference data split by domain:
 - `partnerships.ts`: Partnership tiers, audience segments, focus areas
 - `navigation.ts`: Header links and action buttons
 - `footer.ts`: Footer navigation links
-- `speakers.ts`, `faqs.ts`: Section specific content
+- `speakers.ts`: Speaker data with taglines, alt text, logos
+- `faqs.ts`: FAQ items (legacy, FAQ section uses inline data)
 
 ## Current State
 
 **Landing Page Sections (in order):**
 
-1. **Hero:** Lidar scape background, massive mono typography ("Applied / AI Conf"). Features a "HUD" style grid layout containing the intro pitch, venue info, date, inline newsletter email field with subscribe button, and ticket action.
-2. **FeaturedSpeakers:** Three-per-row layout. Default state: clean grayscale images, white HUD name boxes. Hover state: Green "CRT monitor" aesthetic with scanlines, glowing text, and green accents.
-3. **PartnershipTiers:** Partner CTA section with "Become a Partner" button. Features three distinct tiers (Platinum, Gold, Community) displayed as shader-based cards with direct text overlay (no containers) for a cleaner, integrated look.
-4. **CallToAction:** Final CTA section with "Want to get updates and buy tickets?" heading and two hot elements (spinning gradient borders) for newsletter signup and ticket purchase.
+1. **Hero:** Lidar scape background, massive mono typography ("Applied / AI Conf"). HUD-style grid with subheadline ("A one-day applied AI conference in Berlin..."), supporting paragraph, venue/date info, newsletter signup, dual CTAs (Get Tickets + Become a Partner), and microline with date/venue.
+2. **About:** Three subsections - "About Applied AI Conf" (conference description), "Who it's for" (target audience list), "What you'll walk away with" (outcomes list).
+3. **FeaturedSpeakers:** Three-per-row layout. Each card shows: headshot with proper alt text, name, role line ("CTO, Legora"), company logo with alt text, tagline describing what the company does. Green CRT aesthetic on hover.
+4. **Format:** Two-track format description (Main + Side track), workshops/panels/demos, expo area. Agenda coming soon notice.
+5. **PartnershipTiers:** Partner benefits list, three tiers (Platinum, Gold, Community) as shader cards, dual CTAs ("Become a partner" + "Request sponsorship deck").
+6. **CallToAction:** "Get Applied AI updates" newsletter section with benefits list, spinning border input, "No spam" notice.
+7. **FAQ:** Accordion with 5 questions covering: beginner suitability, two tracks, ticket inclusions, group tickets, sponsorship.
 
 **Deactivated Sections (still in codebase but not rendered):**
+
 - **Overview:** Glass cards detailing focus areas and attendee profiles.
-- **FAQ:** Glass-card accordion with static heading.
 
 **Static Pages:**
 
@@ -117,13 +122,12 @@ Conference data split by domain:
 - **Primary CTA:** "Get Tickets" (links to Luma).
 - **Secondary CTAs:** "Become a Partner" (email/form links).
 
-**Todo Items** (from `todo.md`):
+## SEO
 
-- Newsletter signup via beehiiv embed (completed, integrated in Hero)
-- Speaker section implementation (completed, refined)
-- Hero updates (completed, refined)
-- Partnership page (completed via PartnershipTiers section)
-- Static pages (Imprint, Privacy) (completed)
+- **Title:** "Applied AI Conference Berlin | May 28, 2026"
+- **Meta description:** Includes "applied AI", "AI in production", "Berlin", target audience
+- **Event structured data:** JSON-LD Event schema with date, location, organizer, ticket URL
+- **Canonical URL:** https://conference.techeurope.io
 
 ## Implementation Guidelines
 

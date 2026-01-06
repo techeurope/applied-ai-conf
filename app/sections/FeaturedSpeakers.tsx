@@ -30,11 +30,14 @@ export default function FeaturedSpeakers() {
     speakers.push({
       name: "Speaker TBA",
       title: "To be announced",
-      company: "Applied AI Conf",
+      company: "",
       bio: "",
+      vertical: "",
+      building: "More production AI builders coming soon",
       image: undefined,
       initial: "TBA",
       accent: "from-white/10 via-white/10 to-white/10",
+      imageAlt: "Speaker to be announced",
     });
   }
 
@@ -72,7 +75,7 @@ export default function FeaturedSpeakers() {
                   {speaker.image ? (
                     <Image
                       src={speaker.image}
-                      alt={speaker.name}
+                      alt={speaker.imageAlt}
                       fill
                       className="object-cover grayscale transition-all duration-700 group-hover:scale-105 group-hover:grayscale-0"
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 40vw"
@@ -93,7 +96,7 @@ export default function FeaturedSpeakers() {
                   {speaker.image ? (
                     <Image
                       src={speaker.image}
-                      alt={speaker.name}
+                      alt={speaker.imageAlt}
                       fill
                       className="object-cover grayscale transition-all duration-700 group-hover:scale-105 group-hover:grayscale-0"
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 40vw"
@@ -126,6 +129,7 @@ export default function FeaturedSpeakers() {
                 <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-white/30 rounded-br-lg z-10 transition-colors duration-300 group-hover:border-green-500/60" />
 
                 <div className="relative z-10">
+                  {/* Name */}
                   {speaker.linkedinUrl ? (
                     <Link
                       href={speaker.linkedinUrl}
@@ -145,48 +149,66 @@ export default function FeaturedSpeakers() {
                       {speaker.name.split(" ").slice(-1)[0]}
                     </h3>
                   )}
-                  <div className="flex items-center gap-2 mt-3">
+
+                  {/* Role + Company Logo */}
+                  <div className="flex items-center gap-3 mt-3">
                     <span className="text-xs font-medium text-gray-400 font-mono uppercase tracking-widest transition-colors duration-300 group-hover:text-green-700">
                       {speaker.title}
                     </span>
-                    <span className="text-white/30 transition-colors duration-300 group-hover:text-green-900">
-                      /
-                    </span>
-                    {(() => {
-                      const logoContent = COMPANY_LOGOS[speaker.company] ? (
-                        (() => {
-                          const LogoComponent = COMPANY_LOGOS[speaker.company];
-                          return (
-                            <LogoComponent className="h-4 w-auto text-white/70 transition-all duration-300 group-hover:text-green-500" />
-                          );
-                        })()
-                      ) : speaker.companyLogo ? (
-                        <Image
-                          src={speaker.companyLogo}
-                          alt={speaker.company}
-                          width={80}
-                          height={20}
-                          className="h-4 w-auto opacity-70 transition-all duration-300 group-hover:opacity-100 [filter:brightness(0)_invert(1)] group-hover:[filter:brightness(0)_saturate(100%)_invert(48%)_sepia(79%)_saturate(2476%)_hue-rotate(86deg)_brightness(118%)_contrast(119%)]"
-                        />
-                      ) : (
-                        <span className="text-xs font-medium text-white/70 font-mono uppercase tracking-widest transition-colors duration-300 group-hover:text-green-600">
-                          {speaker.company}
+                    {speaker.company && (
+                      <>
+                        <span className="text-white/20 transition-colors duration-300 group-hover:text-green-900">
+                          @
                         </span>
-                      );
+                        {(() => {
+                          const logoContent = COMPANY_LOGOS[speaker.company] ? (
+                            (() => {
+                              const LogoComponent = COMPANY_LOGOS[speaker.company];
+                              return (
+                                <LogoComponent className="h-5 w-auto text-white/70 transition-all duration-300 group-hover:text-green-500" />
+                              );
+                            })()
+                          ) : speaker.companyLogo ? (
+                            <Image
+                              src={speaker.companyLogo}
+                              alt={speaker.logoAlt || `${speaker.company} logo`}
+                              width={80}
+                              height={20}
+                              className="h-5 w-auto opacity-70 transition-all duration-300 group-hover:opacity-100 [filter:brightness(0)_invert(1)] group-hover:[filter:brightness(0)_saturate(100%)_invert(48%)_sepia(79%)_saturate(2476%)_hue-rotate(86deg)_brightness(118%)_contrast(119%)]"
+                            />
+                          ) : (
+                            <span className="text-xs font-medium text-white/70 font-mono uppercase tracking-widest transition-colors duration-300 group-hover:text-green-600">
+                              {speaker.company}
+                            </span>
+                          );
 
-                      return speaker.companyUrl ? (
-                        <Link
-                          href={speaker.companyUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {logoContent}
-                        </Link>
-                      ) : (
-                        logoContent
-                      );
-                    })()}
+                          return speaker.companyUrl && logoContent ? (
+                            <Link
+                              href={speaker.companyUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {logoContent}
+                            </Link>
+                          ) : (
+                            logoContent
+                          );
+                        })()}
+                      </>
+                    )}
+                  </div>
+
+                  {/* Vertical badge + Building description */}
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
+                    {speaker.vertical && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-white/10 text-white/80 border border-white/20 transition-all duration-300 group-hover:bg-green-500/20 group-hover:text-green-400 group-hover:border-green-500/40">
+                        {speaker.vertical}
+                      </span>
+                    )}
+                    <span className="text-sm text-gray-400 leading-relaxed transition-colors duration-300 group-hover:text-green-600">
+                      {speaker.building}
+                    </span>
                   </div>
                 </div>
               </div>

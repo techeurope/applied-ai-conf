@@ -1,5 +1,13 @@
 import { Navigation, Footer } from "@/components";
-import { Hero, FeaturedSpeakers, PartnershipTiers, CallToAction } from "@/sections";
+import {
+  Hero,
+  About,
+  FeaturedSpeakers,
+  Format,
+  PartnershipTiers,
+  CallToAction,
+  FAQ,
+} from "@/sections";
 
 export default function Home() {
   return (
@@ -7,9 +15,12 @@ export default function Home() {
       <Navigation />
       <main>
         <Hero />
+        <About />
         <FeaturedSpeakers />
+        <Format />
         <PartnershipTiers />
         <CallToAction />
+        <FAQ />
       </main>
       <Footer />
     </div>

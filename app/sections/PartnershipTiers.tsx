@@ -236,10 +236,32 @@ export default function PartnershipTiers() {
           <h2 className="text-5xl font-mono font-bold tracking-tighter sm:text-6xl md:text-7xl lg:text-8xl text-glow">
             Partners
           </h2>
-          <p className="mx-auto mt-6 text-lg text-gray-400 leading-relaxed">
-            Get in front of 700+ European founders and engineers who are using
-            AI in real-world products.
+          <p className="mx-auto mt-6 text-lg text-gray-300 leading-relaxed max-w-2xl">
+            Meet Europe&apos;s applied AI builders in one room. Get in front of founders, CTOs, and engineers shipping AI into real products.
           </p>
+        </div>
+
+        {/* What partners get */}
+        <div className="mb-16 max-w-2xl mx-auto">
+          <h3 className="text-xl font-mono font-bold text-white mb-6">What partners get</h3>
+          <ul className="space-y-3 text-gray-300">
+            <li className="flex items-start gap-3">
+              <span className="text-white/60 font-mono">—</span>
+              Brand visibility across the website, email, and on-site signage
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-white/60 font-mono">—</span>
+              Booth space to meet builders, customers, and hiring candidates
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-white/60 font-mono">—</span>
+              Optional workshop/demo slot (technical, relevant content)
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-white/60 font-mono">—</span>
+              A highly curated audience focused on production AI
+            </li>
+          </ul>
         </div>
 
         {/* Tier Boxes */}
@@ -284,18 +306,22 @@ export default function PartnershipTiers() {
 
         {/* CTA */}
         <div className="text-center">
-          <p className="mb-6 text-lg text-gray-400">
-            Ready to explore a partnership? Leave your details and we&apos;ll
-            reach out.
-          </p>
-          <Link
-            href="https://tally.so/r/Me1ZKM"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex h-14 items-center justify-center rounded-full bg-white px-10 text-lg font-semibold text-black transition-all hover:bg-gray-100 hover:scale-105 hover:shadow-[0_0_30px_rgba(255,255,255,0.4)]"
-          >
-            Become a Partner
-          </Link>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link
+              href="https://tally.so/r/Me1ZKM"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-14 items-center justify-center rounded-full bg-white px-10 text-lg font-semibold text-black transition-all hover:bg-gray-100 hover:scale-105 hover:shadow-[0_0_30px_rgba(255,255,255,0.4)]"
+            >
+              Become a partner
+            </Link>
+            <Link
+              href="mailto:tim@techeurope.io?subject=Applied%20AI%20Conf%20-%20Sponsorship%20Deck%20Request"
+              className="inline-flex h-14 items-center justify-center rounded-full border border-white/20 bg-transparent px-10 text-lg font-semibold text-white transition-all hover:bg-white/5 hover:border-white/40"
+            >
+              Request sponsorship deck
+            </Link>
+          </div>
         </div>
       </div>
     </section>

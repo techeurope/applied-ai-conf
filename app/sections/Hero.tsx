@@ -2,7 +2,7 @@ import { CONFERENCE_INFO } from "@/data/conference";
 import { NAVIGATION_ACTIONS } from "@/data/navigation";
 import { LidarScapeBackground } from "@/components/ui/lidar-scape-background";
 import { InlineNewsletterForm } from "@/components/ui/newsletter-form";
-import { MapPin, Calendar, Ticket } from "lucide-react";
+import { MapPin, Calendar, Ticket, Handshake } from "lucide-react";
 
 export default function Hero() {
   const ticketAction = NAVIGATION_ACTIONS[0];
@@ -27,7 +27,7 @@ export default function Hero() {
           </a>
         </div>
 
-        {/* 2. Main Title */}
+        {/* 2. Main Title (H1) */}
         <h1 className="w-full text-6xl font-bold tracking-tighter sm:text-7xl md:text-8xl lg:text-[10rem] xl:text-[12rem] leading-[0.9] font-mono select-none">
           <span className="text-glow">Applied</span>
           <br />
@@ -38,11 +38,13 @@ export default function Hero() {
         <div className="w-full max-w-5xl mx-auto">
           {/* Grid Container with borders */}
           <div className="grid grid-cols-1 md:grid-cols-12 border border-white/10 bg-white/5 rounded-2xl overflow-hidden backdrop-blur-sm">
-            {/* Top Row: Intro Text (Full Width) */}
-            <div className="col-span-1 md:col-span-12 p-6 sm:p-10 border-b border-white/10 flex items-center justify-center bg-black/20">
-              <p className="text-xl sm:text-2xl text-gray-200 leading-relaxed font-normal drop-shadow-md">
-                Europe&apos;s top founders & builders are shipping AI into
-                production
+            {/* Top Row: Subheadline + Supporting paragraph (Full Width) */}
+            <div className="col-span-1 md:col-span-12 p-6 sm:p-10 border-b border-white/10 flex flex-col items-center justify-center bg-black/20 gap-4">
+              <p className="text-xl sm:text-2xl text-white leading-relaxed font-medium drop-shadow-md">
+                A one-day <strong>applied AI conference in Berlin</strong> for builders shipping <strong>AI into production</strong>.
+              </p>
+              <p className="text-base sm:text-lg text-gray-300 leading-relaxed max-w-3xl">
+                Join Europe&apos;s technical founders, engineering leaders, and the infra and devtools teams powering them. Learn how teams design, build, and scale production-grade AI systems through talks, panels, workshops, and live demos.
               </p>
             </div>
 
@@ -71,12 +73,28 @@ export default function Hero() {
             </div>
 
             {/* Middle Row: Newsletter Email Field */}
-            <div className="col-span-1 md:col-span-5 p-2 border-b md:border-b-0 md:border-r border-white/10 bg-black/40">
+            <div className="col-span-1 md:col-span-4 p-2 border-b md:border-b-0 md:border-r border-white/10 bg-black/40">
               <InlineNewsletterForm />
             </div>
 
-            {/* Middle Row Right: Ticket Action (Simple White) */}
-            <div className="col-span-1 md:col-span-3 p-0 relative overflow-hidden group bg-white hover:bg-gray-50 transition-colors rounded-br-2xl">
+            {/* Middle Row: Become a Partner (Secondary CTA) */}
+            <div className="col-span-1 md:col-span-2 p-0 relative overflow-hidden group bg-transparent border-b md:border-b-0 md:border-r border-white/10 hover:bg-white/5 transition-colors">
+              <a
+                href="#tiers"
+                className="absolute inset-0 z-30"
+              >
+                <span className="sr-only">Become a partner</span>
+              </a>
+              <div className="relative z-20 w-full h-full p-4 flex items-center justify-center gap-2">
+                <Handshake className="h-4 w-4 text-white/80 shrink-0" />
+                <span className="text-sm font-medium text-white">
+                  Partner
+                </span>
+              </div>
+            </div>
+
+            {/* Middle Row Right: Ticket Action (Primary CTA - Simple White) */}
+            <div className="col-span-1 md:col-span-2 p-0 relative overflow-hidden group bg-white hover:bg-gray-50 transition-colors md:rounded-br-2xl">
               <a
                 href={ticketAction.href}
                 target="_blank"
@@ -86,14 +104,19 @@ export default function Hero() {
                 <span className="sr-only">{ticketAction.label}</span>
               </a>
 
-              <div className="relative z-20 w-full h-full p-5 flex items-center justify-center gap-3">
-                <Ticket className="h-5 w-5 text-black shrink-0" />
-                <span className="text-base font-bold text-black">
-                  Get Tickets
+              <div className="relative z-20 w-full h-full p-4 flex items-center justify-center gap-2">
+                <Ticket className="h-4 w-4 text-black shrink-0" />
+                <span className="text-sm font-bold text-black">
+                  Tickets
                 </span>
               </div>
             </div>
           </div>
+
+          {/* Microline below the grid */}
+          <p className="mt-4 text-sm text-gray-500 font-mono">
+            May 28, 2026 · The Delta Campus, Berlin
+          </p>
         </div>
       </div>
     </section>

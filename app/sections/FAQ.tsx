@@ -5,24 +5,29 @@ import { Plus } from 'lucide-react';
 
 const FAQ_ITEMS = [
   {
-    question: 'Who should attend the Applied AI Conference?',
+    question: 'Is this conference for beginners?',
     answer:
-      'This event is designed for product leaders, engineering teams, investors, and founders who want to accelerate real-world AI adoption across their organizations.',
+      "It's designed for people building or operating AI systems. If you're shipping AI (or starting to), you'll get the most value.",
   },
   {
-    question: 'What can I expect from the sessions?',
+    question: 'Will there be two tracks?',
     answer:
-      'Expect actionable case studies, candid conversations with industry peers, and hands-on tactical guidance for shipping AI-powered products responsibly.',
+      'Yes. A main track and a side track focused on hands-on and technical sessions.',
   },
   {
-    question: 'Is there networking built into the agenda?',
+    question: "What's included in the ticket?",
     answer:
-      'Yes. We curate targeted networking blocks, small-group roundtables, and curated introductions so you can meet the operators who can help you move faster.',
+      'Access to all talks, workshops, the partner expo, and networking. Catering details will be confirmed closer to the event.',
   },
   {
-    question: 'How do I become a partner or sponsor?',
+    question: 'Can my company buy multiple tickets?',
     answer:
-      'Share a bit about your goals via the partners intake form. Our team will follow up with opportunities tailored to the audience segments you want to reach.',
+      'Yes. Contact us at tim@techeurope.io for group bookings.',
+  },
+  {
+    question: 'How can my company sponsor?',
+    answer:
+      'Use the partner form or request the sponsorship deck via email.',
   },
 ];
 
@@ -34,11 +39,8 @@ export default function FAQ() {
       <div className="relative mx-auto max-w-4xl px-6 lg:px-8">
         <div className="text-center mb-16">
             <h2 className="text-4xl font-mono font-bold tracking-tighter text-white sm:text-5xl lg:text-6xl text-glow">
-                Questions & Answers
+                FAQ
             </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-400">
-            Everything you need to know about the event.
-            </p>
         </div>
 
         <div className="space-y-4">
