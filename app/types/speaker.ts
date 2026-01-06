@@ -3,6 +3,8 @@ export interface Speaker {
   title: string;
   company: string;
   companyLogo?: string;
+  companyUrl?: string;
+  linkedinUrl?: string;
   bio: string;
   initial: string;
   accent: string;
