@@ -4,7 +4,7 @@ import { useRef, useState, useCallback } from "react";
 import { useThree } from "@react-three/fiber";
 import { Group, Vector3 } from "three";
 import type { ThreeEvent } from "@react-three/fiber";
-import type { ElementType, Position } from "../store";
+import type { ElementType, Position, SelectableElementType } from "../store";
 import { useSpeakerAssetStore } from "../store";
 
 interface SelectableElementProps {
@@ -91,7 +91,7 @@ export function SelectableElement({
       // Snapshot initial positions for all selected elements so we can drag as a group
       const state = useSpeakerAssetStore.getState();
       const initialMap: Record<string, Position> = {};
-      state.selectedElements.forEach((el) => {
+      state.selectedElements.forEach((el: SelectableElementType) => {
         const cfg = (state.config as any)[el];
         if (cfg && typeof cfg === "object" && "position" in cfg) {
           initialMap[el] = { ...(cfg.position as Position) };
@@ -141,7 +141,7 @@ export function SelectableElement({
         };
 
         const positions: Partial<Record<keyof any, Position>> = {};
-        state.selectedElements.forEach((el) => {
+        state.selectedElements.forEach((el: SelectableElementType) => {
           const start = groupInitialPositions[el];
           if (!start) return;
           (positions as any)[el] = { x: start.x + delta.x, y: start.y + delta.y };

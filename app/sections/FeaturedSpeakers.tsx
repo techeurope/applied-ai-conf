@@ -55,21 +55,10 @@ export default function FeaturedSpeakers() {
         {/* Speakers Grid - Conference badge layout */}
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
           {speakers.map((speaker) => {
-            const CardWrapper = speaker.linkedinUrl ? Link : "div";
-            const cardProps = speaker.linkedinUrl
-              ? {
-                  href: speaker.linkedinUrl,
-                  target: "_blank",
-                  rel: "noopener noreferrer",
-                }
-              : {};
+            const className = "group relative flex flex-col bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden transition-all duration-300 hover:bg-white/[0.07] hover:border-white/20 hover:-translate-y-1";
 
-            return (
-              <CardWrapper
-                key={speaker.name}
-                {...cardProps}
-                className="group relative flex flex-col bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden transition-all duration-300 hover:bg-white/[0.07] hover:border-white/20 hover:-translate-y-1"
-              >
+            const cardContent = (
+              <>
                 {/* Header: Image */}
                 <div className="relative aspect-[4/3] w-full overflow-hidden bg-zinc-900">
                   {speaker.image ? (
@@ -171,7 +160,23 @@ export default function FeaturedSpeakers() {
                     </div>
                   )}
                 </div>
-              </CardWrapper>
+              </>
+            );
+
+            return speaker.linkedinUrl ? (
+              <Link
+                key={speaker.name}
+                href={speaker.linkedinUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={className}
+              >
+                {cardContent}
+              </Link>
+            ) : (
+              <div key={speaker.name} className={className}>
+                {cardContent}
+              </div>
             );
           })}
         </div>

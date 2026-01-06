@@ -41,7 +41,7 @@ async function renderLogoToBlob(
   
   // Try to get bounding box for better accuracy
   try {
-    const bbox = svg.getBBox();
+    const bbox = (svg as SVGGraphicsElement).getBBox();
     if (bbox.width > 0 && bbox.height > 0) {
       // Use bbox if it provides valid dimensions and is different from viewBox
       // This handles cases where transforms move content

@@ -129,7 +129,7 @@ export function getDefaultForElement<K extends keyof AssetConfig>(
   return DEFAULT_ASSET_CONFIG[key];
 }
 
-interface SpeakerAssetStore {
+export interface SpeakerAssetStore {
   // Preview mode
   previewMode: PreviewMode;
   setPreviewMode: (mode: PreviewMode) => void;
@@ -242,22 +242,23 @@ function migrateConfig(storedConfig: Partial<AssetConfig>): AssetConfig {
 }
 
 export const useSpeakerAssetStore = create<SpeakerAssetStore>()(
+  // @ts-expect-error - persist middleware has complex type inference issues with partialize
   persist(
-    (set) => ({
+    (set: any) => ({
       // Preview mode
       previewMode: "fixed",
-      setPreviewMode: (mode) => set({ previewMode: mode }),
+      setPreviewMode: (mode: PreviewMode) => set({ previewMode: mode }),
 
       // Selection
       selectedElement: null,
       selectedElements: [],
-      setSelectedElement: (element) =>
+      setSelectedElement: (element: ElementType) =>
         set(() => ({
           selectedElement: element,
           selectedElements: element ? [element] : [],
         })),
-      toggleSelectedElement: (element) =>
-        set((state) => {
+      toggleSelectedElement: (element: SelectableElementType) =>
+        set((state: SpeakerAssetStore) => {
           const exists = state.selectedElements.includes(element);
           const next = exists
             ? state.selectedElements.filter((e) => e !== element)
@@ -267,8 +268,8 @@ export const useSpeakerAssetStore = create<SpeakerAssetStore>()(
             selectedElement: next.length ? next[next.length - 1] : null,
           };
         }),
-      addSelectedElement: (element) =>
-        set((state) => {
+      addSelectedElement: (element: SelectableElementType) =>
+        set((state: SpeakerAssetStore) => {
           const exists = state.selectedElements.includes(element);
           const next = exists ? state.selectedElements : [...state.selectedElements, element];
           return {
@@ -285,14 +286,14 @@ export const useSpeakerAssetStore = create<SpeakerAssetStore>()(
       canUndo: () => useSpeakerAssetStore.getState().historyPast.length > 0,
       canRedo: () => useSpeakerAssetStore.getState().historyFuture.length > 0,
       pushHistory: () =>
-        set((state) => ({
+        set((state: SpeakerAssetStore) => ({
           historyPast: [...state.historyPast, cloneConfig(state.config)].slice(
             -HISTORY_LIMIT
           ),
           historyFuture: [],
         })),
       undo: () =>
-        set((state) => {
+        set((state: SpeakerAssetStore) => {
           if (state.historyPast.length === 0) return state;
           const previous = state.historyPast[state.historyPast.length - 1];
           return {
@@ -305,7 +306,7 @@ export const useSpeakerAssetStore = create<SpeakerAssetStore>()(
           };
         }),
       redo: () =>
-        set((state) => {
+        set((state: SpeakerAssetStore) => {
           if (state.historyFuture.length === 0) return state;
           const next = state.historyFuture[0];
           return {
@@ -316,8 +317,8 @@ export const useSpeakerAssetStore = create<SpeakerAssetStore>()(
             historyFuture: state.historyFuture.slice(1),
           };
         }),
-      updateConfig: (key, value) =>
-        set((state) => ({
+      updateConfig: <K extends keyof AssetConfig>(key: K, value: Partial<AssetConfig[K]>) =>
+        set((state: SpeakerAssetStore) => ({
           historyPast: [...state.historyPast, cloneConfig(state.config)].slice(
             -HISTORY_LIMIT
           ),
@@ -327,8 +328,8 @@ export const useSpeakerAssetStore = create<SpeakerAssetStore>()(
             [key]: { ...state.config[key], ...value },
           },
         })),
-      updatePosition: (element, position) =>
-        set((state) => {
+      updatePosition: (element: keyof AssetConfig, position: Partial<Position>) =>
+        set((state: SpeakerAssetStore) => {
           const elementConfig = state.config[element];
           if ("position" in elementConfig) {
             return {
@@ -347,8 +348,8 @@ export const useSpeakerAssetStore = create<SpeakerAssetStore>()(
           }
           return state;
         }),
-      setPositions: (positions) =>
-        set((state) => {
+      setPositions: (positions: Partial<Record<keyof AssetConfig, Position>>) =>
+        set((state: SpeakerAssetStore) => {
           const nextConfig: AssetConfig = { ...state.config };
           (Object.keys(positions) as Array<keyof AssetConfig>).forEach((key) => {
             const pos = positions[key];
@@ -369,8 +370,8 @@ export const useSpeakerAssetStore = create<SpeakerAssetStore>()(
             config: nextConfig,
           };
         }),
-      setPositionsNoHistory: (positions) =>
-        set((state) => {
+      setPositionsNoHistory: (positions: Partial<Record<keyof AssetConfig, Position>>) =>
+        set((state: SpeakerAssetStore) => {
           const nextConfig: AssetConfig = { ...state.config };
           (Object.keys(positions) as Array<keyof AssetConfig>).forEach((key) => {
             const pos = positions[key];
@@ -385,8 +386,8 @@ export const useSpeakerAssetStore = create<SpeakerAssetStore>()(
           });
           return { config: nextConfig };
         }),
-      alignSelectedToActive: (axis) =>
-        set((state) => {
+      alignSelectedToActive: (axis: "x" | "y") =>
+        set((state: SpeakerAssetStore) => {
           const active = state.selectedElement;
           if (!active) return state;
 
@@ -417,15 +418,15 @@ export const useSpeakerAssetStore = create<SpeakerAssetStore>()(
           };
         }),
       resetConfig: () =>
-        set((state) => ({
+        set((state: SpeakerAssetStore) => ({
           historyPast: [...state.historyPast, cloneConfig(state.config)].slice(
             -HISTORY_LIMIT
           ),
           historyFuture: [],
           config: DEFAULT_ASSET_CONFIG,
         })),
-      resetElement: (element) =>
-        set((state) => ({
+      resetElement: (element: keyof AssetConfig) =>
+        set((state: SpeakerAssetStore) => ({
           historyPast: [...state.historyPast, cloneConfig(state.config)].slice(
             -HISTORY_LIMIT
           ),
@@ -438,17 +439,17 @@ export const useSpeakerAssetStore = create<SpeakerAssetStore>()(
 
       // Controls panel
       showAdvanced: false,
-      setShowAdvanced: (show) => set({ showAdvanced: show }),
+      setShowAdvanced: (show: boolean) => set({ showAdvanced: show }),
     }),
     {
       name: "speaker-asset-preferences",
       version: 4, // Increment version to trigger migration
-      migrate: (persistedState, version) => {
+      migrate: (persistedState: any, version: number) => {
         if (version < 4) {
           // Migrate persisted config to current shape (positions, logo align, animation props)
           const state = persistedState as { config?: Partial<AssetConfig> };
           return {
-            ...persistedState,
+            ...(persistedState as object),
             selectedElement: null,
             selectedElements: [],
             config: state.config ? migrateConfig(state.config) : DEFAULT_ASSET_CONFIG,

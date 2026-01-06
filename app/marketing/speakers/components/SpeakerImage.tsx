@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { useLoader } from "@react-three/fiber";
 import { TextureLoader, SRGBColorSpace } from "three";
 import { useSpeakerAssetStore } from "../store";
-import type { AssetConfig } from "../store";
+import type { AssetConfig, SpeakerAssetStore } from "../store";
 import { SelectableElement } from "./SelectableElement";
 
 interface SpeakerImageMeshProps {
@@ -14,7 +14,7 @@ interface SpeakerImageMeshProps {
 
 function SpeakerImageMesh({ imageUrl, size }: SpeakerImageMeshProps) {
   const texture = useLoader(TextureLoader, imageUrl);
-  const selectedElements = useSpeakerAssetStore((s) => s.selectedElements);
+  const selectedElements = useSpeakerAssetStore((s: SpeakerAssetStore) => s.selectedElements);
 
   // Ensure proper color rendering (web images are sRGB)
   texture.colorSpace = SRGBColorSpace;
@@ -42,7 +42,7 @@ interface SpeakerImageProps {
 }
 
 export function SpeakerImage({ imageUrl, config }: SpeakerImageProps) {
-  const updatePosition = useSpeakerAssetStore((s) => s.updatePosition);
+  const updatePosition = useSpeakerAssetStore((s: SpeakerAssetStore) => s.updatePosition);
 
   return (
     <SelectableElement

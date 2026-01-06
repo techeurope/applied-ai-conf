@@ -22,7 +22,7 @@ import {
   Pause,
 } from "lucide-react";
 import { SPEAKERS } from "@/data/speakers";
-import type { AssetConfig, PreviewMode, ElementType } from "../store";
+import type { AssetConfig, PreviewMode, ElementType, SpeakerAssetStore, SelectableElementType } from "../store";
 import { useSpeakerAssetStore } from "../store";
 
 // Resolution options
@@ -177,9 +177,9 @@ function ElementControls({
     position: { x?: number; y?: number }
   ) => void;
 }) {
-  const selectedElement = useSpeakerAssetStore((s) => s.selectedElement);
-  const selectedElements = useSpeakerAssetStore((s) => s.selectedElements);
-  const alignSelectedToActive = useSpeakerAssetStore((s) => s.alignSelectedToActive);
+  const selectedElement = useSpeakerAssetStore((s: SpeakerAssetStore) => s.selectedElement);
+  const selectedElements = useSpeakerAssetStore((s: SpeakerAssetStore) => s.selectedElements);
+  const alignSelectedToActive = useSpeakerAssetStore((s: SpeakerAssetStore) => s.alignSelectedToActive);
 
   if (!selectedElements.length) {
     return (
@@ -228,7 +228,7 @@ function ElementControls({
         </div>
 
         <div className="flex flex-wrap gap-1">
-          {selectedElements.map((el) => (
+          {selectedElements.map((el: SelectableElementType) => (
             <span
               key={el}
               className="px-2 py-1 rounded bg-white/5 text-xs font-mono text-gray-300"
@@ -241,7 +241,11 @@ function ElementControls({
     );
   }
 
-  const elementInfo = ELEMENT_INFO[selectedElement];
+  if (!selectedElement) {
+    return null;
+  }
+
+  const elementInfo = ELEMENT_INFO[selectedElement as SelectableElementType];
   const Icon = elementInfo.icon;
 
   return (
@@ -660,10 +664,10 @@ export function ControlPanel({
 }: ControlPanelProps) {
   const { selectedElement, selectedElements, setSelectedElement, resetElement, updatePosition, clearSelection } =
     useSpeakerAssetStore();
-  const undo = useSpeakerAssetStore((s) => s.undo);
-  const redo = useSpeakerAssetStore((s) => s.redo);
-  const canUndo = useSpeakerAssetStore((s) => s.historyPast.length > 0);
-  const canRedo = useSpeakerAssetStore((s) => s.historyFuture.length > 0);
+  const undo = useSpeakerAssetStore((s: SpeakerAssetStore) => s.undo);
+  const redo = useSpeakerAssetStore((s: SpeakerAssetStore) => s.redo);
+  const canUndo = useSpeakerAssetStore((s: SpeakerAssetStore) => s.historyPast.length > 0);
+  const canRedo = useSpeakerAssetStore((s: SpeakerAssetStore) => s.historyFuture.length > 0);
 
   return (
     <div
@@ -791,7 +795,7 @@ export function ControlPanel({
               <button
                 onClick={() => resetElement(selectedElement)}
                 className="flex items-center gap-1 text-xs text-gray-500 hover:text-amber-500 transition-colors"
-                title={`Reset ${ELEMENT_INFO[selectedElement].label}`}
+                title={`Reset ${ELEMENT_INFO[selectedElement as SelectableElementType].label}`}
               >
                 <RotateCcw className="w-3 h-3" />
                 Reset Element

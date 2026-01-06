@@ -97,7 +97,7 @@ export default function About() {
           >
             <div className="relative h-full min-h-[250px]">
               <Image
-                src="/modern-tech-conference-venue-in-berlin-with-indust.jpg"
+                src="/delta-campus-berlin.jpg"
                 alt="The Delta Campus Berlin"
                 fill
                 className="object-cover"
