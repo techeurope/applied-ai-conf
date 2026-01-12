@@ -23,10 +23,6 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://conference.techeurope.io",
   },
-  icons: {
-    icon: "/favicon.png",
-    apple: "/favicon.png",
-  },
   openGraph: {
     title: "Applied AI Conference Berlin | May 28, 2026",
     description:
