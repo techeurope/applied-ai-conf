@@ -1,3 +1,9 @@
+**Main PNG:**
+
+```bash
+node scripts/generate-image.mjs -p "<MAIN_PROMPT>" -o public/speakers/name_fullbody_transparent.png
+```
+
 **Transparent PNG (background removal):**
 
 ```bash
