@@ -64,7 +64,7 @@ export default function ImprintPage() {
               Information about the collection of personal data and your rights can be found in our <a href="/privacy" className="text-white hover:text-gray-300 transition-colors">Privacy Policy</a>.
             </p>
             
-            <p className="text-sm text-gray-500 mt-12">Last updated: November 19, 2026</p>
+            <p className="text-sm text-gray-500 mt-12">Last updated: November 19, 2025</p>
           </div>
     </SubpageLayout>
   );
