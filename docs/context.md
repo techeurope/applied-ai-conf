@@ -96,15 +96,22 @@ Conference data split by domain:
 
 Speakers have two image fields:
 - `image`: Original headshot (with background) - e.g. `/speakers/name.jpg`
-- `imageTransparent`: Transparent PNG (background removed) - e.g. `/speakers/name_transparent.png`
+- `imageTransparent`: Square transparent PNG (fullbody, background removed) - e.g. `/speakers/name_fullbody_transparent_square.png`
 
-Components prefer `imageTransparent` when available, falling back to `image`. To generate transparent versions, use the asset command:
+Components prefer `imageTransparent` when available, falling back to `image`.
+
+**Image pipeline:**
 
 ```bash
-node scripts/remove-background.mjs -i public/speakers/name.png
+# 1. Remove background from source image
+node scripts/remove-background.mjs -i public/speakers/name_fullbody.png
+
+# 2. Crop 16:9 to center-square for marketing
+node scripts/crop-to-square.mjs -i public/speakers/name_fullbody_transparent.png
 ```
 
-This uses fal-ai/birefnet/v2 for high-quality background removal. The transparent version enables flexible compositing on any background in marketing materials.
+- `remove-background.mjs`: Uses fal-ai/birefnet/v2 for high-quality background removal
+- `crop-to-square.mjs`: Center-crops 16:9 images to square for consistent marketing assets
 
 ### Marketing Asset Generator
 

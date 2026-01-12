@@ -9,6 +9,7 @@ const marketingNavItems = [
   { href: "/marketing/speakers", label: "Speaker Assets" },
   { href: "/marketing/twitter-banner", label: "Twitter Banner" },
   { href: "/marketing/logos", label: "Logos" },
+  { href: "/marketing/favicon", label: "Favicon" },
 ];
 
 export default function MarketingLayout({

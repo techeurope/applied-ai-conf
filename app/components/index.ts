@@ -7,3 +7,5 @@ export { LangdockLogo } from './ui/langdock-logo';
 export { ChocoLogo } from './ui/choco-logo';
 export { TactoLogo } from './ui/tacto-logo';
 export { KnowunityLogo } from './ui/knowunity-logo';
+export { VeedLogo } from './ui/veed-logo';
+export { CodewordsLogo } from './ui/codewords-logo';

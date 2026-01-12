@@ -258,10 +258,10 @@ function imageToDataUrl(imagePath) {
     ext === ".png"
       ? "image/png"
       : ext === ".gif"
-        ? "image/gif"
-        : ext === ".webp"
-          ? "image/webp"
-          : "image/jpeg";
+      ? "image/gif"
+      : ext === ".webp"
+      ? "image/webp"
+      : "image/jpeg";
 
   const imageBuffer = readFileSync(imagePath);
   const base64 = imageBuffer.toString("base64");
@@ -326,7 +326,7 @@ async function main() {
 
   const filename = generateFilename(args.output, args.model);
   // If filename already includes "public/", use it directly, otherwise prepend "public/"
-  const outputPath = filename.startsWith("public/") 
+  const outputPath = filename.startsWith("public/")
     ? join(projectRoot, filename)
     : join(projectRoot, "public", filename);
 
@@ -338,10 +338,16 @@ async function main() {
   console.log("Generating image...");
   console.log(`  Provider: ${config.provider}`);
   console.log(`  Model: ${modelId}`);
-  console.log(`  Mode: ${isEditMode ? "edit" : "text-to-image"}${args.template ? " (template)" : ""}`);
+  console.log(
+    `  Mode: ${isEditMode ? "edit" : "text-to-image"}${
+      args.template ? " (template)" : ""
+    }`
+  );
   if (args.template) {
     console.log(`  Template: ${TEMPLATE_CONFIG.path}`);
-    console.log(`  Safe zone: ${TEMPLATE_CONFIG.safeWidth}x${TEMPLATE_CONFIG.safeHeight}`);
+    console.log(
+      `  Safe zone: ${TEMPLATE_CONFIG.safeWidth}x${TEMPLATE_CONFIG.safeHeight}`
+    );
   }
   console.log(`  Prompt: "${args.prompt}"`);
   console.log(`  Aspect: ${args.aspect}`);

@@ -11,6 +11,8 @@ import {
   TactoLogo,
   LegoraLogo,
   KnowunityLogo,
+  VeedLogo,
+  CodewordsLogo,
 } from "@/components";
 
 const COMPANY_LOGOS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -19,6 +21,8 @@ const COMPANY_LOGOS: Record<string, React.ComponentType<{ className?: string }>>
   Tacto: TactoLogo,
   Legora: LegoraLogo,
   Knowunity: KnowunityLogo,
+  "VEED.IO": VeedLogo,
+  Codewords: CodewordsLogo,
 };
 
 export default function FeaturedSpeakers() {
