@@ -28,19 +28,25 @@ const COMPANY_LOGOS: Record<string, React.ComponentType<{ className?: string }>>
 export default function FeaturedSpeakers() {
   const speakers: Speaker[] = [...SPEAKERS];
 
-  if (speakers.length < 6) {
+  // Calculate how many placeholders needed to fill the 3-column grid
+  const placeholdersNeeded = (3 - (speakers.length % 3)) % 3;
+  
+  // Add placeholder cards to fill the grid
+  for (let i = 0; i < placeholdersNeeded; i++) {
     speakers.push({
       name: "Speaker TBA",
       title: "To be announced",
       company: "",
       bio: "",
       vertical: "",
-      building: "More production AI builders coming soon",
+      building: "More speakers to be announced soon",
       image: undefined,
       initial: "TBA",
       accent: "from-white/10 via-white/10 to-white/10",
       imageAlt: "Speaker to be announced",
-    });
+      _isPlaceholder: true,
+      _placeholderIndex: i,
+    } as Speaker & { _isPlaceholder: boolean; _placeholderIndex: number });
   }
 
   return (
@@ -59,8 +65,15 @@ export default function FeaturedSpeakers() {
         {/* Speakers Grid - Conference badge layout */}
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
           {speakers.map((speaker) => {
-            const className = "group relative flex flex-col bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden transition-all duration-300 hover:bg-white/[0.07] hover:border-white/20 hover:-translate-y-1";
+            const speakerWithMeta = speaker as Speaker & { _isPlaceholder?: boolean; _placeholderIndex?: number };
+            const isSecondPlaceholder = speakerWithMeta._isPlaceholder && speakerWithMeta._placeholderIndex === 1;
+            
+            // Hide second placeholder on small screens (only show on lg where we have 3 columns)
+            const responsiveClass = isSecondPlaceholder ? "hidden lg:flex" : "flex";
+            const className = `group relative ${responsiveClass} flex-col bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden transition-all duration-300 hover:bg-white/[0.07] hover:border-white/20 hover:-translate-y-1`;
 
+            const isPlaceholder = speakerWithMeta._isPlaceholder;
+            
             const cardContent = (
               <>
                 {/* Header: Image */}
@@ -85,83 +98,88 @@ export default function FeaturedSpeakers() {
                 {/* Text Section */}
                 <div className="flex flex-col p-6">
                   {/* Name */}
-                  <div className="mb-4">
+                  <div className={isPlaceholder ? "" : "mb-4"}>
                     <h3 className="text-2xl font-bold text-white font-mono leading-tight">
                       {speaker.name}
                     </h3>
                   </div>
 
-                  {/* Divider */}
-                  <div className="border-t border-white/10" />
+                  {/* Only show details for real speakers */}
+                  {!isPlaceholder && (
+                    <>
+                      {/* Divider */}
+                      <div className="border-t border-white/10" />
 
-                  {/* Row 1: Role and Company side by side */}
-                  <div className="grid grid-cols-2 gap-4 py-3">
-                    {/* Role */}
-                    <div>
-                      <div className="text-xs font-mono text-gray-500 uppercase tracking-wide mb-1.5">
-                        Role
-                      </div>
-                      <div className="text-sm text-white font-medium leading-relaxed">
-                        {speaker.title}
-                      </div>
-                    </div>
+                      {/* Row 1: Role and Company side by side */}
+                      <div className="grid grid-cols-2 gap-4 py-3">
+                        {/* Role */}
+                        <div>
+                          <div className="text-xs font-mono text-gray-500 uppercase tracking-wide mb-1.5">
+                            Role
+                          </div>
+                          <div className="text-sm text-white font-medium leading-relaxed">
+                            {speaker.title}
+                          </div>
+                        </div>
 
-                    {/* Company */}
-                    {speaker.company && (
-                      <div>
+                        {/* Company */}
+                        {speaker.company && (
+                          <div>
+                            <div className="text-xs font-mono text-gray-500 uppercase tracking-wide mb-1.5">
+                              Company
+                            </div>
+                            <div className="flex items-center">
+                              {(() => {
+                                const LogoComponent = COMPANY_LOGOS[speaker.company];
+                                return LogoComponent ? (
+                                  <LogoComponent className="h-5 w-auto text-white" />
+                                ) : speaker.companyLogo ? (
+                                  <Image
+                                    src={speaker.companyLogo}
+                                    alt={speaker.logoAlt || `${speaker.company} logo`}
+                                    width={80}
+                                    height={20}
+                                    className="h-5 w-auto"
+                                  />
+                                ) : (
+                                  <span className="text-sm text-white font-medium">
+                                    {speaker.company}
+                                  </span>
+                                );
+                              })()}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Divider */}
+                      <div className="border-t border-white/10" />
+
+                      {/* Row 2: Building */}
+                      <div className="py-3">
                         <div className="text-xs font-mono text-gray-500 uppercase tracking-wide mb-1.5">
-                          Company
+                          Building
                         </div>
-                        <div className="flex items-center">
-                          {(() => {
-                            const LogoComponent = COMPANY_LOGOS[speaker.company];
-                            return LogoComponent ? (
-                              <LogoComponent className="h-5 w-auto text-white" />
-                            ) : speaker.companyLogo ? (
-                              <Image
-                                src={speaker.companyLogo}
-                                alt={speaker.logoAlt || `${speaker.company} logo`}
-                                width={80}
-                                height={20}
-                                className="h-5 w-auto"
-                              />
-                            ) : (
-                              <span className="text-sm text-white font-medium">
-                                {speaker.company}
-                              </span>
-                            );
-                          })()}
+                        <div className="text-sm text-gray-200 leading-relaxed">
+                          {speaker.building}
                         </div>
                       </div>
-                    )}
-                  </div>
 
-                  {/* Divider */}
-                  <div className="border-t border-white/10" />
+                      {/* Divider */}
+                      {speaker.vertical && <div className="border-t border-white/10" />}
 
-                  {/* Row 2: Building */}
-                  <div className="py-3">
-                    <div className="text-xs font-mono text-gray-500 uppercase tracking-wide mb-1.5">
-                      Building
-                    </div>
-                    <div className="text-sm text-gray-200 leading-relaxed">
-                      {speaker.building}
-                    </div>
-                  </div>
-
-                  {/* Divider */}
-                  {speaker.vertical && <div className="border-t border-white/10" />}
-
-                  {/* Row 3: Vertical */}
-                  {speaker.vertical && (
-                    <div className="py-3">
-                      <div className="text-xs font-mono text-gray-500 uppercase tracking-wide mb-1.5">
-                        Vertical
-                      </div>
-                      <div className="text-sm text-white font-medium leading-relaxed">
-                        {speaker.vertical}
-                      </div>
-                    </div>
+                      {/* Row 3: Vertical */}
+                      {speaker.vertical && (
+                        <div className="py-3">
+                          <div className="text-xs font-mono text-gray-500 uppercase tracking-wide mb-1.5">
+                            Vertical
+                          </div>
+                          <div className="text-sm text-white font-medium leading-relaxed">
+                            {speaker.vertical}
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </>
