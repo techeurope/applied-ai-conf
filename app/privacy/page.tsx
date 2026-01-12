@@ -155,7 +155,7 @@ export default function PrivacyPage() {
               You can also find more information in our <a href="/imprint" className="text-white hover:text-gray-300 transition-colors">Imprint</a>.
             </p>
             
-            <p className="text-sm text-gray-500 mt-12">Last updated: November 19, 2025</p>
+            <p className="text-sm text-gray-500 mt-12">Last updated: November 19, 2026</p>
           </div>
     </SubpageLayout>
   );
