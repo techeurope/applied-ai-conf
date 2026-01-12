@@ -6,10 +6,10 @@ export type PreviewMode = "fixed" | "auto";
 // All selectable element types
 export type ElementType =
   | "image"
-  | "name"
-  | "subtitle"
+  | "speakerName"
+  | "companyLogo"
+  | "techEurope"
   | "logo"
-  | "branding"
   | "dateLocation"
   | "background"
   | null;
@@ -21,8 +21,6 @@ export interface Position {
   x: number;
   y: number;
 }
-
-export type HorizontalAlign = "left" | "center" | "right";
 
 // Asset configuration types
 export interface TextStyle {
@@ -37,11 +35,10 @@ export interface ImageStyle {
   position: Position;
 }
 
-export interface LogoStyle {
+export interface LogoImageStyle {
   scale: number;
   opacity: number;
   position: Position;
-  align: HorizontalAlign;
 }
 
 export interface BackgroundStyle {
@@ -56,15 +53,15 @@ export interface BackgroundStyle {
 export interface AssetConfig {
   // Image
   image: ImageStyle;
-  // Speaker name
-  name: TextStyle;
-  // Title (subtitle)
-  subtitle: TextStyle;
-  // Company logo
-  logo: LogoStyle;
-  // Conference branding
-  branding: TextStyle & { text: string };
-  // Date & Location
+  // Speaker name (large, prominent)
+  speakerName: TextStyle;
+  // Company logo (image)
+  companyLogo: LogoImageStyle;
+  // {Tech: Europe} text above logo
+  techEurope: TextStyle & { text: string };
+  // Conference logo (text-based: "APPLIED" / "AI CONF")
+  logo: TextStyle & { textLine1: string; textLine2: string };
+  // Date & Location (e.g. "MAY 28TH | BERLIN")
   dateLocation: TextStyle & { text: string };
   // Background
   background: BackgroundStyle;
@@ -80,47 +77,48 @@ const cloneConfig = (config: AssetConfig): AssetConfig => {
   return JSON.parse(JSON.stringify(config)) as AssetConfig;
 };
 
-// Default configuration
+// Default configuration - user configured layout
 export const DEFAULT_ASSET_CONFIG: AssetConfig = {
   image: {
-    size: 2,
-    position: { x: 0, y: 0.5 },
+    size: 3,
+    position: { x: 0.8436550366900559, y: -0.5786803602393744 },
   },
-  name: {
-    fontSize: 0.22,
+  speakerName: {
+    fontSize: 0.38,
+    color: "#ffffff",
+    letterSpacing: -0.01,
+    position: { x: -1.6710664042674415, y: 1.2497467645068157 },
+  },
+  companyLogo: {
+    scale: 0.4,
+    opacity: 0.6,
+    position: { x: -1.65, y: 0.65 },
+  },
+  techEurope: {
+    fontSize: 0.11,
     color: "#ffffff",
     letterSpacing: 0.02,
-    position: { x: 0, y: -0.9 },
-  },
-  subtitle: {
-    fontSize: 0.12,
-    color: "#999999",
-    letterSpacing: 0,
-    position: { x: 0, y: -1.18 },
+    text: "{Tech: Europe}",
+    position: { x: -1.98, y: -0.85 },
   },
   logo: {
-    scale: 0.12,
-    opacity: 0.8,
-    position: { x: 0, y: -1.38 },
-    align: "center",
-  },
-  branding: {
-    fontSize: 0.1,
-    color: "#ab7030",
-    letterSpacing: 0.05,
-    text: "APPLIED AI CONF",
-    position: { x: 0, y: -1.62 },
+    fontSize: 0.24,
+    color: "#ffffff",
+    letterSpacing: 0.06,
+    textLine1: "APPLIED",
+    textLine2: "AI CONF",
+    position: { x: -1.35, y: -1.3 },
   },
   dateLocation: {
-    fontSize: 0.08,
+    fontSize: 0.11,
     color: "#666666",
     letterSpacing: 0,
-    text: "May 28, 2026 · Berlin",
-    position: { x: 0, y: -1.78 },
+    text: "MAY 28TH | BERLIN",
+    position: { x: -1.9309651100701677, y: -1.8180205403590615 },
   },
   background: {
-    enabled: true,
-    solidColor: "#05070f",
+    enabled: false,
+    solidColor: "#000000",
     overlayOpacity: 0.4,
     gridColor: "#ab7030",
     animationPaused: false,
@@ -176,82 +174,11 @@ export interface SpeakerAssetStore {
 }
 
 // Migrate old config format to new format with positions
+// Version 6 introduces new layout: companyName, speakerIntro, weekday (replacing name, subtitle)
 function migrateConfig(storedConfig: Partial<AssetConfig>): AssetConfig {
-  const config = { ...DEFAULT_ASSET_CONFIG };
-
-  // Migrate each element, preserving old values and adding new defaults
-  if (storedConfig.image) {
-    config.image = {
-      ...DEFAULT_ASSET_CONFIG.image,
-      ...storedConfig.image,
-      position: storedConfig.image.position || DEFAULT_ASSET_CONFIG.image.position,
-    };
-    // Handle old positionY format
-    if ('positionY' in storedConfig.image && !storedConfig.image.position) {
-      config.image.position = {
-        x: 0,
-        y: (storedConfig.image as { positionY?: number }).positionY || DEFAULT_ASSET_CONFIG.image.position.y,
-      };
-    }
-  }
-
-  if (storedConfig.name) {
-    config.name = {
-      ...DEFAULT_ASSET_CONFIG.name,
-      ...storedConfig.name,
-      position: storedConfig.name.position || DEFAULT_ASSET_CONFIG.name.position,
-    };
-  }
-
-  if (storedConfig.subtitle) {
-    config.subtitle = {
-      ...DEFAULT_ASSET_CONFIG.subtitle,
-      ...storedConfig.subtitle,
-      position: storedConfig.subtitle.position || DEFAULT_ASSET_CONFIG.subtitle.position,
-    };
-  }
-
-  if (storedConfig.logo) {
-    config.logo = {
-      ...DEFAULT_ASSET_CONFIG.logo,
-      ...storedConfig.logo,
-      position: storedConfig.logo.position || DEFAULT_ASSET_CONFIG.logo.position,
-      align: (storedConfig.logo as Partial<LogoStyle>).align || DEFAULT_ASSET_CONFIG.logo.align,
-    };
-  }
-
-  if (storedConfig.branding) {
-    config.branding = {
-      ...DEFAULT_ASSET_CONFIG.branding,
-      ...storedConfig.branding,
-      position: storedConfig.branding.position || DEFAULT_ASSET_CONFIG.branding.position,
-    };
-  }
-
-  if (storedConfig.dateLocation) {
-    config.dateLocation = {
-      ...DEFAULT_ASSET_CONFIG.dateLocation,
-      ...storedConfig.dateLocation,
-      position: storedConfig.dateLocation.position || DEFAULT_ASSET_CONFIG.dateLocation.position,
-    };
-  }
-
-  if (storedConfig.background) {
-    config.background = {
-      ...DEFAULT_ASSET_CONFIG.background,
-      ...storedConfig.background,
-      // Ensure all props exist
-      enabled: (storedConfig.background as Partial<BackgroundStyle>).enabled ?? DEFAULT_ASSET_CONFIG.background.enabled,
-      solidColor: (storedConfig.background as Partial<BackgroundStyle>).solidColor ?? DEFAULT_ASSET_CONFIG.background.solidColor,
-      animationPaused: (storedConfig.background as Partial<BackgroundStyle>).animationPaused ?? DEFAULT_ASSET_CONFIG.background.animationPaused,
-      animationTime: (storedConfig.background as Partial<BackgroundStyle>).animationTime ?? DEFAULT_ASSET_CONFIG.background.animationTime,
-    };
-  }
-
-  // Ensure globalTextColor exists
-  config.globalTextColor = storedConfig.globalTextColor ?? DEFAULT_ASSET_CONFIG.globalTextColor;
-
-  return config;
+  // For version 6+, just return defaults - the layout changed significantly
+  // Old persisted data won't make sense with the new layout
+  return DEFAULT_ASSET_CONFIG;
 }
 
 export const useSpeakerAssetStore = create<SpeakerAssetStore>()(
@@ -474,16 +401,14 @@ export const useSpeakerAssetStore = create<SpeakerAssetStore>()(
     }),
     {
       name: "speaker-asset-preferences",
-      version: 5, // Increment version to trigger migration
+      version: 11, // Version 11: fixed positions, background #000, techEurope x -1.98
       migrate: (persistedState: any, version: number) => {
-        if (version < 5) {
-          // Migrate persisted config to current shape (positions, logo align, animation props)
-          const state = persistedState as { config?: Partial<AssetConfig> };
+        if (version < 11) {
           return {
             ...(persistedState as object),
             selectedElement: null,
             selectedElements: [],
-            config: state.config ? migrateConfig(state.config) : DEFAULT_ASSET_CONFIG,
+            config: DEFAULT_ASSET_CONFIG,
           } as unknown;
         }
         return persistedState;

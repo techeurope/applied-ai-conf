@@ -11,14 +11,14 @@ const FONT_KODE_MONO_REGULAR = "/fonts/KodeMono-Regular.ttf";
 
 // Company logo mapping with dark versions (white logos for dark background)
 const COMPANY_LOGOS: Record<string, { path: string; aspectRatio: number }> = {
-  langdock: { path: "/logos/langdock_dark.png", aspectRatio: 5.09 },  // 112x22
-  choco: { path: "/logos/choco_dark.png", aspectRatio: 2.73 },        // ~320x117
-  tacto: { path: "/logos/tacto_dark.png", aspectRatio: 2.98 },        // 125x42
-  legora: { path: "/logos/legora_dark.png", aspectRatio: 1.0 },       // 1200x1200 (square)
-  knowunity: { path: "/logos/knowunity_dark.png", aspectRatio: 4.78 }, // 859x180
+  langdock: { path: "/logos/langdock_dark.png", aspectRatio: 5.09 },
+  choco: { path: "/logos/choco_dark.png", aspectRatio: 2.73 },
+  tacto: { path: "/logos/tacto_dark.png", aspectRatio: 2.98 },
+  legora: { path: "/logos/legora_dark.png", aspectRatio: 1.0 },
+  knowunity: { path: "/logos/knowunity_dark.png", aspectRatio: 4.78 },
 };
 
-// Logo component that renders as a texture
+// Company logo mesh component
 function CompanyLogoMesh({
   company,
   scale,
@@ -29,19 +29,14 @@ function CompanyLogoMesh({
   opacity: number;
 }) {
   const logoConfig = COMPANY_LOGOS[company.toLowerCase()];
+  const texture = useTexture(logoConfig?.path || "/logos/legora_dark.png");
 
-  if (!logoConfig) {
-    return null;
-  }
-
-  const texture = useTexture(logoConfig.path);
-
-  // Calculate dimensions based on aspect ratio
   const { width, height } = useMemo(() => {
+    const aspectRatio = logoConfig?.aspectRatio ?? 1;
     const h = scale;
-    const w = h * logoConfig.aspectRatio;
+    const w = h * aspectRatio;
     return { width: w, height: h };
-  }, [logoConfig.aspectRatio, scale]);
+  }, [logoConfig?.aspectRatio, scale]);
 
   return (
     <mesh>
@@ -56,61 +51,14 @@ function CompanyLogoMesh({
   );
 }
 
-function CompanyLogo({
-  company,
-  scale,
-  opacity,
-}: {
-  company: string;
-  scale: number;
-  opacity: number;
-}) {
-  const logoConfig = COMPANY_LOGOS[company.toLowerCase()];
-
-  if (!logoConfig) {
-    // Fallback to text if no logo
-    return (
-      <Text
-        fontSize={0.1}
-        color="#666666"
-        anchorX="center"
-        anchorY="middle"
-        font={FONT_KODE_MONO_REGULAR}
-      >
-        {company}
-      </Text>
-    );
-  }
-
-  return (
-    <Suspense
-      fallback={
-        <Text
-          fontSize={0.1}
-          color="#666666"
-          anchorX="center"
-          anchorY="middle"
-          font={FONT_KODE_MONO_REGULAR}
-        >
-          {company}
-        </Text>
-      }
-    >
-      <CompanyLogoMesh company={company} scale={scale} opacity={opacity} />
-    </Suspense>
-  );
-}
-
 interface SpeakerTextOverlayProps {
   name: string;
-  title: string;
   company: string;
   config: AssetConfig;
 }
 
 export function SpeakerTextOverlay({
   name,
-  title,
   company,
   config,
 }: SpeakerTextOverlayProps) {
@@ -119,103 +67,118 @@ export function SpeakerTextOverlay({
   // Global text color override
   const globalColor = config.globalTextColor;
 
-  const logoAspect =
-    COMPANY_LOGOS[company.toLowerCase()]?.aspectRatio ?? 4;
-  const logoWidth = config.logo.scale * logoAspect;
-  const logoOffsetX =
-    config.logo.align === "left"
-      ? logoWidth / 2
-      : config.logo.align === "right"
-        ? -logoWidth / 2
-        : 0;
+  const logoConfig = COMPANY_LOGOS[company.toLowerCase()];
+  const logoWidth = config.companyLogo.scale * (logoConfig?.aspectRatio ?? 1);
 
   return (
     <>
-      {/* Speaker name */}
+      {/* Speaker name (large, prominent) */}
       <SelectableElement
-        elementType="name"
-        position={config.name.position}
-        onPositionChange={(pos) => updatePosition("name", pos)}
+        elementType="speakerName"
+        position={config.speakerName.position}
+        onPositionChange={(pos) => updatePosition("speakerName", pos)}
       >
         <Text
-          fontSize={config.name.fontSize}
-          color={globalColor || config.name.color}
-          anchorX="center"
+          fontSize={config.speakerName.fontSize}
+          color={globalColor || config.speakerName.color}
+          anchorX="left"
           anchorY="middle"
           font={FONT_KODE_MONO_BOLD}
-          letterSpacing={config.name.letterSpacing}
-          outlineWidth={selectedElements.includes("name") ? 0.005 : 0}
+          letterSpacing={config.speakerName.letterSpacing}
+          outlineWidth={selectedElements.includes("speakerName") ? 0.005 : 0}
           outlineColor="#ab7030"
         >
           {name}
         </Text>
       </SelectableElement>
 
-      {/* Title (subtitle) */}
+      {/* Company Logo (image) */}
       <SelectableElement
-        elementType="subtitle"
-        position={config.subtitle.position}
-        onPositionChange={(pos) => updatePosition("subtitle", pos)}
+        elementType="companyLogo"
+        position={config.companyLogo.position}
+        onPositionChange={(pos) => updatePosition("companyLogo", pos)}
+      >
+        <group>
+          {/* Selection outline */}
+          {selectedElements.includes("companyLogo") && (
+            <mesh position={[logoWidth / 2, 0, -0.01]}>
+              <planeGeometry args={[logoWidth + 0.05, config.companyLogo.scale + 0.03]} />
+              <meshBasicMaterial color="#ab7030" transparent opacity={0.3} />
+            </mesh>
+          )}
+          {/* Offset to align left edge */}
+          <group position={[logoWidth / 2, 0, 0]}>
+            <Suspense fallback={null}>
+              <CompanyLogoMesh
+                company={company}
+                scale={config.companyLogo.scale}
+                opacity={config.companyLogo.opacity}
+              />
+            </Suspense>
+          </group>
+        </group>
+      </SelectableElement>
+
+      {/* {Tech: Europe} text above logo */}
+      <SelectableElement
+        elementType="techEurope"
+        position={config.techEurope.position}
+        onPositionChange={(pos) => updatePosition("techEurope", pos)}
       >
         <Text
-          fontSize={config.subtitle.fontSize}
-          color={globalColor || config.subtitle.color}
-          anchorX="center"
+          fontSize={config.techEurope.fontSize}
+          color={globalColor || config.techEurope.color}
+          anchorX="left"
           anchorY="middle"
           font={FONT_KODE_MONO_REGULAR}
-          letterSpacing={config.subtitle.letterSpacing}
-          outlineWidth={selectedElements.includes("subtitle") ? 0.003 : 0}
+          letterSpacing={config.techEurope.letterSpacing}
+          outlineWidth={selectedElements.includes("techEurope") ? 0.002 : 0}
           outlineColor="#ab7030"
         >
-          {title}
+          {config.techEurope.text}
         </Text>
       </SelectableElement>
 
-      {/* Company Logo */}
+      {/* Conference Logo - text-based "APPLIED" / "AI CONF" */}
       <SelectableElement
         elementType="logo"
         position={config.logo.position}
         onPositionChange={(pos) => updatePosition("logo", pos)}
       >
-        {/* Offset the logo inside its draggable anchor so alignment works:
-            - left: left edge stays fixed (logo grows to the right)
-            - center: grows in both directions
-            - right: right edge stays fixed (logo grows to the left) */}
-        <group position={[logoOffsetX, 0, 0]}>
+        <group>
           {/* Selection outline for logo */}
           {selectedElements.includes("logo") && (
-            <mesh position={[0, 0, -0.01]}>
-              <planeGeometry
-                args={[logoWidth + 0.05, config.logo.scale + 0.03]}
-              />
+            <mesh position={[0.3, -config.logo.fontSize * 0.5, -0.01]}>
+              <planeGeometry args={[0.8, config.logo.fontSize * 2.5]} />
               <meshBasicMaterial color="#ab7030" transparent opacity={0.3} />
             </mesh>
           )}
-          <CompanyLogo company={company} scale={config.logo.scale} opacity={config.logo.opacity} />
+          <Text
+            fontSize={config.logo.fontSize}
+            color={globalColor || config.logo.color}
+            anchorX="left"
+            anchorY="middle"
+            font={FONT_KODE_MONO_BOLD}
+            letterSpacing={config.logo.letterSpacing}
+            position={[0, config.logo.fontSize * 0.6, 0]}
+          >
+            {config.logo.textLine1}
+          </Text>
+          <Text
+            fontSize={config.logo.fontSize}
+            color={globalColor || config.logo.color}
+            anchorX="left"
+            anchorY="middle"
+            font={FONT_KODE_MONO_BOLD}
+            letterSpacing={config.logo.letterSpacing}
+            position={[0, -config.logo.fontSize * 0.6, 0]}
+          >
+            {config.logo.textLine2}
+          </Text>
         </group>
       </SelectableElement>
 
-      {/* Conference branding */}
-      <SelectableElement
-        elementType="branding"
-        position={config.branding.position}
-        onPositionChange={(pos) => updatePosition("branding", pos)}
-      >
-        <Text
-          fontSize={config.branding.fontSize}
-          color={globalColor || config.branding.color}
-          anchorX="center"
-          anchorY="middle"
-          font={FONT_KODE_MONO_BOLD}
-          letterSpacing={config.branding.letterSpacing}
-          outlineWidth={selectedElements.includes("branding") ? 0.003 : 0}
-          outlineColor="#ab7030"
-        >
-          {config.branding.text}
-        </Text>
-      </SelectableElement>
-
-      {/* Date & Location */}
+      {/* Date & Location (e.g. "MAY 28TH | BERLIN") */}
       <SelectableElement
         elementType="dateLocation"
         position={config.dateLocation.position}
@@ -224,7 +187,7 @@ export function SpeakerTextOverlay({
         <Text
           fontSize={config.dateLocation.fontSize}
           color={globalColor || config.dateLocation.color}
-          anchorX="center"
+          anchorX="left"
           anchorY="middle"
           font={FONT_KODE_MONO_REGULAR}
           letterSpacing={config.dateLocation.letterSpacing}

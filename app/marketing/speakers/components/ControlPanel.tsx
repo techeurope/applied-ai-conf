@@ -10,9 +10,6 @@ import {
   Redo2,
   AlignHorizontalJustifyCenter,
   AlignVerticalJustifyCenter,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
   MousePointer,
   Image,
   Type,
@@ -129,25 +126,25 @@ const ELEMENT_INFO: Record<
     icon: Image,
     description: "The speaker's photo",
   },
-  name: {
+  speakerName: {
     label: "Speaker Name",
     icon: Type,
-    description: "The speaker's name text",
+    description: "Large speaker name text",
   },
-  subtitle: {
-    label: "Title",
-    icon: Type,
-    description: "Job title text",
-  },
-  logo: {
+  companyLogo: {
     label: "Company Logo",
     icon: Image,
     description: "Company logo image",
   },
-  branding: {
-    label: "Conference Branding",
+  techEurope: {
+    label: "{Tech: Europe}",
     icon: Type,
-    description: "Conference name text",
+    description: "Tech Europe branding",
+  },
+  logo: {
+    label: "Conference Logo",
+    icon: Type,
+    description: "APPLIED / AI CONF text",
   },
   dateLocation: {
     label: "Date & Location",
@@ -290,41 +287,41 @@ function ElementControls({
           </>
         )}
 
-        {selectedElement === "name" && (
+        {selectedElement === "speakerName" && (
           <>
             <SliderControl
               label="Font Size"
-              value={config.name.fontSize}
-              onChange={(v) => updateConfig("name", { fontSize: v })}
+              value={config.speakerName.fontSize}
+              onChange={(v) => updateConfig("speakerName", { fontSize: v })}
               min={0.1}
-              max={0.5}
+              max={0.6}
               step={0.01}
             />
             <ColorControl
               label="Color"
-              value={config.name.color}
-              onChange={(v) => updateConfig("name", { color: v })}
+              value={config.speakerName.color}
+              onChange={(v) => updateConfig("speakerName", { color: v })}
             />
             <SliderControl
               label="Letter Spacing"
-              value={config.name.letterSpacing}
-              onChange={(v) => updateConfig("name", { letterSpacing: v })}
+              value={config.speakerName.letterSpacing}
+              onChange={(v) => updateConfig("speakerName", { letterSpacing: v })}
               min={-0.1}
               max={0.2}
               step={0.01}
             />
             <SliderControl
               label="Position X"
-              value={config.name.position.x}
-              onChange={(v) => updatePosition("name", { x: v })}
+              value={config.speakerName.position.x}
+              onChange={(v) => updatePosition("speakerName", { x: v })}
               min={-2}
               max={2}
               step={0.05}
             />
             <SliderControl
               label="Position Y"
-              value={config.name.position.y}
-              onChange={(v) => updatePosition("name", { y: v })}
+              value={config.speakerName.position.y}
+              onChange={(v) => updatePosition("speakerName", { y: v })}
               min={-2}
               max={2}
               step={0.05}
@@ -332,41 +329,83 @@ function ElementControls({
           </>
         )}
 
-        {selectedElement === "subtitle" && (
+        {selectedElement === "companyLogo" && (
           <>
             <SliderControl
-              label="Font Size"
-              value={config.subtitle.fontSize}
-              onChange={(v) => updateConfig("subtitle", { fontSize: v })}
+              label="Scale"
+              value={config.companyLogo.scale}
+              onChange={(v) => updateConfig("companyLogo", { scale: v })}
               min={0.05}
-              max={0.3}
+              max={0.4}
               step={0.01}
-            />
-            <ColorControl
-              label="Color"
-              value={config.subtitle.color}
-              onChange={(v) => updateConfig("subtitle", { color: v })}
             />
             <SliderControl
-              label="Letter Spacing"
-              value={config.subtitle.letterSpacing}
-              onChange={(v) => updateConfig("subtitle", { letterSpacing: v })}
-              min={-0.1}
-              max={0.2}
-              step={0.01}
+              label="Opacity"
+              value={config.companyLogo.opacity}
+              onChange={(v) => updateConfig("companyLogo", { opacity: v })}
+              min={0.1}
+              max={1}
+              step={0.05}
             />
             <SliderControl
               label="Position X"
-              value={config.subtitle.position.x}
-              onChange={(v) => updatePosition("subtitle", { x: v })}
+              value={config.companyLogo.position.x}
+              onChange={(v) => updatePosition("companyLogo", { x: v })}
               min={-2}
               max={2}
               step={0.05}
             />
             <SliderControl
               label="Position Y"
-              value={config.subtitle.position.y}
-              onChange={(v) => updatePosition("subtitle", { y: v })}
+              value={config.companyLogo.position.y}
+              onChange={(v) => updatePosition("companyLogo", { y: v })}
+              min={-2}
+              max={2}
+              step={0.05}
+            />
+          </>
+        )}
+
+        {selectedElement === "techEurope" && (
+          <>
+            <TextControl
+              label="Text"
+              value={config.techEurope.text}
+              onChange={(v) => updateConfig("techEurope", { text: v })}
+            />
+            <SliderControl
+              label="Font Size"
+              value={config.techEurope.fontSize}
+              onChange={(v) => updateConfig("techEurope", { fontSize: v })}
+              min={0.03}
+              max={0.2}
+              step={0.01}
+            />
+            <ColorControl
+              label="Color"
+              value={config.techEurope.color}
+              onChange={(v) => updateConfig("techEurope", { color: v })}
+            />
+            <SliderControl
+              label="Letter Spacing"
+              value={config.techEurope.letterSpacing}
+              onChange={(v) => updateConfig("techEurope", { letterSpacing: v })}
+              min={-0.1}
+              max={0.2}
+              step={0.01}
+            />
+            <SliderControl
+              label="Position X"
+              value={config.techEurope.position.x}
+              onChange={(v) => updatePosition("techEurope", { x: v })}
+              min={-2}
+              max={2}
+              step={0.05}
+            />
+            <SliderControl
+              label="Position Y"
+              value={config.techEurope.position.y}
+              onChange={(v) => updatePosition("techEurope", { y: v })}
               min={-2}
               max={2}
               step={0.05}
@@ -376,71 +415,37 @@ function ElementControls({
 
         {selectedElement === "logo" && (
           <>
+            <TextControl
+              label="Line 1"
+              value={config.logo.textLine1}
+              onChange={(v) => updateConfig("logo", { textLine1: v })}
+            />
+            <TextControl
+              label="Line 2"
+              value={config.logo.textLine2}
+              onChange={(v) => updateConfig("logo", { textLine2: v })}
+            />
             <SliderControl
-              label="Scale"
-              value={config.logo.scale}
-              onChange={(v) => updateConfig("logo", { scale: v })}
+              label="Font Size"
+              value={config.logo.fontSize}
+              onChange={(v) => updateConfig("logo", { fontSize: v })}
               min={0.05}
               max={0.3}
               step={0.01}
             />
-            <SliderControl
-              label="Opacity"
-              value={config.logo.opacity}
-              onChange={(v) => updateConfig("logo", { opacity: v })}
-              min={0.1}
-              max={1}
-              step={0.05}
+            <ColorControl
+              label="Color"
+              value={config.logo.color}
+              onChange={(v) => updateConfig("logo", { color: v })}
             />
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs">
-                <span className="text-gray-400">Align</span>
-                <span className="text-gray-500 font-mono">
-                  {config.logo.align}
-                </span>
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  onClick={() => updateConfig("logo", { align: "left" })}
-                  className={`flex items-center justify-center h-10 rounded-lg border font-mono text-xs transition-all ${
-                    config.logo.align === "left"
-                      ? "bg-white text-black border-white"
-                      : "bg-transparent text-white border-white/20 hover:border-white/40"
-                  }`}
-                  title="logo align left"
-                  aria-label="logo align left"
-                >
-                  <AlignLeft className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => updateConfig("logo", { align: "center" })}
-                  className={`flex items-center justify-center h-10 rounded-lg border font-mono text-xs transition-all ${
-                    config.logo.align === "center"
-                      ? "bg-white text-black border-white"
-                      : "bg-transparent text-white border-white/20 hover:border-white/40"
-                  }`}
-                  title="logo align center"
-                  aria-label="logo align center"
-                >
-                  <AlignCenter className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => updateConfig("logo", { align: "right" })}
-                  className={`flex items-center justify-center h-10 rounded-lg border font-mono text-xs transition-all ${
-                    config.logo.align === "right"
-                      ? "bg-white text-black border-white"
-                      : "bg-transparent text-white border-white/20 hover:border-white/40"
-                  }`}
-                  title="logo align right"
-                  aria-label="logo align right"
-                >
-                  <AlignRight className="w-4 h-4" />
-                </button>
-              </div>
-              <p className="text-[11px] text-gray-600 leading-snug">
-                Controls which edge stays fixed when the logo width changes.
-              </p>
-            </div>
+            <SliderControl
+              label="Letter Spacing"
+              value={config.logo.letterSpacing}
+              onChange={(v) => updateConfig("logo", { letterSpacing: v })}
+              min={0}
+              max={0.2}
+              step={0.01}
+            />
             <SliderControl
               label="Position X"
               value={config.logo.position.x}
@@ -453,53 +458,6 @@ function ElementControls({
               label="Position Y"
               value={config.logo.position.y}
               onChange={(v) => updatePosition("logo", { y: v })}
-              min={-2}
-              max={2}
-              step={0.05}
-            />
-          </>
-        )}
-
-        {selectedElement === "branding" && (
-          <>
-            <TextControl
-              label="Text"
-              value={config.branding.text}
-              onChange={(v) => updateConfig("branding", { text: v })}
-            />
-            <SliderControl
-              label="Font Size"
-              value={config.branding.fontSize}
-              onChange={(v) => updateConfig("branding", { fontSize: v })}
-              min={0.05}
-              max={0.25}
-              step={0.01}
-            />
-            <ColorControl
-              label="Color"
-              value={config.branding.color}
-              onChange={(v) => updateConfig("branding", { color: v })}
-            />
-            <SliderControl
-              label="Letter Spacing"
-              value={config.branding.letterSpacing}
-              onChange={(v) => updateConfig("branding", { letterSpacing: v })}
-              min={0}
-              max={0.2}
-              step={0.01}
-            />
-            <SliderControl
-              label="Position X"
-              value={config.branding.position.x}
-              onChange={(v) => updatePosition("branding", { x: v })}
-              min={-2}
-              max={2}
-              step={0.05}
-            />
-            <SliderControl
-              label="Position Y"
-              value={config.branding.position.y}
-              onChange={(v) => updatePosition("branding", { y: v })}
               min={-2}
               max={2}
               step={0.05}
@@ -773,15 +731,33 @@ export function ControlPanel({
         </div>
       </div>
 
-      {/* Export Button */}
-      <button
-        onClick={onExport}
-        disabled={isExporting}
-        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-mono py-3 px-6 rounded-lg transition-all"
-      >
-        <Download className="w-4 h-4" />
-        {isExporting ? "Exporting..." : "Download PNG"}
-      </button>
+      {/* Export Buttons */}
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          onClick={onExport}
+          disabled={isExporting}
+          className="flex items-center justify-center gap-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-mono py-2 px-4 rounded-lg transition-all"
+        >
+          <Download className="w-4 h-4" />
+          {isExporting ? "..." : "PNG"}
+        </button>
+        <button
+          onClick={() => {
+            const json = JSON.stringify({ config }, null, 2);
+            const blob = new Blob([json], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.download = "speaker-asset-config.json";
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
+          }}
+          className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-mono py-2 px-4 rounded-lg transition-all border border-white/20"
+        >
+          <Download className="w-4 h-4" />
+          JSON
+        </button>
+      </div>
 
       {/* Undo / Redo */}
       <div className="grid grid-cols-2 gap-2">

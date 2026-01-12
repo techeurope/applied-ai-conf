@@ -30,7 +30,7 @@ function SpeakerImageMesh({ imageUrl, size }: SpeakerImageMeshProps) {
       )}
       <mesh>
         <planeGeometry args={[size, size]} />
-        <meshBasicMaterial map={texture} />
+        <meshBasicMaterial map={texture} transparent depthWrite={false} />
       </mesh>
     </group>
   );
