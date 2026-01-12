@@ -61,12 +61,12 @@ export default function FeaturedSpeakers() {
               <>
                 {/* Header: Image */}
                 <div className="relative aspect-[4/3] w-full overflow-hidden bg-zinc-900">
-                  {speaker.image ? (
+                  {(speaker.imageTransparent || speaker.image) ? (
                     <Image
-                      src={speaker.image}
+                      src={speaker.imageTransparent || speaker.image!}
                       alt={speaker.imageAlt}
                       fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="object-contain object-bottom transition-transform duration-500 group-hover:scale-105"
                       sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     />
                   ) : (

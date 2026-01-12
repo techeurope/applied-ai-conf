@@ -89,8 +89,34 @@ Conference data split by domain:
 - `partnerships.ts`: Partnership tiers, audience segments, focus areas
 - `navigation.ts`: Header links and action buttons
 - `footer.ts`: Footer navigation links
-- `speakers.ts`: Speaker data with taglines, alt text, logos
+- `speakers.ts`: Speaker data with taglines, alt text, logos, transparent images
 - `faqs.ts`: FAQ items (legacy, FAQ section uses inline data)
+
+### Speaker Images
+
+Speakers have two image fields:
+- `image`: Original headshot (with background) - e.g. `/speakers/name.jpg`
+- `imageTransparent`: Transparent PNG (background removed) - e.g. `/speakers/name_transparent.png`
+
+Components prefer `imageTransparent` when available, falling back to `image`. To generate transparent versions, use the asset command:
+
+```bash
+node scripts/remove-background.mjs -i public/speakers/name.png
+```
+
+This uses fal-ai/birefnet/v2 for high-quality background removal. The transparent version enables flexible compositing on any background in marketing materials.
+
+### Marketing Asset Generator
+
+Located at `/marketing/speakers`, the speaker asset generator creates promotional images for speakers. Features:
+
+- **Background modes**: Toggle between lidar grid animation or solid color backgrounds
+- **Solid color picker**: Any background color when grid is disabled
+- **Global text color**: Override all text elements with a single color for consistent branding
+- **Transparent images**: Automatically uses `imageTransparent` speaker images for clean compositing
+- **Export**: High-res PNG exports at 1K/2K/4K resolutions
+
+The twitter banner generator at `/marketing/twitter-banner` creates event banners with similar customization.
 
 ## Current State
 

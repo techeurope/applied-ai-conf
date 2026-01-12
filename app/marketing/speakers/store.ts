@@ -45,6 +45,8 @@ export interface LogoStyle {
 }
 
 export interface BackgroundStyle {
+  enabled: boolean; // Whether to show the lidar grid background
+  solidColor: string; // Solid background color when grid is disabled
   overlayOpacity: number;
   gridColor: string;
   animationPaused: boolean;
@@ -66,6 +68,8 @@ export interface AssetConfig {
   dateLocation: TextStyle & { text: string };
   // Background
   background: BackgroundStyle;
+  // Global text color override (when set, applies to all text elements)
+  globalTextColor: string | null;
 }
 
 const HISTORY_LIMIT = 100;
@@ -115,11 +119,14 @@ export const DEFAULT_ASSET_CONFIG: AssetConfig = {
     position: { x: 0, y: -1.78 },
   },
   background: {
+    enabled: true,
+    solidColor: "#05070f",
     overlayOpacity: 0.4,
     gridColor: "#ab7030",
     animationPaused: false,
     animationTime: 0,
   },
+  globalTextColor: null,
 };
 
 // Get default value for a specific element
@@ -161,6 +168,7 @@ export interface SpeakerAssetStore {
   alignSelectedToActive: (axis: "x" | "y") => void;
   resetConfig: () => void;
   resetElement: (element: keyof AssetConfig) => void;
+  setGlobalTextColor: (color: string | null) => void;
 
   // Controls panel visibility
   showAdvanced: boolean;
@@ -232,11 +240,16 @@ function migrateConfig(storedConfig: Partial<AssetConfig>): AssetConfig {
     config.background = {
       ...DEFAULT_ASSET_CONFIG.background,
       ...storedConfig.background,
-      // Ensure animation props exist
+      // Ensure all props exist
+      enabled: (storedConfig.background as Partial<BackgroundStyle>).enabled ?? DEFAULT_ASSET_CONFIG.background.enabled,
+      solidColor: (storedConfig.background as Partial<BackgroundStyle>).solidColor ?? DEFAULT_ASSET_CONFIG.background.solidColor,
       animationPaused: (storedConfig.background as Partial<BackgroundStyle>).animationPaused ?? DEFAULT_ASSET_CONFIG.background.animationPaused,
       animationTime: (storedConfig.background as Partial<BackgroundStyle>).animationTime ?? DEFAULT_ASSET_CONFIG.background.animationTime,
     };
   }
+
+  // Ensure globalTextColor exists
+  config.globalTextColor = storedConfig.globalTextColor ?? DEFAULT_ASSET_CONFIG.globalTextColor;
 
   return config;
 }
@@ -318,20 +331,27 @@ export const useSpeakerAssetStore = create<SpeakerAssetStore>()(
           };
         }),
       updateConfig: <K extends keyof AssetConfig>(key: K, value: Partial<AssetConfig[K]>) =>
-        set((state: SpeakerAssetStore) => ({
-          historyPast: [...state.historyPast, cloneConfig(state.config)].slice(
-            -HISTORY_LIMIT
-          ),
-          historyFuture: [],
-          config: {
-            ...state.config,
-            [key]: { ...state.config[key], ...value },
-          },
-        })),
+        set((state: SpeakerAssetStore) => {
+          // Handle primitive values (like globalTextColor which is string | null)
+          const currentValue = state.config[key];
+          const newValue = typeof currentValue === 'object' && currentValue !== null
+            ? { ...currentValue, ...value }
+            : value;
+          return {
+            historyPast: [...state.historyPast, cloneConfig(state.config)].slice(
+              -HISTORY_LIMIT
+            ),
+            historyFuture: [],
+            config: {
+              ...state.config,
+              [key]: newValue,
+            },
+          };
+        }),
       updatePosition: (element: keyof AssetConfig, position: Partial<Position>) =>
         set((state: SpeakerAssetStore) => {
           const elementConfig = state.config[element];
-          if ("position" in elementConfig) {
+          if (elementConfig && typeof elementConfig === 'object' && "position" in elementConfig) {
             return {
               historyPast: [...state.historyPast, cloneConfig(state.config)].slice(
                 -HISTORY_LIMIT
@@ -436,6 +456,17 @@ export const useSpeakerAssetStore = create<SpeakerAssetStore>()(
             [element]: DEFAULT_ASSET_CONFIG[element],
           },
         })),
+      setGlobalTextColor: (color: string | null) =>
+        set((state: SpeakerAssetStore) => ({
+          historyPast: [...state.historyPast, cloneConfig(state.config)].slice(
+            -HISTORY_LIMIT
+          ),
+          historyFuture: [],
+          config: {
+            ...state.config,
+            globalTextColor: color,
+          },
+        })),
 
       // Controls panel
       showAdvanced: false,
@@ -443,9 +474,9 @@ export const useSpeakerAssetStore = create<SpeakerAssetStore>()(
     }),
     {
       name: "speaker-asset-preferences",
-      version: 4, // Increment version to trigger migration
+      version: 5, // Increment version to trigger migration
       migrate: (persistedState: any, version: number) => {
-        if (version < 4) {
+        if (version < 5) {
           // Migrate persisted config to current shape (positions, logo align, animation props)
           const state = persistedState as { config?: Partial<AssetConfig> };
           return {

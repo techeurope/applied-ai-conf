@@ -116,6 +116,9 @@ export function SpeakerTextOverlay({
 }: SpeakerTextOverlayProps) {
   const { updatePosition, selectedElements } = useSpeakerAssetStore();
 
+  // Global text color override
+  const globalColor = config.globalTextColor;
+
   const logoAspect =
     COMPANY_LOGOS[company.toLowerCase()]?.aspectRatio ?? 4;
   const logoWidth = config.logo.scale * logoAspect;
@@ -136,7 +139,7 @@ export function SpeakerTextOverlay({
       >
         <Text
           fontSize={config.name.fontSize}
-          color={config.name.color}
+          color={globalColor || config.name.color}
           anchorX="center"
           anchorY="middle"
           font={FONT_KODE_MONO_BOLD}
@@ -156,7 +159,7 @@ export function SpeakerTextOverlay({
       >
         <Text
           fontSize={config.subtitle.fontSize}
-          color={config.subtitle.color}
+          color={globalColor || config.subtitle.color}
           anchorX="center"
           anchorY="middle"
           font={FONT_KODE_MONO_REGULAR}
@@ -200,7 +203,7 @@ export function SpeakerTextOverlay({
       >
         <Text
           fontSize={config.branding.fontSize}
-          color={config.branding.color}
+          color={globalColor || config.branding.color}
           anchorX="center"
           anchorY="middle"
           font={FONT_KODE_MONO_BOLD}
@@ -220,7 +223,7 @@ export function SpeakerTextOverlay({
       >
         <Text
           fontSize={config.dateLocation.fontSize}
-          color={config.dateLocation.color}
+          color={globalColor || config.dateLocation.color}
           anchorX="center"
           anchorY="middle"
           font={FONT_KODE_MONO_REGULAR}

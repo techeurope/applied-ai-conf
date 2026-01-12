@@ -556,68 +556,97 @@ function ElementControls({
 
         {selectedElement === "background" && (
           <>
-            <SliderControl
-              label="Overlay Opacity"
-              value={config.background.overlayOpacity}
-              onChange={(v) => updateConfig("background", { overlayOpacity: v })}
-              min={0}
-              max={1}
-              step={0.05}
-            />
-            <ColorControl
-              label="Grid Color"
-              value={config.background.gridColor}
-              onChange={(v) => updateConfig("background", { gridColor: v })}
-            />
-
-            {/* Animation controls */}
-            <div className="space-y-2 pt-2 border-t border-white/10">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-400">Animation</span>
-                <button
-                  onClick={() =>
-                    updateConfig("background", {
-                      animationPaused: !config.background.animationPaused,
-                    })
-                  }
-                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-mono transition-all ${
-                    config.background.animationPaused
-                      ? "bg-amber-600 text-white border-amber-600"
-                      : "bg-transparent text-white border-white/20 hover:border-white/40"
-                  }`}
-                  title={config.background.animationPaused ? "Resume animation" : "Pause animation"}
-                >
-                  {config.background.animationPaused ? (
-                    <>
-                      <Play className="w-3 h-3" />
-                      Paused
-                    </>
-                  ) : (
-                    <>
-                      <Pause className="w-3 h-3" />
-                      Playing
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {config.background.animationPaused && (
-                <SliderControl
-                  label="Animation Frame"
-                  value={config.background.animationTime ?? 0}
-                  onChange={(v) => updateConfig("background", { animationTime: v })}
-                  min={0}
-                  max={100}
-                  step={0.5}
-                />
-              )}
-
-              <p className="text-[11px] text-gray-600 leading-snug">
-                {config.background.animationPaused
-                  ? "Adjust the slider to set a consistent background frame for all exports."
-                  : "Pause to lock the background to a specific frame for consistent exports."}
-              </p>
+            {/* Background toggle */}
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-400">Grid Background</span>
+              <button
+                onClick={() =>
+                  updateConfig("background", {
+                    enabled: !config.background.enabled,
+                  })
+                }
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-mono transition-all ${
+                  config.background.enabled
+                    ? "bg-amber-600 text-white border-amber-600"
+                    : "bg-transparent text-white border-white/20 hover:border-white/40"
+                }`}
+              >
+                {config.background.enabled ? "Enabled" : "Disabled"}
+              </button>
             </div>
+
+            <ColorControl
+              label="Background Color"
+              value={config.background.solidColor}
+              onChange={(v) => updateConfig("background", { solidColor: v })}
+            />
+
+            {config.background.enabled && (
+              <>
+                <SliderControl
+                  label="Overlay Opacity"
+                  value={config.background.overlayOpacity}
+                  onChange={(v) => updateConfig("background", { overlayOpacity: v })}
+                  min={0}
+                  max={1}
+                  step={0.05}
+                />
+                <ColorControl
+                  label="Grid Color"
+                  value={config.background.gridColor}
+                  onChange={(v) => updateConfig("background", { gridColor: v })}
+                />
+
+                {/* Animation controls */}
+                <div className="space-y-2 pt-2 border-t border-white/10">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-400">Animation</span>
+                    <button
+                      onClick={() =>
+                        updateConfig("background", {
+                          animationPaused: !config.background.animationPaused,
+                        })
+                      }
+                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-mono transition-all ${
+                        config.background.animationPaused
+                          ? "bg-amber-600 text-white border-amber-600"
+                          : "bg-transparent text-white border-white/20 hover:border-white/40"
+                      }`}
+                      title={config.background.animationPaused ? "Resume animation" : "Pause animation"}
+                    >
+                      {config.background.animationPaused ? (
+                        <>
+                          <Play className="w-3 h-3" />
+                          Paused
+                        </>
+                      ) : (
+                        <>
+                          <Pause className="w-3 h-3" />
+                          Playing
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {config.background.animationPaused && (
+                    <SliderControl
+                      label="Animation Frame"
+                      value={config.background.animationTime ?? 0}
+                      onChange={(v) => updateConfig("background", { animationTime: v })}
+                      min={0}
+                      max={100}
+                      step={0.5}
+                    />
+                  )}
+
+                  <p className="text-[11px] text-gray-600 leading-snug">
+                    {config.background.animationPaused
+                      ? "Adjust the slider to set a consistent background frame for all exports."
+                      : "Pause to lock the background to a specific frame for consistent exports."}
+                  </p>
+                </div>
+              </>
+            )}
           </>
         )}
       </div>
@@ -662,7 +691,7 @@ export function ControlPanel({
   updateConfig,
   resetConfig,
 }: ControlPanelProps) {
-  const { selectedElement, selectedElements, setSelectedElement, resetElement, updatePosition, clearSelection } =
+  const { selectedElement, selectedElements, setSelectedElement, resetElement, updatePosition, clearSelection, setGlobalTextColor } =
     useSpeakerAssetStore();
   const undo = useSpeakerAssetStore((s: SpeakerAssetStore) => s.undo);
   const redo = useSpeakerAssetStore((s: SpeakerAssetStore) => s.redo);
@@ -830,6 +859,46 @@ export function ControlPanel({
           updateConfig={updateConfig}
           updatePosition={updatePosition}
         />
+      </div>
+
+      {/* Global Text Color */}
+      <div className="border-t border-white/10 pt-4">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm font-mono text-gray-300">
+            Global Text Color
+          </span>
+          {config.globalTextColor && (
+            <button
+              onClick={() => setGlobalTextColor(null)}
+              className="flex items-center gap-1 text-xs text-gray-500 hover:text-amber-500 transition-colors"
+              title="Clear global text color"
+            >
+              <RotateCcw className="w-3 h-3" />
+              Clear
+            </button>
+          )}
+        </div>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-gray-400">
+              {config.globalTextColor ? "Override active" : "Per-element colors"}
+            </span>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={config.globalTextColor || "#ffffff"}
+                onChange={(e) => setGlobalTextColor(e.target.value)}
+                className="w-8 h-6 rounded cursor-pointer border border-white/20"
+              />
+              <span className="text-xs text-gray-500 font-mono w-16">
+                {config.globalTextColor || "—"}
+              </span>
+            </div>
+          </div>
+          <p className="text-[11px] text-gray-600 leading-snug">
+            Set a color to override all text elements for consistent branding.
+          </p>
+        </div>
       </div>
 
       {/* Quick selection buttons */}

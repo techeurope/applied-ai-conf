@@ -32,10 +32,12 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@fal-ai/client": "^1.8.3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.2.3",
     "eslint": "^9",
     "eslint-config-next": "16.0.7",
     "tailwindcss": "^4",

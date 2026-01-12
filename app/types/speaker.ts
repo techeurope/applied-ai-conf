@@ -10,7 +10,8 @@ export interface Speaker {
   building: string; // What they're building (short description)
   initial: string;
   accent: string;
-  image?: string;
+  image?: string; // Original image (with background)
+  imageTransparent?: string; // Transparent PNG (background removed via remove-background.mjs)
   imageAlt: string; // Alt text for headshot
   logoAlt?: string; // Alt text for company logo
   socials?: {

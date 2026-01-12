@@ -34,44 +34,65 @@ export function SpeakerAssetScene({
     rendererRef.current = { gl, scene, camera };
   }
 
+  // Use transparent image if available, fallback to original
+  const imageUrl = speaker.imageTransparent || speaker.image;
+
   return (
     <>
       {/* Background click area for deselection */}
       <BackgroundClickArea />
 
-      {/* Dark background plane */}
+      {/* Background plane - solid color */}
       <mesh position={[0, 0, -10]}>
         <planeGeometry args={[50, 50]} />
-        <meshBasicMaterial color="#05070f" />
+        <meshBasicMaterial color={config.background.solidColor} />
       </mesh>
 
-      {/* Lidar background - selectable for background controls */}
-      <group
-        onPointerDown={(e) => {
-          e.stopPropagation();
-          setSelectedElement("background");
-        }}
-      >
-        <LidarGridBackground
-          gridColor={config.background.gridColor}
-          animationPaused={config.background.animationPaused}
-          animationTime={config.background.animationTime}
-        />
-      </group>
+      {/* Lidar background - only render when enabled, selectable for background controls */}
+      {config.background.enabled && (
+        <group
+          onPointerDown={(e) => {
+            e.stopPropagation();
+            setSelectedElement("background");
+          }}
+        >
+          <LidarGridBackground
+            gridColor={config.background.gridColor}
+            animationPaused={config.background.animationPaused}
+            animationTime={config.background.animationTime}
+          />
+        </group>
+      )}
 
-      {/* Semi-transparent overlay for readability */}
-      <mesh position={[0, 0, -0.5]}>
-        <planeGeometry args={[10, 10]} />
-        <meshBasicMaterial
-          color="#000000"
-          transparent
-          opacity={config.background.overlayOpacity}
-        />
-      </mesh>
+      {/* Click area for background controls when grid is disabled */}
+      {!config.background.enabled && (
+        <mesh
+          position={[0, 0, -9]}
+          onPointerDown={(e) => {
+            e.stopPropagation();
+            setSelectedElement("background");
+          }}
+        >
+          <planeGeometry args={[50, 50]} />
+          <meshBasicMaterial transparent opacity={0} />
+        </mesh>
+      )}
+
+      {/* Semi-transparent overlay for readability (only when grid enabled) */}
+      {config.background.enabled && (
+        <mesh position={[0, 0, -0.5]}>
+          <planeGeometry args={[10, 10]} />
+          <meshBasicMaterial
+            color="#000000"
+            transparent
+            opacity={config.background.overlayOpacity}
+          />
+        </mesh>
+      )}
 
       {/* Speaker image */}
-      {speaker.image && (
-        <SpeakerImage imageUrl={speaker.image} config={config} />
+      {imageUrl && (
+        <SpeakerImage imageUrl={imageUrl} config={config} />
       )}
 
       {/* Text content */}
