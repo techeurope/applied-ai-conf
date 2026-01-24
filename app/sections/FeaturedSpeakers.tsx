@@ -185,9 +185,13 @@ export default function FeaturedSpeakers() {
               </>
             );
 
+            const key = speakerWithMeta._isPlaceholder 
+              ? `placeholder-${speakerWithMeta._placeholderIndex}` 
+              : speaker.name;
+
             return speaker.linkedinUrl ? (
               <Link
-                key={speaker.name}
+                key={key}
                 href={speaker.linkedinUrl}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -196,7 +200,7 @@ export default function FeaturedSpeakers() {
                 {cardContent}
               </Link>
             ) : (
-              <div key={speaker.name} className={className}>
+              <div key={key} className={className}>
                 {cardContent}
               </div>
             );

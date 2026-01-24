@@ -141,3 +141,13 @@ input:-webkit-autofill:active {
     transform: rotate(360deg);
   }
 }
+
+/* Luma checkout modal overrides */
+.luma-checkout--modal {
+  max-height: 90vh !important;
+  max-width: 600px !important;
+}
+
+.luma-checkout--overlay.luma-show {
+  background: rgba(5, 7, 15, 0.85) !important;
+}

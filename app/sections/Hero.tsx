@@ -1,5 +1,5 @@
 import { CONFERENCE_INFO } from "@/data/conference";
-import { NAVIGATION_ACTIONS } from "@/data/navigation";
+import { NAVIGATION_ACTIONS, LUMA_EVENT_ID } from "@/data/navigation";
 import { LidarScapeBackground } from "@/components/ui/lidar-scape-background";
 import { InlineNewsletterForm } from "@/components/ui/newsletter-form";
 import { Ticket, Handshake } from "lucide-react";
@@ -83,6 +83,8 @@ export default function Hero() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="absolute inset-0 z-30"
+                data-luma-action="checkout"
+                data-luma-event-id={LUMA_EVENT_ID}
               >
                 <span className="sr-only">{ticketAction.label}</span>
               </a>
