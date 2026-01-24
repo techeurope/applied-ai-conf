@@ -38,8 +38,31 @@ function exportHighRes(
   link.click();
 }
 
+const STORAGE_KEY_SPEAKER_INDEX = "speaker-assets-selected-speaker-index";
+
 export default function SpeakerAssetsPage() {
-  const [selectedSpeakerIndex, setSelectedSpeakerIndex] = useState(0);
+  // Load selected speaker from localStorage on mount
+  const [selectedSpeakerIndex, setSelectedSpeakerIndex] = useState(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem(STORAGE_KEY_SPEAKER_INDEX);
+      if (stored !== null) {
+        const index = parseInt(stored, 10);
+        if (!isNaN(index) && index >= 0 && index < SPEAKERS.length) {
+          return index;
+        }
+      }
+    }
+    return 0;
+  });
+  
+  // Save to localStorage when speaker changes
+  const handleSpeakerChange = (index: number) => {
+    setSelectedSpeakerIndex(index);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(STORAGE_KEY_SPEAKER_INDEX, index.toString());
+    }
+  };
+  
   const [selectedResolution, setSelectedResolution] =
     useState<ResolutionKey>("2K");
   const [isExporting, setIsExporting] = useState(false);
@@ -185,7 +208,7 @@ export default function SpeakerAssetsPage() {
           previewMode={previewMode}
           setPreviewMode={setPreviewMode}
           selectedSpeakerIndex={selectedSpeakerIndex}
-          setSelectedSpeakerIndex={setSelectedSpeakerIndex}
+          setSelectedSpeakerIndex={handleSpeakerChange}
           selectedResolution={selectedResolution}
           setSelectedResolution={setSelectedResolution}
           isExporting={isExporting}

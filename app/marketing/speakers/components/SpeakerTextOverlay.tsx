@@ -17,6 +17,8 @@ const COMPANY_LOGOS: Record<string, { path: string; aspectRatio: number }> = {
   tacto: { path: "/logos/tacto_dark.png", aspectRatio: 2.98 },
   legora: { path: "/logos/legora_dark.png", aspectRatio: 1.0 },
   knowunity: { path: "/logos/knowunity_dark.png", aspectRatio: 4.78 },
+  "veed.io": { path: "/logos/veed.svg", aspectRatio: 4.79 }, // TODO: Create veed_dark.png
+  codewords: { path: "/logos/codewords.svg", aspectRatio: 6.58 }, // TODO: Create codewords_dark.png
 };
 
 // Company logo mesh component
@@ -30,7 +32,8 @@ function CompanyLogoMesh({
   opacity: number;
 }) {
   const logoConfig = COMPANY_LOGOS[company.toLowerCase()];
-  const texture = useTexture(logoConfig?.path || "/logos/legora_dark.png");
+  // Fallback to a placeholder if logo not found (instead of defaulting to legora)
+  const texture = useTexture(logoConfig?.path || "/logos/langdock_dark.png");
 
   const { width, height } = useMemo(() => {
     const aspectRatio = logoConfig?.aspectRatio ?? 1;
@@ -114,6 +117,8 @@ export function SpeakerTextOverlay({
   const logoConfig = COMPANY_LOGOS[company.toLowerCase()];
   const cardLogoWidth =
     config.speakerMetaCard.logoScale * (logoConfig?.aspectRatio ?? 1);
+  const metaPaddingLeft = 0.12;
+  const metaPaddingRight = 0.12;
 
   useEffect(() => {
     setElementCenterOffset("speakerMetaCard", { x: 0, y: 0 });
@@ -239,48 +244,79 @@ export function SpeakerTextOverlay({
           onPositionChange={(pos) => updatePosition("speakerMetaCard", pos)}
         >
           <group>
-            {selectedElements.includes("speakerMetaCard") && (
-              <mesh position={[0, 0, -0.01]}>
-                <planeGeometry
-                  args={[
-                    config.speakerMetaCard.width + 0.06,
-                    config.speakerMetaCard.height + 0.06,
-                  ]}
-                />
-                <meshBasicMaterial color="#ab7030" transparent opacity={0.2} />
-              </mesh>
-            )}
-
-            {/* Labels and values */}
             {(() => {
-              const paddingX = 0.18;
-              const paddingY = 0.12;
-              const gap = 0.28;
-              const labelValueGap = 0.07;
-              const columnWidth =
-                (config.speakerMetaCard.width - paddingX * 2 - gap) / 2;
-              const leftX = -config.speakerMetaCard.width / 2 + paddingX;
-              const rightX = leftX + columnWidth + gap;
-              const labelY =
-                config.speakerMetaCard.height / 2 -
-                paddingY -
-                config.speakerMetaCard.labelSize * 0.5;
-              const valueY =
-                labelY -
-                labelValueGap -
-                config.speakerMetaCard.labelSize * 0.8 -
-                config.speakerMetaCard.valueSize * 0.4;
+              // Content starts at x, logo extends from x to x+cardLogoWidth
+              const contentX = -config.speakerMetaCard.width / 2 + metaPaddingLeft;
+              // Box should wrap the logo with equal padding on both sides
+              const boxWidth = cardLogoWidth + metaPaddingLeft + metaPaddingRight;
+              // Box center = logo center
+              const logoCenterX = contentX + cardLogoWidth / 2;
 
               return (
                 <>
-                  {/* Column divider */}
-                  <mesh position={[0, 0, 0.01]}>
-                    <planeGeometry
-                      args={[
-                        0.008,
-                        config.speakerMetaCard.height - paddingY * 2,
-                      ]}
-                    />
+                  {/* Background for card (if configured) */}
+                  {config.speakerMetaCard.backgroundOpacity > 0 && (
+                    <mesh position={[logoCenterX, 0, -0.02]}>
+                      <planeGeometry args={[boxWidth, config.speakerMetaCard.height]} />
+                      <meshBasicMaterial
+                        color={config.speakerMetaCard.backgroundColor}
+                        transparent
+                        opacity={config.speakerMetaCard.backgroundOpacity}
+                      />
+                    </mesh>
+                  )}
+
+                  {/* Selection highlight box */}
+                  {selectedElements.includes("speakerMetaCard") && (
+                    <mesh position={[logoCenterX, 0, -0.01]}>
+                      <planeGeometry
+                        args={[
+                          boxWidth + 0.06,
+                          config.speakerMetaCard.height + 0.06,
+                        ]}
+                      />
+                      <meshBasicMaterial color="#ab7030" transparent opacity={0.3} />
+                    </mesh>
+                  )}
+                </>
+              );
+            })()}
+
+            {/* Labels and values - two-line layout with horizontal separator */}
+            {(() => {
+              const paddingY = 0.1;
+              const labelValueGap = 0.07;
+              const lineGap = 0.12; // Space between the two lines
+              const x = -config.speakerMetaCard.width / 2 + metaPaddingLeft;
+              const boxWidth = cardLogoWidth + metaPaddingLeft + metaPaddingRight;
+              const logoCenterX = x + cardLogoWidth / 2;
+              
+              // Calculate section heights
+              const roleLabelHeight = config.speakerMetaCard.labelSize;
+              const roleValueHeight = config.speakerMetaCard.valueSize;
+              const companyLabelHeight = config.speakerMetaCard.labelSize;
+              const companyValueHeight = Math.max(config.speakerMetaCard.valueSize, config.speakerMetaCard.logoScale);
+              
+              // Card bounds: extends from -height/2 to +height/2
+              const cardTop = config.speakerMetaCard.height / 2 - paddingY;
+              const cardBottom = -config.speakerMetaCard.height / 2 + paddingY;
+              
+              // Position separator at center (y=0)
+              const separatorY = 0;
+              
+              // Top line (Role) - positioned above separator, within card bounds
+              const topValueY = separatorY + lineGap / 2 + roleValueHeight * 0.5;
+              const topLabelY = topValueY + roleValueHeight * 0.5 + labelValueGap + roleLabelHeight * 0.5;
+              
+              // Bottom line (Company) - positioned below separator, within card bounds
+              const bottomLabelY = separatorY - lineGap / 2 - companyLabelHeight * 0.5;
+              const bottomValueY = bottomLabelY - companyLabelHeight * 0.5 - labelValueGap - companyValueHeight * 0.5;
+
+              return (
+                <>
+                  {/* Horizontal separator */}
+                  <mesh position={[logoCenterX, separatorY, 0.01]}>
+                    <planeGeometry args={[boxWidth, 0.008]} />
                     <meshBasicMaterial
                       color={config.speakerMetaCard.borderColor}
                       transparent
@@ -296,7 +332,7 @@ export function SpeakerTextOverlay({
                     anchorY="middle"
                     font={FONT_KODE_MONO_REGULAR}
                     letterSpacing={config.speakerMetaCard.labelTracking}
-                    position={[leftX, labelY, 0.01]}
+                    position={[x, topLabelY, 0.01]}
                   >
                     ROLE
                   </Text>
@@ -309,7 +345,7 @@ export function SpeakerTextOverlay({
                     anchorY="middle"
                     font={FONT_KODE_MONO_REGULAR}
                     letterSpacing={config.speakerMetaCard.valueTracking}
-                    position={[leftX, valueY, 0.01]}
+                    position={[x, topValueY, 0.01]}
                     onSync={() =>
                       computeSingleLineBounds(speakerTitleRef, setSpeakerTitleBounds, "speakerTitle")
                     }
@@ -325,13 +361,13 @@ export function SpeakerTextOverlay({
                     anchorY="middle"
                     font={FONT_KODE_MONO_REGULAR}
                     letterSpacing={config.speakerMetaCard.labelTracking}
-                    position={[rightX, labelY, 0.01]}
+                    position={[x, bottomLabelY, 0.01]}
                   >
                     COMPANY
                   </Text>
 
                   {/* Company logo */}
-                  <group position={[rightX + cardLogoWidth / 2, valueY - 0.01, 0.01]}>
+                  <group position={[x + cardLogoWidth / 2, bottomValueY - 0.01, 0.01]}>
                     <Suspense fallback={null}>
                       <CompanyLogoMesh
                         company={company}

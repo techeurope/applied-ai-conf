@@ -122,10 +122,10 @@ export const DEFAULT_ASSET_CONFIG: AssetConfig = {
   speakerMetaCard: {
     enabled: true,
     width: 1.7,
-    height: 0.55,
+    height: 0.85,
     position: { x: -1.35, y: 0.55 },
     backgroundColor: "#0a0d18",
-    backgroundOpacity: 0.6,
+    backgroundOpacity: 0,
     borderColor: "#ffffff",
     borderOpacity: 0.12,
     labelColor: "#6b7280",
