@@ -6,8 +6,9 @@ export type PreviewMode = "fixed" | "auto";
 export type ElementType =
   | "image"
   | "speakerName"
-  | "speakerTitle"
-  | "speakerMetaCard"
+  | "speakerRole"
+  | "speakerCompany"
+  | "speakerMetaCard" // legacy, kept for compatibility
   | "companyLogo"
   | "techEurope"
   | "logo"
@@ -61,6 +62,27 @@ export interface MetaCardStyle {
   logoOpacity: number;
 }
 
+export interface RoleStyle {
+  position: Position;
+  labelColor: string;
+  labelSize: number;
+  labelTracking: number;
+  valueColor: string;
+  valueSize: number;
+  valueTracking: number;
+  showLabel: boolean;
+}
+
+export interface CompanyStyle {
+  position: Position;
+  labelColor: string;
+  labelSize: number;
+  labelTracking: number;
+  logoScale: number;
+  logoOpacity: number;
+  showLabel: boolean;
+}
+
 export interface BackgroundStyle {
   enabled: boolean; // Whether to show the lidar grid background
   solidColor: string; // Solid background color when grid is disabled
@@ -77,7 +99,11 @@ export interface AssetConfig {
   speakerName: TextStyle;
   // Speaker title (e.g. "CTO @") next to company logo
   speakerTitle: TextStyle;
-  // Speaker meta card (role + company)
+  // Speaker role (separate, movable)
+  speakerRole: RoleStyle;
+  // Speaker company (separate, movable)
+  speakerCompany: CompanyStyle;
+  // Speaker meta card (role + company) - legacy, kept for combined mode
   speakerMetaCard: MetaCardStyle;
   // Company logo (image)
   companyLogo: LogoImageStyle;
@@ -119,8 +145,27 @@ export const DEFAULT_ASSET_CONFIG: AssetConfig = {
     letterSpacing: 0.02,
     position: { x: -1.95, y: 0.65 },
   },
+  speakerRole: {
+    position: { x: -1.95, y: 0.75 },
+    labelColor: "#6b7280",
+    labelSize: 0.07,
+    labelTracking: 0.08,
+    valueColor: "#ffffff",
+    valueSize: 0.1,
+    valueTracking: 0.02,
+    showLabel: true,
+  },
+  speakerCompany: {
+    position: { x: -1.95, y: 0.35 },
+    labelColor: "#6b7280",
+    labelSize: 0.07,
+    labelTracking: 0.08,
+    logoScale: 0.16,
+    logoOpacity: 0.9,
+    showLabel: true,
+  },
   speakerMetaCard: {
-    enabled: true,
+    enabled: false, // disabled by default, use separate role/company
     width: 1.7,
     height: 0.85,
     position: { x: -1.35, y: 0.55 },

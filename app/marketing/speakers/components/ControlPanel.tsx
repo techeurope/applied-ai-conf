@@ -132,15 +132,25 @@ const ELEMENT_INFO: Record<
     icon: Type,
     description: "Large speaker name text",
   },
-  speakerTitle: {
-    label: "Speaker Title",
+  speakerRole: {
+    label: "Speaker Role",
     icon: Type,
-    description: "Role line (e.g. \"CTO @\")",
+    description: "Role with optional label",
+  },
+  speakerCompany: {
+    label: "Speaker Company",
+    icon: Type,
+    description: "Company logo with optional label",
   },
   speakerMetaCard: {
     label: "Speaker Meta Card",
     icon: Type,
-    description: "Role + company card",
+    description: "Role + company combined card",
+  },
+  companyLogo: {
+    label: "Company Logo",
+    icon: Image,
+    description: "Company logo image (legacy)",
   },
   techEurope: {
     label: "{Tech: Europe}",
@@ -335,41 +345,154 @@ function ElementControls({
           </>
         )}
 
-        {selectedElement === "speakerTitle" && (
+        {selectedElement === "speakerRole" && (
           <>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-400">Show Label</span>
+              <button
+                onClick={() =>
+                  updateConfig("speakerRole", {
+                    showLabel: !config.speakerRole.showLabel,
+                  })
+                }
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-mono transition-all ${
+                  config.speakerRole.showLabel
+                    ? "bg-amber-600 text-white border-amber-600"
+                    : "bg-transparent text-white border-white/20 hover:border-white/40"
+                }`}
+              >
+                {config.speakerRole.showLabel ? "Shown" : "Hidden"}
+              </button>
+            </div>
+            <ColorControl
+              label="Label Color"
+              value={config.speakerRole.labelColor}
+              onChange={(v) => updateConfig("speakerRole", { labelColor: v })}
+            />
             <SliderControl
-              label="Font Size"
-              value={config.speakerTitle.fontSize}
-              onChange={(v) => updateConfig("speakerTitle", { fontSize: v })}
-              min={0.05}
+              label="Label Size"
+              value={config.speakerRole.labelSize}
+              onChange={(v) => updateConfig("speakerRole", { labelSize: v })}
+              min={0.04}
+              max={0.12}
+              step={0.005}
+            />
+            <SliderControl
+              label="Label Tracking"
+              value={config.speakerRole.labelTracking}
+              onChange={(v) => updateConfig("speakerRole", { labelTracking: v })}
+              min={0}
               max={0.2}
               step={0.01}
             />
             <ColorControl
-              label="Color"
-              value={config.speakerTitle.color}
-              onChange={(v) => updateConfig("speakerTitle", { color: v })}
+              label="Value Color"
+              value={config.speakerRole.valueColor}
+              onChange={(v) => updateConfig("speakerRole", { valueColor: v })}
             />
             <SliderControl
-              label="Letter Spacing"
-              value={config.speakerTitle.letterSpacing}
-              onChange={(v) => updateConfig("speakerTitle", { letterSpacing: v })}
-              min={-0.1}
+              label="Value Size"
+              value={config.speakerRole.valueSize}
+              onChange={(v) => updateConfig("speakerRole", { valueSize: v })}
+              min={0.06}
+              max={0.2}
+              step={0.01}
+            />
+            <SliderControl
+              label="Value Tracking"
+              value={config.speakerRole.valueTracking}
+              onChange={(v) => updateConfig("speakerRole", { valueTracking: v })}
+              min={-0.05}
               max={0.2}
               step={0.01}
             />
             <SliderControl
               label="Position X"
-              value={config.speakerTitle.position.x}
-              onChange={(v) => updatePosition("speakerTitle", { x: v })}
+              value={config.speakerRole.position.x}
+              onChange={(v) => updatePosition("speakerRole", { x: v })}
               min={-2}
               max={2}
               step={0.05}
             />
             <SliderControl
               label="Position Y"
-              value={config.speakerTitle.position.y}
-              onChange={(v) => updatePosition("speakerTitle", { y: v })}
+              value={config.speakerRole.position.y}
+              onChange={(v) => updatePosition("speakerRole", { y: v })}
+              min={-2}
+              max={2}
+              step={0.05}
+            />
+          </>
+        )}
+
+        {selectedElement === "speakerCompany" && (
+          <>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-400">Show Label</span>
+              <button
+                onClick={() =>
+                  updateConfig("speakerCompany", {
+                    showLabel: !config.speakerCompany.showLabel,
+                  })
+                }
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-mono transition-all ${
+                  config.speakerCompany.showLabel
+                    ? "bg-amber-600 text-white border-amber-600"
+                    : "bg-transparent text-white border-white/20 hover:border-white/40"
+                }`}
+              >
+                {config.speakerCompany.showLabel ? "Shown" : "Hidden"}
+              </button>
+            </div>
+            <ColorControl
+              label="Label Color"
+              value={config.speakerCompany.labelColor}
+              onChange={(v) => updateConfig("speakerCompany", { labelColor: v })}
+            />
+            <SliderControl
+              label="Label Size"
+              value={config.speakerCompany.labelSize}
+              onChange={(v) => updateConfig("speakerCompany", { labelSize: v })}
+              min={0.04}
+              max={0.12}
+              step={0.005}
+            />
+            <SliderControl
+              label="Label Tracking"
+              value={config.speakerCompany.labelTracking}
+              onChange={(v) => updateConfig("speakerCompany", { labelTracking: v })}
+              min={0}
+              max={0.2}
+              step={0.01}
+            />
+            <SliderControl
+              label="Logo Scale"
+              value={config.speakerCompany.logoScale}
+              onChange={(v) => updateConfig("speakerCompany", { logoScale: v })}
+              min={0.08}
+              max={0.3}
+              step={0.01}
+            />
+            <SliderControl
+              label="Logo Opacity"
+              value={config.speakerCompany.logoOpacity}
+              onChange={(v) => updateConfig("speakerCompany", { logoOpacity: v })}
+              min={0.2}
+              max={1}
+              step={0.05}
+            />
+            <SliderControl
+              label="Position X"
+              value={config.speakerCompany.position.x}
+              onChange={(v) => updatePosition("speakerCompany", { x: v })}
+              min={-2}
+              max={2}
+              step={0.05}
+            />
+            <SliderControl
+              label="Position Y"
+              value={config.speakerCompany.position.y}
+              onChange={(v) => updatePosition("speakerCompany", { y: v })}
               min={-2}
               max={2}
               step={0.05}

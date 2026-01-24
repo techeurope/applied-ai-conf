@@ -70,7 +70,7 @@ export function SpeakerTextOverlay({
 }: SpeakerTextOverlayProps) {
   const { updatePosition, selectedElements, setElementCenterOffset } = useSpeakerAssetStore();
   const speakerNameRef = useRef<any>(null);
-  const speakerTitleRef = useRef<any>(null);
+  const speakerRoleRef = useRef<any>(null);
   const techEuropeRef = useRef<any>(null);
   const dateLocationRef = useRef<any>(null);
   const logoLine1Ref = useRef<any>(null);
@@ -89,10 +89,16 @@ export function SpeakerTextOverlay({
     centerX: config.techEurope.fontSize * 5,
     centerY: 0,
   });
-  const [speakerTitleBounds, setSpeakerTitleBounds] = useState({
-    width: config.speakerTitle.fontSize * 8,
-    height: config.speakerTitle.fontSize,
-    centerX: config.speakerTitle.fontSize * 4,
+  const [speakerRoleBounds, setSpeakerRoleBounds] = useState({
+    width: config.speakerRole.valueSize * 8,
+    height: config.speakerRole.valueSize * (config.speakerRole.showLabel ? 2 : 1),
+    centerX: config.speakerRole.valueSize * 4,
+    centerY: 0,
+  });
+  const [speakerCompanyBounds, setSpeakerCompanyBounds] = useState({
+    width: config.speakerCompany.logoScale * 5,
+    height: config.speakerCompany.logoScale * (config.speakerCompany.showLabel ? 2 : 1),
+    centerX: config.speakerCompany.logoScale * 2.5,
     centerY: 0,
   });
   const [dateLocationBounds, setDateLocationBounds] = useState({
@@ -140,8 +146,12 @@ export function SpeakerTextOverlay({
   }, [setElementCenterOffset, techEuropeBounds.centerX, techEuropeBounds.centerY]);
 
   useEffect(() => {
-    setElementCenterOffset("speakerTitle", { x: speakerTitleBounds.centerX, y: speakerTitleBounds.centerY });
-  }, [setElementCenterOffset, speakerTitleBounds.centerX, speakerTitleBounds.centerY]);
+    setElementCenterOffset("speakerRole", { x: speakerRoleBounds.centerX, y: speakerRoleBounds.centerY });
+  }, [setElementCenterOffset, speakerRoleBounds.centerX, speakerRoleBounds.centerY]);
+
+  useEffect(() => {
+    setElementCenterOffset("speakerCompany", { x: speakerCompanyBounds.centerX, y: speakerCompanyBounds.centerY });
+  }, [setElementCenterOffset, speakerCompanyBounds.centerX, speakerCompanyBounds.centerY]);
 
   useEffect(() => {
     setElementCenterOffset("dateLocation", { x: dateLocationBounds.centerX, y: dateLocationBounds.centerY });
@@ -413,35 +423,102 @@ export function SpeakerTextOverlay({
         </SelectableElement>
       ) : null}
 
-      {(!config.speakerMetaCard.enabled || selectedElements.includes("speakerTitle")) && (
+      {/* Speaker Role (separate, movable) */}
+      {!config.speakerMetaCard.enabled && (
         <SelectableElement
-          elementType="speakerTitle"
-          position={config.speakerTitle.position}
-          onPositionChange={(pos) => updatePosition("speakerTitle", pos)}
+          elementType="speakerRole"
+          position={config.speakerRole.position}
+          onPositionChange={(pos) => updatePosition("speakerRole", pos)}
         >
           <group>
-            {selectedElements.includes("speakerTitle") && (
-              <mesh position={[speakerTitleBounds.centerX, speakerTitleBounds.centerY, -0.01]}>
+            {selectedElements.includes("speakerRole") && (
+              <mesh position={[speakerRoleBounds.centerX, speakerRoleBounds.centerY, -0.01]}>
                 <planeGeometry
-                  args={[speakerTitleBounds.width + 0.04, speakerTitleBounds.height + 0.04]}
+                  args={[speakerRoleBounds.width + 0.04, speakerRoleBounds.height + 0.04]}
                 />
                 <meshBasicMaterial color="#ab7030" transparent opacity={0.3} />
               </mesh>
             )}
+            {config.speakerRole.showLabel && (
+              <Text
+                fontSize={config.speakerRole.labelSize}
+                color={globalColor || config.speakerRole.labelColor}
+                anchorX="left"
+                anchorY="middle"
+                font={FONT_KODE_MONO_REGULAR}
+                letterSpacing={config.speakerRole.labelTracking}
+                position={[0, config.speakerRole.valueSize * 0.8, 0]}
+              >
+                ROLE
+              </Text>
+            )}
             <Text
-              ref={speakerTitleRef}
-              fontSize={config.speakerTitle.fontSize}
-              color={globalColor || config.speakerTitle.color}
+              ref={speakerRoleRef}
+              fontSize={config.speakerRole.valueSize}
+              color={globalColor || config.speakerRole.valueColor}
               anchorX="left"
               anchorY="middle"
               font={FONT_KODE_MONO_REGULAR}
-              letterSpacing={config.speakerTitle.letterSpacing}
+              letterSpacing={config.speakerRole.valueTracking}
+              position={[0, config.speakerRole.showLabel ? -config.speakerRole.labelSize * 0.5 : 0, 0]}
               onSync={() =>
-                computeSingleLineBounds(speakerTitleRef, setSpeakerTitleBounds)
+                computeSingleLineBounds(speakerRoleRef, setSpeakerRoleBounds)
               }
             >
-              {`${title} @`}
+              {title}
             </Text>
+          </group>
+        </SelectableElement>
+      )}
+
+      {/* Speaker Company (separate, movable) */}
+      {!config.speakerMetaCard.enabled && (
+        <SelectableElement
+          elementType="speakerCompany"
+          position={config.speakerCompany.position}
+          onPositionChange={(pos) => updatePosition("speakerCompany", pos)}
+        >
+          <group>
+            {(() => {
+              const companyLogoConfig = COMPANY_LOGOS[company.toLowerCase()];
+              const companyLogoWidth = config.speakerCompany.logoScale * (companyLogoConfig?.aspectRatio ?? 1);
+              const logoOffsetX = companyLogoWidth / 2; // Offset to align left edge at x=0
+              
+              return (
+                <>
+                  {selectedElements.includes("speakerCompany") && (
+                    <mesh position={[speakerCompanyBounds.centerX, speakerCompanyBounds.centerY, -0.01]}>
+                      <planeGeometry
+                        args={[speakerCompanyBounds.width + 0.04, speakerCompanyBounds.height + 0.04]}
+                      />
+                      <meshBasicMaterial color="#ab7030" transparent opacity={0.3} />
+                    </mesh>
+                  )}
+                  {config.speakerCompany.showLabel && (
+                    <Text
+                      fontSize={config.speakerCompany.labelSize}
+                      color={globalColor || config.speakerCompany.labelColor}
+                      anchorX="left"
+                      anchorY="middle"
+                      font={FONT_KODE_MONO_REGULAR}
+                      letterSpacing={config.speakerCompany.labelTracking}
+                      position={[0, config.speakerCompany.logoScale * 0.8, 0]}
+                    >
+                      COMPANY
+                    </Text>
+                  )}
+                  <group position={[logoOffsetX, config.speakerCompany.showLabel ? -config.speakerCompany.labelSize * 0.5 : 0, 0]}>
+                    <Suspense fallback={null}>
+                      <CompanyLogoMesh
+                        company={company}
+                        scale={config.speakerCompany.logoScale}
+                        opacity={config.speakerCompany.logoOpacity}
+                      />
+                    </Suspense>
+                  </group>
+                </>
+              );
+            })()}
           </group>
         </SelectableElement>
       )}
