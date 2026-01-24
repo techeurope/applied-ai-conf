@@ -129,7 +129,7 @@ The twitter banner generator at `/marketing/twitter-banner` creates event banner
 
 **Landing Page Sections (in order):**
 
-1. **Hero:** Lidar scape background, massive mono typography ("Applied / AI Conf"). HUD-style grid with subheadline ("A one-day applied AI conference in Berlin..."), supporting paragraph, venue/date info, newsletter signup, dual CTAs (Get Tickets + Become a Partner), and microline with date/venue.
+1. **Hero:** Lidar scape background, massive mono typography ("Applied / AI Conf"). HUD-style grid with subheadline ("A one-day applied AI conference in Berlin..."), supporting paragraph, venue/date info, newsletter signup, dual CTAs (Get Tickets + Become a Partner), and a scrolling marquee of speaker company logos.
 2. **About:** Three subsections - "About Applied AI Conf" (conference description), "Who it's for" (target audience list), "What you'll walk away with" (outcomes list).
 3. **FeaturedSpeakers:** Three-per-row layout. Each card shows: headshot with proper alt text, name, role line ("CTO, Legora"), company logo with alt text, tagline describing what the company does. Green CRT aesthetic on hover.
 4. **Format:** Two-track format description (Main + Side track), workshops/panels/demos, expo area. Agenda coming soon notice.

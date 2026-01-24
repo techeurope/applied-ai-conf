@@ -78,15 +78,37 @@ body {
   }
 
   .text-glow {
-    @apply text-transparent bg-clip-text bg-gradient-to-b from-white via-gray-300 to-gray-500;
+    @apply text-transparent bg-clip-text bg-linear-to-b from-white via-gray-300 to-gray-500;
   }
   
   .text-glow-hover {
-    @apply hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-b hover:from-white hover:via-white hover:to-white/70 transition-all;
+    @apply hover:text-transparent hover:bg-clip-text hover:bg-linear-to-b hover:from-white hover:via-white hover:to-white/70 transition-all;
   }
   
   .border-glow {
     @apply border border-white/10 hover:border-white/30 transition-colors duration-300;
+  }
+}
+
+@keyframes logo-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(calc(-1 * var(--logo-marquee-offset, 50%)));
+  }
+}
+
+.logo-marquee {
+  width: max-content;
+  animation: logo-marquee 28s linear infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo-marquee {
+    animation: none;
+    transform: translateX(0);
   }
 }
 

@@ -1,7 +1,8 @@
 "use client";
 
-import { Suspense, useMemo } from "react";
+import { Suspense, useCallback, useMemo, useRef, useState } from "react";
 import { Text, useTexture } from "@react-three/drei";
+import type { Vector3 } from "three";
 import type { AssetConfig } from "../store";
 import { useSpeakerAssetStore } from "../store";
 import { SelectableElement } from "./SelectableElement";
@@ -63,12 +64,63 @@ export function SpeakerTextOverlay({
   config,
 }: SpeakerTextOverlayProps) {
   const { updatePosition, selectedElements } = useSpeakerAssetStore();
+  const logoLine1Ref = useRef<any>(null);
+  const logoLine2Ref = useRef<any>(null);
+  const [logoBounds, setLogoBounds] = useState<{
+    width: number;
+    height: number;
+    centerX: number;
+    centerY: number;
+  }>({
+    width: 0.8,
+    height: config.logo.fontSize * 2.5,
+    centerX: 0.3,
+    centerY: -config.logo.fontSize * 0.5,
+  });
 
   // Global text color override
   const globalColor = config.globalTextColor;
 
   const logoConfig = COMPANY_LOGOS[company.toLowerCase()];
   const logoWidth = config.companyLogo.scale * (logoConfig?.aspectRatio ?? 1);
+
+  const computeLogoBounds = useCallback(() => {
+    const line1 = logoLine1Ref.current;
+    const line2 = logoLine2Ref.current;
+    if (!line1 || !line2) return;
+
+    const info1 = line1.textRenderInfo;
+    const info2 = line2.textRenderInfo;
+    if (!info1?.blockBounds || !info2?.blockBounds) return;
+
+    const [minX1, minY1, maxX1, maxY1] = info1.blockBounds as [
+      number,
+      number,
+      number,
+      number,
+    ];
+    const [minX2, minY2, maxX2, maxY2] = info2.blockBounds as [
+      number,
+      number,
+      number,
+      number,
+    ];
+
+    const pos1 = line1.position as Vector3;
+    const pos2 = line2.position as Vector3;
+
+    const minX = Math.min(pos1.x + minX1, pos2.x + minX2);
+    const maxX = Math.max(pos1.x + maxX1, pos2.x + maxX2);
+    const minY = Math.min(pos1.y + minY1, pos2.y + minY2);
+    const maxY = Math.max(pos1.y + maxY1, pos2.y + maxY2);
+
+    setLogoBounds({
+      width: Math.max(0.01, maxX - minX),
+      height: Math.max(0.01, maxY - minY),
+      centerX: (minX + maxX) / 2,
+      centerY: (minY + maxY) / 2,
+    });
+  }, []);
 
   return (
     <>
@@ -148,12 +200,13 @@ export function SpeakerTextOverlay({
         <group>
           {/* Selection outline for logo */}
           {selectedElements.includes("logo") && (
-            <mesh position={[0.3, -config.logo.fontSize * 0.5, -0.01]}>
-              <planeGeometry args={[0.8, config.logo.fontSize * 2.5]} />
+            <mesh position={[logoBounds.centerX, logoBounds.centerY, -0.01]}>
+              <planeGeometry args={[logoBounds.width + 0.04, logoBounds.height + 0.04]} />
               <meshBasicMaterial color="#ab7030" transparent opacity={0.3} />
             </mesh>
           )}
           <Text
+            ref={logoLine1Ref}
             fontSize={config.logo.fontSize}
             color={globalColor || config.logo.color}
             anchorX="left"
@@ -161,10 +214,12 @@ export function SpeakerTextOverlay({
             font={FONT_KODE_MONO_BOLD}
             letterSpacing={config.logo.letterSpacing}
             position={[0, config.logo.fontSize * 0.6, 0]}
+            onSync={computeLogoBounds}
           >
             {config.logo.textLine1}
           </Text>
           <Text
+            ref={logoLine2Ref}
             fontSize={config.logo.fontSize}
             color={globalColor || config.logo.color}
             anchorX="left"
@@ -172,6 +227,7 @@ export function SpeakerTextOverlay({
             font={FONT_KODE_MONO_BOLD}
             letterSpacing={config.logo.letterSpacing}
             position={[0, -config.logo.fontSize * 0.6, 0]}
+            onSync={computeLogoBounds}
           >
             {config.logo.textLine2}
           </Text>

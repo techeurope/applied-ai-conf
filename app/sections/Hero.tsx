@@ -2,6 +2,7 @@ import { CONFERENCE_INFO } from "@/data/conference";
 import { NAVIGATION_ACTIONS, LUMA_EVENT_ID } from "@/data/navigation";
 import { LidarScapeBackground } from "@/components/ui/lidar-scape-background";
 import { InlineNewsletterForm } from "@/components/ui/newsletter-form";
+import { CompanyLogoMarquee } from "@/components/ui/company-logo-marquee";
 import { Ticket, Handshake } from "lucide-react";
 
 export default function Hero() {
@@ -96,6 +97,9 @@ export default function Hero() {
             </div>
           </div>
         </div>
+
+        {/* 4. Speaker Company Logos */}
+        <CompanyLogoMarquee />
       </div>
     </section>
   );
