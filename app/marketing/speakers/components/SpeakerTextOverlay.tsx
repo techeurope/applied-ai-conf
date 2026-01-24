@@ -54,17 +54,20 @@ function CompanyLogoMesh({
 
 interface SpeakerTextOverlayProps {
   name: string;
+  title: string;
   company: string;
   config: AssetConfig;
 }
 
 export function SpeakerTextOverlay({
   name,
+  title,
   company,
   config,
 }: SpeakerTextOverlayProps) {
   const { updatePosition, selectedElements, setElementCenterOffset } = useSpeakerAssetStore();
   const speakerNameRef = useRef<any>(null);
+  const speakerTitleRef = useRef<any>(null);
   const techEuropeRef = useRef<any>(null);
   const dateLocationRef = useRef<any>(null);
   const logoLine1Ref = useRef<any>(null);
@@ -78,6 +81,12 @@ export function SpeakerTextOverlay({
   const [techEuropeBounds, setTechEuropeBounds] = useState({
     width: 0.6,
     height: config.techEurope.fontSize,
+    centerX: 0.3,
+    centerY: 0,
+  });
+  const [speakerTitleBounds, setSpeakerTitleBounds] = useState({
+    width: 0.6,
+    height: config.speakerTitle.fontSize,
     centerX: 0.3,
     centerY: 0,
   });
@@ -103,11 +112,12 @@ export function SpeakerTextOverlay({
   const globalColor = config.globalTextColor;
 
   const logoConfig = COMPANY_LOGOS[company.toLowerCase()];
-  const logoWidth = config.companyLogo.scale * (logoConfig?.aspectRatio ?? 1);
+  const cardLogoWidth =
+    config.speakerMetaCard.logoScale * (logoConfig?.aspectRatio ?? 1);
 
   useEffect(() => {
-    setElementCenterOffset("companyLogo", { x: logoWidth / 2, y: 0 });
-  }, [logoWidth, setElementCenterOffset]);
+    setElementCenterOffset("speakerMetaCard", { x: 0, y: 0 });
+  }, [setElementCenterOffset]);
 
   const computeSingleLineBounds = useCallback(
     (
@@ -120,7 +130,7 @@ export function SpeakerTextOverlay({
           centerY: number;
         }>
       >,
-      elementType: "speakerName" | "techEurope" | "dateLocation"
+      elementType: "speakerName" | "speakerTitle" | "techEurope" | "dateLocation"
     ) => {
       const line = ref.current;
       if (!line) return;
@@ -221,32 +231,154 @@ export function SpeakerTextOverlay({
         </group>
       </SelectableElement>
 
-      {/* Company Logo (image) */}
-      <SelectableElement
-        elementType="companyLogo"
-        position={config.companyLogo.position}
-        onPositionChange={(pos) => updatePosition("companyLogo", pos)}
-      >
-        <group>
-          {/* Selection outline */}
-          {selectedElements.includes("companyLogo") && (
-            <mesh position={[logoWidth / 2, 0, -0.01]}>
-              <planeGeometry args={[logoWidth + 0.05, config.companyLogo.scale + 0.03]} />
-              <meshBasicMaterial color="#ab7030" transparent opacity={0.3} />
-            </mesh>
-          )}
-          {/* Offset to align left edge */}
-          <group position={[logoWidth / 2, 0, 0]}>
-            <Suspense fallback={null}>
-              <CompanyLogoMesh
-                company={company}
-                scale={config.companyLogo.scale}
-                opacity={config.companyLogo.opacity}
-              />
-            </Suspense>
+      {/* Speaker meta card (role + company) */}
+      {config.speakerMetaCard.enabled ? (
+        <SelectableElement
+          elementType="speakerMetaCard"
+          position={config.speakerMetaCard.position}
+          onPositionChange={(pos) => updatePosition("speakerMetaCard", pos)}
+        >
+          <group>
+            {selectedElements.includes("speakerMetaCard") && (
+              <mesh position={[0, 0, -0.01]}>
+                <planeGeometry
+                  args={[
+                    config.speakerMetaCard.width + 0.06,
+                    config.speakerMetaCard.height + 0.06,
+                  ]}
+                />
+                <meshBasicMaterial color="#ab7030" transparent opacity={0.2} />
+              </mesh>
+            )}
+
+            {/* Labels and values */}
+            {(() => {
+              const paddingX = 0.18;
+              const paddingY = 0.12;
+              const gap = 0.28;
+              const labelValueGap = 0.07;
+              const columnWidth =
+                (config.speakerMetaCard.width - paddingX * 2 - gap) / 2;
+              const leftX = -config.speakerMetaCard.width / 2 + paddingX;
+              const rightX = leftX + columnWidth + gap;
+              const labelY =
+                config.speakerMetaCard.height / 2 -
+                paddingY -
+                config.speakerMetaCard.labelSize * 0.5;
+              const valueY =
+                labelY -
+                labelValueGap -
+                config.speakerMetaCard.labelSize * 0.8 -
+                config.speakerMetaCard.valueSize * 0.4;
+
+              return (
+                <>
+                  {/* Column divider */}
+                  <mesh position={[0, 0, 0.01]}>
+                    <planeGeometry
+                      args={[
+                        0.008,
+                        config.speakerMetaCard.height - paddingY * 2,
+                      ]}
+                    />
+                    <meshBasicMaterial
+                      color={config.speakerMetaCard.borderColor}
+                      transparent
+                      opacity={config.speakerMetaCard.borderOpacity * 0.6}
+                    />
+                  </mesh>
+
+                  {/* Role label */}
+                  <Text
+                    fontSize={config.speakerMetaCard.labelSize}
+                    color={globalColor || config.speakerMetaCard.labelColor}
+                    anchorX="left"
+                    anchorY="middle"
+                    font={FONT_KODE_MONO_REGULAR}
+                    letterSpacing={config.speakerMetaCard.labelTracking}
+                    position={[leftX, labelY, 0.01]}
+                  >
+                    ROLE
+                  </Text>
+                  {/* Role value */}
+                  <Text
+                    ref={speakerTitleRef}
+                    fontSize={config.speakerMetaCard.valueSize}
+                    color={globalColor || config.speakerMetaCard.valueColor}
+                    anchorX="left"
+                    anchorY="middle"
+                    font={FONT_KODE_MONO_REGULAR}
+                    letterSpacing={config.speakerMetaCard.valueTracking}
+                    position={[leftX, valueY, 0.01]}
+                    onSync={() =>
+                      computeSingleLineBounds(speakerTitleRef, setSpeakerTitleBounds, "speakerTitle")
+                    }
+                  >
+                    {title}
+                  </Text>
+
+                  {/* Company label */}
+                  <Text
+                    fontSize={config.speakerMetaCard.labelSize}
+                    color={globalColor || config.speakerMetaCard.labelColor}
+                    anchorX="left"
+                    anchorY="middle"
+                    font={FONT_KODE_MONO_REGULAR}
+                    letterSpacing={config.speakerMetaCard.labelTracking}
+                    position={[rightX, labelY, 0.01]}
+                  >
+                    COMPANY
+                  </Text>
+
+                  {/* Company logo */}
+                  <group position={[rightX + cardLogoWidth / 2, valueY - 0.01, 0.01]}>
+                    <Suspense fallback={null}>
+                      <CompanyLogoMesh
+                        company={company}
+                        scale={config.speakerMetaCard.logoScale}
+                        opacity={config.speakerMetaCard.logoOpacity}
+                      />
+                    </Suspense>
+                  </group>
+                </>
+              );
+            })()}
           </group>
-        </group>
-      </SelectableElement>
+        </SelectableElement>
+      ) : null}
+
+      {(!config.speakerMetaCard.enabled || selectedElements.includes("speakerTitle")) && (
+        <SelectableElement
+          elementType="speakerTitle"
+          position={config.speakerTitle.position}
+          onPositionChange={(pos) => updatePosition("speakerTitle", pos)}
+        >
+          <group>
+            {selectedElements.includes("speakerTitle") && (
+              <mesh position={[speakerTitleBounds.centerX, speakerTitleBounds.centerY, -0.01]}>
+                <planeGeometry
+                  args={[speakerTitleBounds.width + 0.04, speakerTitleBounds.height + 0.04]}
+                />
+                <meshBasicMaterial color="#ab7030" transparent opacity={0.3} />
+              </mesh>
+            )}
+            <Text
+              ref={speakerTitleRef}
+              fontSize={config.speakerTitle.fontSize}
+              color={globalColor || config.speakerTitle.color}
+              anchorX="left"
+              anchorY="middle"
+              font={FONT_KODE_MONO_REGULAR}
+              letterSpacing={config.speakerTitle.letterSpacing}
+              onSync={() =>
+                computeSingleLineBounds(speakerTitleRef, setSpeakerTitleBounds, "speakerTitle")
+              }
+            >
+              {`${title} @`}
+            </Text>
+          </group>
+        </SelectableElement>
+      )}
 
       {/* {Tech: Europe} text above logo */}
       <SelectableElement

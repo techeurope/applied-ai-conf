@@ -98,6 +98,7 @@ export function SpeakerAssetScene({
       {/* Text content */}
       <SpeakerTextOverlay
         name={speaker.name}
+        title={speaker.title}
         company={speaker.company}
         config={config}
       />

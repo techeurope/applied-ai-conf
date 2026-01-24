@@ -3,6 +3,7 @@
 import {
   ChevronDown,
   Download,
+  Copy,
   Maximize2,
   Minimize2,
   RotateCcw,
@@ -131,10 +132,15 @@ const ELEMENT_INFO: Record<
     icon: Type,
     description: "Large speaker name text",
   },
-  companyLogo: {
-    label: "Company Logo",
-    icon: Image,
-    description: "Company logo image",
+  speakerTitle: {
+    label: "Speaker Title",
+    icon: Type,
+    description: "Role line (e.g. \"CTO @\")",
+  },
+  speakerMetaCard: {
+    label: "Speaker Meta Card",
+    icon: Type,
+    description: "Role + company card",
   },
   techEurope: {
     label: "{Tech: Europe}",
@@ -329,36 +335,180 @@ function ElementControls({
           </>
         )}
 
-        {selectedElement === "companyLogo" && (
+        {selectedElement === "speakerTitle" && (
           <>
             <SliderControl
-              label="Scale"
-              value={config.companyLogo.scale}
-              onChange={(v) => updateConfig("companyLogo", { scale: v })}
+              label="Font Size"
+              value={config.speakerTitle.fontSize}
+              onChange={(v) => updateConfig("speakerTitle", { fontSize: v })}
               min={0.05}
-              max={0.4}
+              max={0.2}
+              step={0.01}
+            />
+            <ColorControl
+              label="Color"
+              value={config.speakerTitle.color}
+              onChange={(v) => updateConfig("speakerTitle", { color: v })}
+            />
+            <SliderControl
+              label="Letter Spacing"
+              value={config.speakerTitle.letterSpacing}
+              onChange={(v) => updateConfig("speakerTitle", { letterSpacing: v })}
+              min={-0.1}
+              max={0.2}
               step={0.01}
             />
             <SliderControl
-              label="Opacity"
-              value={config.companyLogo.opacity}
-              onChange={(v) => updateConfig("companyLogo", { opacity: v })}
-              min={0.1}
-              max={1}
-              step={0.05}
-            />
-            <SliderControl
               label="Position X"
-              value={config.companyLogo.position.x}
-              onChange={(v) => updatePosition("companyLogo", { x: v })}
+              value={config.speakerTitle.position.x}
+              onChange={(v) => updatePosition("speakerTitle", { x: v })}
               min={-2}
               max={2}
               step={0.05}
             />
             <SliderControl
               label="Position Y"
-              value={config.companyLogo.position.y}
-              onChange={(v) => updatePosition("companyLogo", { y: v })}
+              value={config.speakerTitle.position.y}
+              onChange={(v) => updatePosition("speakerTitle", { y: v })}
+              min={-2}
+              max={2}
+              step={0.05}
+            />
+          </>
+        )}
+
+        {selectedElement === "speakerMetaCard" && (
+          <>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-400">Card Enabled</span>
+              <button
+                onClick={() =>
+                  updateConfig("speakerMetaCard", {
+                    enabled: !config.speakerMetaCard.enabled,
+                  })
+                }
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-mono transition-all ${
+                  config.speakerMetaCard.enabled
+                    ? "bg-amber-600 text-white border-amber-600"
+                    : "bg-transparent text-white border-white/20 hover:border-white/40"
+                }`}
+              >
+                {config.speakerMetaCard.enabled ? "Enabled" : "Disabled"}
+              </button>
+            </div>
+
+            <SliderControl
+              label="Width"
+              value={config.speakerMetaCard.width}
+              onChange={(v) => updateConfig("speakerMetaCard", { width: v })}
+              min={0.8}
+              max={2.4}
+              step={0.05}
+            />
+            <SliderControl
+              label="Height"
+              value={config.speakerMetaCard.height}
+              onChange={(v) => updateConfig("speakerMetaCard", { height: v })}
+              min={0.3}
+              max={1.2}
+              step={0.05}
+            />
+            <ColorControl
+              label="Background"
+              value={config.speakerMetaCard.backgroundColor}
+              onChange={(v) => updateConfig("speakerMetaCard", { backgroundColor: v })}
+            />
+            <SliderControl
+              label="Background Opacity"
+              value={config.speakerMetaCard.backgroundOpacity}
+              onChange={(v) => updateConfig("speakerMetaCard", { backgroundOpacity: v })}
+              min={0}
+              max={1}
+              step={0.05}
+            />
+            <ColorControl
+              label="Border Color"
+              value={config.speakerMetaCard.borderColor}
+              onChange={(v) => updateConfig("speakerMetaCard", { borderColor: v })}
+            />
+            <SliderControl
+              label="Border Opacity"
+              value={config.speakerMetaCard.borderOpacity}
+              onChange={(v) => updateConfig("speakerMetaCard", { borderOpacity: v })}
+              min={0}
+              max={1}
+              step={0.05}
+            />
+            <ColorControl
+              label="Label Color"
+              value={config.speakerMetaCard.labelColor}
+              onChange={(v) => updateConfig("speakerMetaCard", { labelColor: v })}
+            />
+            <SliderControl
+              label="Label Size"
+              value={config.speakerMetaCard.labelSize}
+              onChange={(v) => updateConfig("speakerMetaCard", { labelSize: v })}
+              min={0.04}
+              max={0.12}
+              step={0.005}
+            />
+            <SliderControl
+              label="Label Tracking"
+              value={config.speakerMetaCard.labelTracking}
+              onChange={(v) => updateConfig("speakerMetaCard", { labelTracking: v })}
+              min={0}
+              max={0.2}
+              step={0.01}
+            />
+            <ColorControl
+              label="Value Color"
+              value={config.speakerMetaCard.valueColor}
+              onChange={(v) => updateConfig("speakerMetaCard", { valueColor: v })}
+            />
+            <SliderControl
+              label="Value Size"
+              value={config.speakerMetaCard.valueSize}
+              onChange={(v) => updateConfig("speakerMetaCard", { valueSize: v })}
+              min={0.06}
+              max={0.2}
+              step={0.01}
+            />
+            <SliderControl
+              label="Value Tracking"
+              value={config.speakerMetaCard.valueTracking}
+              onChange={(v) => updateConfig("speakerMetaCard", { valueTracking: v })}
+              min={-0.05}
+              max={0.2}
+              step={0.01}
+            />
+            <SliderControl
+              label="Logo Scale"
+              value={config.speakerMetaCard.logoScale}
+              onChange={(v) => updateConfig("speakerMetaCard", { logoScale: v })}
+              min={0.08}
+              max={0.3}
+              step={0.01}
+            />
+            <SliderControl
+              label="Logo Opacity"
+              value={config.speakerMetaCard.logoOpacity}
+              onChange={(v) => updateConfig("speakerMetaCard", { logoOpacity: v })}
+              min={0.2}
+              max={1}
+              step={0.05}
+            />
+            <SliderControl
+              label="Position X"
+              value={config.speakerMetaCard.position.x}
+              onChange={(v) => updatePosition("speakerMetaCard", { x: v })}
+              min={-2}
+              max={2}
+              step={0.05}
+            />
+            <SliderControl
+              label="Position Y"
+              value={config.speakerMetaCard.position.y}
+              onChange={(v) => updatePosition("speakerMetaCard", { y: v })}
               min={-2}
               max={2}
               step={0.05}
@@ -744,17 +894,13 @@ export function ControlPanel({
         <button
           onClick={() => {
             const json = JSON.stringify({ config }, null, 2);
-            const blob = new Blob([json], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.download = "speaker-asset-config.json";
-            link.href = url;
-            link.click();
-            URL.revokeObjectURL(url);
+            navigator.clipboard.writeText(json);
           }}
+          title="Copy config JSON to clipboard"
+          aria-label="Copy config JSON to clipboard"
           className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-mono py-2 px-4 rounded-lg transition-all border border-white/20"
         >
-          <Download className="w-4 h-4" />
+          <Copy className="w-4 h-4" />
           JSON
         </button>
       </div>

@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 
 export type PreviewMode = "fixed" | "auto";
 
@@ -7,6 +6,8 @@ export type PreviewMode = "fixed" | "auto";
 export type ElementType =
   | "image"
   | "speakerName"
+  | "speakerTitle"
+  | "speakerMetaCard"
   | "companyLogo"
   | "techEurope"
   | "logo"
@@ -41,6 +42,25 @@ export interface LogoImageStyle {
   position: Position;
 }
 
+export interface MetaCardStyle {
+  enabled: boolean;
+  width: number;
+  height: number;
+  position: Position;
+  backgroundColor: string;
+  backgroundOpacity: number;
+  borderColor: string;
+  borderOpacity: number;
+  labelColor: string;
+  labelSize: number;
+  labelTracking: number;
+  valueColor: string;
+  valueSize: number;
+  valueTracking: number;
+  logoScale: number;
+  logoOpacity: number;
+}
+
 export interface BackgroundStyle {
   enabled: boolean; // Whether to show the lidar grid background
   solidColor: string; // Solid background color when grid is disabled
@@ -55,6 +75,10 @@ export interface AssetConfig {
   image: ImageStyle;
   // Speaker name (large, prominent)
   speakerName: TextStyle;
+  // Speaker title (e.g. "CTO @") next to company logo
+  speakerTitle: TextStyle;
+  // Speaker meta card (role + company)
+  speakerMetaCard: MetaCardStyle;
   // Company logo (image)
   companyLogo: LogoImageStyle;
   // {Tech: Europe} text above logo
@@ -88,6 +112,30 @@ export const DEFAULT_ASSET_CONFIG: AssetConfig = {
     color: "#ffffff",
     letterSpacing: -0.01,
     position: { x: -1.6710664042674415, y: 1.2497467645068157 },
+  },
+  speakerTitle: {
+    fontSize: 0.1,
+    color: "#ffffff",
+    letterSpacing: 0.02,
+    position: { x: -1.95, y: 0.65 },
+  },
+  speakerMetaCard: {
+    enabled: true,
+    width: 1.7,
+    height: 0.55,
+    position: { x: -1.35, y: 0.55 },
+    backgroundColor: "#0a0d18",
+    backgroundOpacity: 0.6,
+    borderColor: "#ffffff",
+    borderOpacity: 0.12,
+    labelColor: "#6b7280",
+    labelSize: 0.07,
+    labelTracking: 0.08,
+    valueColor: "#ffffff",
+    valueSize: 0.1,
+    valueTracking: 0.02,
+    logoScale: 0.16,
+    logoOpacity: 0.9,
   },
   companyLogo: {
     scale: 0.4,
@@ -184,9 +232,7 @@ function migrateConfig(storedConfig: Partial<AssetConfig>): AssetConfig {
 }
 
 export const useSpeakerAssetStore = create<SpeakerAssetStore>()(
-  // @ts-expect-error - persist middleware has complex type inference issues with partialize
-  persist(
-    (set: any) => ({
+  (set: any) => ({
       // Preview mode
       previewMode: "fixed",
       setPreviewMode: (mode: PreviewMode) => set({ previewMode: mode }),
@@ -415,26 +461,5 @@ export const useSpeakerAssetStore = create<SpeakerAssetStore>()(
       // Controls panel
       showAdvanced: false,
       setShowAdvanced: (show: boolean) => set({ showAdvanced: show }),
-    }),
-    {
-      name: "speaker-asset-preferences",
-      version: 11, // Version 11: fixed positions, background #000, techEurope x -1.98
-      migrate: (persistedState: any, version: number) => {
-        if (version < 11) {
-          return {
-            ...(persistedState as object),
-            selectedElement: null,
-            selectedElements: [],
-            config: DEFAULT_ASSET_CONFIG,
-          } as unknown;
-        }
-        return persistedState;
-      },
-      // Only persist the meaningful settings, not transient UI selection state.
-      partialize: (state) => ({
-        previewMode: state.previewMode,
-        config: state.config,
-      }),
-    }
-  )
+  })
 );

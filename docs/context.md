@@ -120,6 +120,8 @@ Located at `/marketing/speakers`, the speaker asset generator creates promotiona
 - **Background modes**: Toggle between lidar grid animation or solid color backgrounds
 - **Solid color picker**: Any background color when grid is disabled
 - **Global text color**: Override all text elements with a single color for consistent branding
+- **Speaker role line**: Role text (e.g. "CTO @") placed next to the company logo
+- **Speaker meta card**: Role + company badge with labels, border, and logo
 - **Transparent images**: Automatically uses `imageTransparent` speaker images for clean compositing
 - **Export**: High-res PNG exports at 1K/2K/4K resolutions
 
