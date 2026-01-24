@@ -75,28 +75,30 @@ export function SpeakerTextOverlay({
   const dateLocationRef = useRef<any>(null);
   const logoLine1Ref = useRef<any>(null);
   const logoLine2Ref = useRef<any>(null);
+  // Estimate initial bounds based on font size and typical text lengths
+  // These will be updated by onSync when text actually renders
   const [speakerNameBounds, setSpeakerNameBounds] = useState({
-    width: 1,
+    width: config.speakerName.fontSize * 12, // Estimate ~12 chars wide
     height: config.speakerName.fontSize,
-    centerX: 0.3,
+    centerX: config.speakerName.fontSize * 6, // Center offset = width/2
     centerY: 0,
   });
   const [techEuropeBounds, setTechEuropeBounds] = useState({
-    width: 0.6,
+    width: config.techEurope.fontSize * 10,
     height: config.techEurope.fontSize,
-    centerX: 0.3,
+    centerX: config.techEurope.fontSize * 5,
     centerY: 0,
   });
   const [speakerTitleBounds, setSpeakerTitleBounds] = useState({
-    width: 0.6,
+    width: config.speakerTitle.fontSize * 8,
     height: config.speakerTitle.fontSize,
-    centerX: 0.3,
+    centerX: config.speakerTitle.fontSize * 4,
     centerY: 0,
   });
   const [dateLocationBounds, setDateLocationBounds] = useState({
-    width: 0.9,
+    width: config.dateLocation.fontSize * 14,
     height: config.dateLocation.fontSize,
-    centerX: 0.3,
+    centerX: config.dateLocation.fontSize * 7,
     centerY: 0,
   });
   const [logoBounds, setLogoBounds] = useState<{
@@ -105,10 +107,10 @@ export function SpeakerTextOverlay({
     centerX: number;
     centerY: number;
   }>({
-    width: 0.8,
+    width: config.logo.fontSize * 6,
     height: config.logo.fontSize * 2.5,
-    centerX: 0.3,
-    centerY: -config.logo.fontSize * 0.5,
+    centerX: config.logo.fontSize * 3,
+    centerY: 0, // The two lines are symmetrical around y=0
   });
 
   // Global text color override
@@ -120,9 +122,34 @@ export function SpeakerTextOverlay({
   const metaPaddingLeft = 0.12;
   const metaPaddingRight = 0.12;
 
+  // Compute the visual center of the meta card content
+  const metaCardContentX = -config.speakerMetaCard.width / 2 + metaPaddingLeft;
+  const metaCardLogoCenterX = metaCardContentX + cardLogoWidth / 2;
+
+  // Sync offsets to store whenever bounds change
   useEffect(() => {
-    setElementCenterOffset("speakerMetaCard", { x: 0, y: 0 });
-  }, [setElementCenterOffset]);
+    setElementCenterOffset("speakerMetaCard", { x: metaCardLogoCenterX, y: 0 });
+  }, [setElementCenterOffset, metaCardLogoCenterX]);
+
+  useEffect(() => {
+    setElementCenterOffset("speakerName", { x: speakerNameBounds.centerX, y: speakerNameBounds.centerY });
+  }, [setElementCenterOffset, speakerNameBounds.centerX, speakerNameBounds.centerY]);
+
+  useEffect(() => {
+    setElementCenterOffset("techEurope", { x: techEuropeBounds.centerX, y: techEuropeBounds.centerY });
+  }, [setElementCenterOffset, techEuropeBounds.centerX, techEuropeBounds.centerY]);
+
+  useEffect(() => {
+    setElementCenterOffset("speakerTitle", { x: speakerTitleBounds.centerX, y: speakerTitleBounds.centerY });
+  }, [setElementCenterOffset, speakerTitleBounds.centerX, speakerTitleBounds.centerY]);
+
+  useEffect(() => {
+    setElementCenterOffset("dateLocation", { x: dateLocationBounds.centerX, y: dateLocationBounds.centerY });
+  }, [setElementCenterOffset, dateLocationBounds.centerX, dateLocationBounds.centerY]);
+
+  useEffect(() => {
+    setElementCenterOffset("logo", { x: logoBounds.centerX, y: logoBounds.centerY });
+  }, [setElementCenterOffset, logoBounds.centerX, logoBounds.centerY]);
 
   const computeSingleLineBounds = useCallback(
     (
@@ -134,8 +161,7 @@ export function SpeakerTextOverlay({
           centerX: number;
           centerY: number;
         }>
-      >,
-      elementType: "speakerName" | "speakerTitle" | "techEurope" | "dateLocation"
+      >
     ) => {
       const line = ref.current;
       if (!line) return;
@@ -147,20 +173,21 @@ export function SpeakerTextOverlay({
         number,
         number,
       ];
-      const pos = line.position as Vector3;
       const width = Math.max(0.01, maxX - minX);
       const height = Math.max(0.01, maxY - minY);
-      const centerX = pos.x + (minX + maxX) / 2;
-      const centerY = pos.y + (minY + maxY) / 2;
+      // Center offset relative to anchor point (not including local position)
+      // For anchorX="left", anchorY="middle": center is at (width/2, 0) from anchor
+      const offsetX = (minX + maxX) / 2;
+      const offsetY = (minY + maxY) / 2;
       setBounds({
         width,
         height,
-        centerX,
-        centerY,
+        centerX: offsetX,
+        centerY: offsetY,
       });
-      setElementCenterOffset(elementType, { x: centerX, y: centerY });
+      // Offset syncing is handled by useEffects that watch bounds changes
     },
-    [setElementCenterOffset]
+    []
   );
 
   const computeLogoBounds = useCallback(() => {
@@ -185,24 +212,27 @@ export function SpeakerTextOverlay({
       number,
     ];
 
+    // Include local positions since logo text lines have explicit Y offsets
     const pos1 = line1.position as Vector3;
     const pos2 = line2.position as Vector3;
 
+    // Calculate combined bounds in local space (relative to the SelectableElement position)
     const minX = Math.min(pos1.x + minX1, pos2.x + minX2);
     const maxX = Math.max(pos1.x + maxX1, pos2.x + maxX2);
     const minY = Math.min(pos1.y + minY1, pos2.y + minY2);
     const maxY = Math.max(pos1.y + maxY1, pos2.y + maxY2);
 
-    const centerX = (minX + maxX) / 2;
-    const centerY = (minY + maxY) / 2;
+    // Center offset relative to the SelectableElement's position (anchor)
+    const offsetX = (minX + maxX) / 2;
+    const offsetY = (minY + maxY) / 2;
     setLogoBounds({
       width: Math.max(0.01, maxX - minX),
       height: Math.max(0.01, maxY - minY),
-      centerX,
-      centerY,
+      centerX: offsetX,
+      centerY: offsetY,
     });
-    setElementCenterOffset("logo", { x: centerX, y: centerY });
-  }, [setElementCenterOffset]);
+    // Offset syncing is handled by useEffect that watches logoBounds changes
+  }, []);
 
   return (
     <>
@@ -228,7 +258,7 @@ export function SpeakerTextOverlay({
             font={FONT_KODE_MONO_BOLD}
             letterSpacing={config.speakerName.letterSpacing}
             onSync={() =>
-              computeSingleLineBounds(speakerNameRef, setSpeakerNameBounds, "speakerName")
+              computeSingleLineBounds(speakerNameRef, setSpeakerNameBounds)
             }
           >
             {name}
@@ -347,7 +377,7 @@ export function SpeakerTextOverlay({
                     letterSpacing={config.speakerMetaCard.valueTracking}
                     position={[x, topValueY, 0.01]}
                     onSync={() =>
-                      computeSingleLineBounds(speakerTitleRef, setSpeakerTitleBounds, "speakerTitle")
+                      computeSingleLineBounds(speakerTitleRef, setSpeakerTitleBounds)
                     }
                   >
                     {title}
@@ -407,7 +437,7 @@ export function SpeakerTextOverlay({
               font={FONT_KODE_MONO_REGULAR}
               letterSpacing={config.speakerTitle.letterSpacing}
               onSync={() =>
-                computeSingleLineBounds(speakerTitleRef, setSpeakerTitleBounds, "speakerTitle")
+                computeSingleLineBounds(speakerTitleRef, setSpeakerTitleBounds)
               }
             >
               {`${title} @`}
@@ -438,7 +468,7 @@ export function SpeakerTextOverlay({
             font={FONT_KODE_MONO_REGULAR}
             letterSpacing={config.techEurope.letterSpacing}
             onSync={() =>
-              computeSingleLineBounds(techEuropeRef, setTechEuropeBounds, "techEurope")
+              computeSingleLineBounds(techEuropeRef, setTechEuropeBounds)
             }
           >
             {config.techEurope.text}
@@ -513,7 +543,7 @@ export function SpeakerTextOverlay({
             font={FONT_KODE_MONO_REGULAR}
             letterSpacing={config.dateLocation.letterSpacing}
             onSync={() =>
-              computeSingleLineBounds(dateLocationRef, setDateLocationBounds, "dateLocation")
+              computeSingleLineBounds(dateLocationRef, setDateLocationBounds)
             }
           >
             {config.dateLocation.text}

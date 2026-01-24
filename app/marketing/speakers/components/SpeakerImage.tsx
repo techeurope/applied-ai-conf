@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { useLoader } from "@react-three/fiber";
 import { TextureLoader, SRGBColorSpace } from "three";
 import { useSpeakerAssetStore } from "../store";
@@ -43,6 +43,12 @@ interface SpeakerImageProps {
 
 export function SpeakerImage({ imageUrl, config }: SpeakerImageProps) {
   const updatePosition = useSpeakerAssetStore((s: SpeakerAssetStore) => s.updatePosition);
+  const setElementCenterOffset = useSpeakerAssetStore((s: SpeakerAssetStore) => s.setElementCenterOffset);
+
+  // Image is centered at its position (plane geometry is centered by default)
+  useEffect(() => {
+    setElementCenterOffset("image", { x: 0, y: 0 });
+  }, [setElementCenterOffset]);
 
   return (
     <SelectableElement
