@@ -101,7 +101,7 @@ body {
 
 .logo-marquee {
   width: max-content;
-  animation: logo-marquee 28s linear infinite;
+  animation: logo-marquee 70s linear infinite;
   will-change: transform;
 }
 
