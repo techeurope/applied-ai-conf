@@ -64,7 +64,7 @@ export function CompanyLogoMarquee() {
       <p className="text-[0.6rem] sm:text-[0.65rem] font-mono uppercase tracking-[0.25em] text-white/60">
         with speakers from
       </p>
-      <div className="relative mt-3 overflow-hidden">
+      <div className="relative mt-3 overflow-hidden group">
         <div className="pointer-events-none absolute inset-0 z-10">
           <div className="absolute left-0 top-0 h-full w-12 sm:w-16 bg-linear-to-r from-black via-black/60 to-transparent" />
           <div className="absolute right-0 top-0 h-full w-12 sm:w-16 bg-linear-to-l from-black via-black/60 to-transparent" />

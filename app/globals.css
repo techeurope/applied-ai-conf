@@ -105,6 +105,10 @@ body {
   will-change: transform;
 }
 
+.group:hover .logo-marquee {
+  animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .logo-marquee {
     animation: none;
