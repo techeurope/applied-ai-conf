@@ -276,8 +276,7 @@ function migrateConfig(storedConfig: Partial<AssetConfig>): AssetConfig {
   return DEFAULT_ASSET_CONFIG;
 }
 
-export const useSpeakerAssetStore = create<SpeakerAssetStore>()(
-  (set: any) => ({
+const storeCreator = (set: (partial: Partial<SpeakerAssetStore> | ((state: SpeakerAssetStore) => Partial<SpeakerAssetStore>)) => void): SpeakerAssetStore => ({
       // Preview mode
       previewMode: "fixed",
       setPreviewMode: (mode: PreviewMode) => set({ previewMode: mode }),
@@ -506,5 +505,6 @@ export const useSpeakerAssetStore = create<SpeakerAssetStore>()(
       // Controls panel
       showAdvanced: false,
       setShowAdvanced: (show: boolean) => set({ showAdvanced: show }),
-  })
-);
+});
+
+export const useSpeakerAssetStore = create<SpeakerAssetStore>()(storeCreator);

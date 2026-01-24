@@ -378,7 +378,7 @@ export function SpeakerTextOverlay({
                   </Text>
                   {/* Role value */}
                   <Text
-                    ref={speakerTitleRef}
+                    ref={speakerRoleRef}
                     fontSize={config.speakerMetaCard.valueSize}
                     color={globalColor || config.speakerMetaCard.valueColor}
                     anchorX="left"
@@ -387,7 +387,7 @@ export function SpeakerTextOverlay({
                     letterSpacing={config.speakerMetaCard.valueTracking}
                     position={[x, topValueY, 0.01]}
                     onSync={() =>
-                      computeSingleLineBounds(speakerTitleRef, setSpeakerTitleBounds)
+                      computeSingleLineBounds(speakerRoleRef, setSpeakerRoleBounds)
                     }
                   >
                     {title}
