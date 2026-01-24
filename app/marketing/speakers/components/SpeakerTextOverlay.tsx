@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Text, useTexture } from "@react-three/drei";
 import type { Vector3 } from "three";
 import type { AssetConfig } from "../store";
@@ -63,9 +63,30 @@ export function SpeakerTextOverlay({
   company,
   config,
 }: SpeakerTextOverlayProps) {
-  const { updatePosition, selectedElements } = useSpeakerAssetStore();
+  const { updatePosition, selectedElements, setElementCenterOffset } = useSpeakerAssetStore();
+  const speakerNameRef = useRef<any>(null);
+  const techEuropeRef = useRef<any>(null);
+  const dateLocationRef = useRef<any>(null);
   const logoLine1Ref = useRef<any>(null);
   const logoLine2Ref = useRef<any>(null);
+  const [speakerNameBounds, setSpeakerNameBounds] = useState({
+    width: 1,
+    height: config.speakerName.fontSize,
+    centerX: 0.3,
+    centerY: 0,
+  });
+  const [techEuropeBounds, setTechEuropeBounds] = useState({
+    width: 0.6,
+    height: config.techEurope.fontSize,
+    centerX: 0.3,
+    centerY: 0,
+  });
+  const [dateLocationBounds, setDateLocationBounds] = useState({
+    width: 0.9,
+    height: config.dateLocation.fontSize,
+    centerX: 0.3,
+    centerY: 0,
+  });
   const [logoBounds, setLogoBounds] = useState<{
     width: number;
     height: number;
@@ -83,6 +104,49 @@ export function SpeakerTextOverlay({
 
   const logoConfig = COMPANY_LOGOS[company.toLowerCase()];
   const logoWidth = config.companyLogo.scale * (logoConfig?.aspectRatio ?? 1);
+
+  useEffect(() => {
+    setElementCenterOffset("companyLogo", { x: logoWidth / 2, y: 0 });
+  }, [logoWidth, setElementCenterOffset]);
+
+  const computeSingleLineBounds = useCallback(
+    (
+      ref: React.MutableRefObject<any>,
+      setBounds: React.Dispatch<
+        React.SetStateAction<{
+          width: number;
+          height: number;
+          centerX: number;
+          centerY: number;
+        }>
+      >,
+      elementType: "speakerName" | "techEurope" | "dateLocation"
+    ) => {
+      const line = ref.current;
+      if (!line) return;
+      const info = line.textRenderInfo;
+      if (!info?.blockBounds) return;
+      const [minX, minY, maxX, maxY] = info.blockBounds as [
+        number,
+        number,
+        number,
+        number,
+      ];
+      const pos = line.position as Vector3;
+      const width = Math.max(0.01, maxX - minX);
+      const height = Math.max(0.01, maxY - minY);
+      const centerX = pos.x + (minX + maxX) / 2;
+      const centerY = pos.y + (minY + maxY) / 2;
+      setBounds({
+        width,
+        height,
+        centerX,
+        centerY,
+      });
+      setElementCenterOffset(elementType, { x: centerX, y: centerY });
+    },
+    [setElementCenterOffset]
+  );
 
   const computeLogoBounds = useCallback(() => {
     const line1 = logoLine1Ref.current;
@@ -114,13 +178,16 @@ export function SpeakerTextOverlay({
     const minY = Math.min(pos1.y + minY1, pos2.y + minY2);
     const maxY = Math.max(pos1.y + maxY1, pos2.y + maxY2);
 
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
     setLogoBounds({
       width: Math.max(0.01, maxX - minX),
       height: Math.max(0.01, maxY - minY),
-      centerX: (minX + maxX) / 2,
-      centerY: (minY + maxY) / 2,
+      centerX,
+      centerY,
     });
-  }, []);
+    setElementCenterOffset("logo", { x: centerX, y: centerY });
+  }, [setElementCenterOffset]);
 
   return (
     <>
@@ -130,18 +197,28 @@ export function SpeakerTextOverlay({
         position={config.speakerName.position}
         onPositionChange={(pos) => updatePosition("speakerName", pos)}
       >
-        <Text
-          fontSize={config.speakerName.fontSize}
-          color={globalColor || config.speakerName.color}
-          anchorX="left"
-          anchorY="middle"
-          font={FONT_KODE_MONO_BOLD}
-          letterSpacing={config.speakerName.letterSpacing}
-          outlineWidth={selectedElements.includes("speakerName") ? 0.005 : 0}
-          outlineColor="#ab7030"
-        >
-          {name}
-        </Text>
+        <group>
+          {selectedElements.includes("speakerName") && (
+            <mesh position={[speakerNameBounds.centerX, speakerNameBounds.centerY, -0.01]}>
+              <planeGeometry args={[speakerNameBounds.width + 0.04, speakerNameBounds.height + 0.04]} />
+              <meshBasicMaterial color="#ab7030" transparent opacity={0.3} />
+            </mesh>
+          )}
+          <Text
+            ref={speakerNameRef}
+            fontSize={config.speakerName.fontSize}
+            color={globalColor || config.speakerName.color}
+            anchorX="left"
+            anchorY="middle"
+            font={FONT_KODE_MONO_BOLD}
+            letterSpacing={config.speakerName.letterSpacing}
+            onSync={() =>
+              computeSingleLineBounds(speakerNameRef, setSpeakerNameBounds, "speakerName")
+            }
+          >
+            {name}
+          </Text>
+        </group>
       </SelectableElement>
 
       {/* Company Logo (image) */}
@@ -177,18 +254,28 @@ export function SpeakerTextOverlay({
         position={config.techEurope.position}
         onPositionChange={(pos) => updatePosition("techEurope", pos)}
       >
-        <Text
-          fontSize={config.techEurope.fontSize}
-          color={globalColor || config.techEurope.color}
-          anchorX="left"
-          anchorY="middle"
-          font={FONT_KODE_MONO_REGULAR}
-          letterSpacing={config.techEurope.letterSpacing}
-          outlineWidth={selectedElements.includes("techEurope") ? 0.002 : 0}
-          outlineColor="#ab7030"
-        >
-          {config.techEurope.text}
-        </Text>
+        <group>
+          {selectedElements.includes("techEurope") && (
+            <mesh position={[techEuropeBounds.centerX, techEuropeBounds.centerY, -0.01]}>
+              <planeGeometry args={[techEuropeBounds.width + 0.04, techEuropeBounds.height + 0.04]} />
+              <meshBasicMaterial color="#ab7030" transparent opacity={0.3} />
+            </mesh>
+          )}
+          <Text
+            ref={techEuropeRef}
+            fontSize={config.techEurope.fontSize}
+            color={globalColor || config.techEurope.color}
+            anchorX="left"
+            anchorY="middle"
+            font={FONT_KODE_MONO_REGULAR}
+            letterSpacing={config.techEurope.letterSpacing}
+            onSync={() =>
+              computeSingleLineBounds(techEuropeRef, setTechEuropeBounds, "techEurope")
+            }
+          >
+            {config.techEurope.text}
+          </Text>
+        </group>
       </SelectableElement>
 
       {/* Conference Logo - text-based "APPLIED" / "AI CONF" */}
@@ -240,18 +327,30 @@ export function SpeakerTextOverlay({
         position={config.dateLocation.position}
         onPositionChange={(pos) => updatePosition("dateLocation", pos)}
       >
-        <Text
-          fontSize={config.dateLocation.fontSize}
-          color={globalColor || config.dateLocation.color}
-          anchorX="left"
-          anchorY="middle"
-          font={FONT_KODE_MONO_REGULAR}
-          letterSpacing={config.dateLocation.letterSpacing}
-          outlineWidth={selectedElements.includes("dateLocation") ? 0.002 : 0}
-          outlineColor="#ab7030"
-        >
-          {config.dateLocation.text}
-        </Text>
+        <group>
+          {selectedElements.includes("dateLocation") && (
+            <mesh position={[dateLocationBounds.centerX, dateLocationBounds.centerY, -0.01]}>
+              <planeGeometry
+                args={[dateLocationBounds.width + 0.04, dateLocationBounds.height + 0.04]}
+              />
+              <meshBasicMaterial color="#ab7030" transparent opacity={0.3} />
+            </mesh>
+          )}
+          <Text
+            ref={dateLocationRef}
+            fontSize={config.dateLocation.fontSize}
+            color={globalColor || config.dateLocation.color}
+            anchorX="left"
+            anchorY="middle"
+            font={FONT_KODE_MONO_REGULAR}
+            letterSpacing={config.dateLocation.letterSpacing}
+            onSync={() =>
+              computeSingleLineBounds(dateLocationRef, setDateLocationBounds, "dateLocation")
+            }
+          >
+            {config.dateLocation.text}
+          </Text>
+        </group>
       </SelectableElement>
     </>
   );

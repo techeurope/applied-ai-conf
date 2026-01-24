@@ -167,6 +167,8 @@ export interface SpeakerAssetStore {
   resetConfig: () => void;
   resetElement: (element: keyof AssetConfig) => void;
   setGlobalTextColor: (color: string | null) => void;
+  setElementCenterOffset: (element: SelectableElementType, offset: Position) => void;
+  elementCenterOffsets: Partial<Record<SelectableElementType, Position>>;
 
   // Controls panel visibility
   showAdvanced: boolean;
@@ -345,15 +347,22 @@ export const useSpeakerAssetStore = create<SpeakerAssetStore>()(
               : undefined;
           if (!activePos) return state;
 
+          const activeOffset = state.elementCenterOffsets[active] ?? { x: 0, y: 0 };
+          const activeCenter: Position = {
+            x: activePos.x + activeOffset.x,
+            y: activePos.y + activeOffset.y,
+          };
+
           const nextConfig: AssetConfig = { ...state.config };
           state.selectedElements.forEach((el) => {
             const cfg = nextConfig[el as keyof AssetConfig] as any;
             if (!cfg || typeof cfg !== "object" || !("position" in cfg)) return;
             const currentPos = cfg.position as Position;
+            const offset = state.elementCenterOffsets[el] ?? { x: 0, y: 0 };
             const nextPos: Position =
               axis === "x"
-                ? { x: activePos.x, y: currentPos.y }
-                : { x: currentPos.x, y: activePos.y };
+                ? { x: activeCenter.x - offset.x, y: currentPos.y }
+                : { x: currentPos.x, y: activeCenter.y - offset.y };
             (nextConfig as any)[el] = { ...cfg, position: nextPos };
           });
           return {
@@ -394,6 +403,14 @@ export const useSpeakerAssetStore = create<SpeakerAssetStore>()(
             globalTextColor: color,
           },
         })),
+      setElementCenterOffset: (element: SelectableElementType, offset: Position) =>
+        set((state: SpeakerAssetStore) => ({
+          elementCenterOffsets: {
+            ...state.elementCenterOffsets,
+            [element]: offset,
+          },
+        })),
+      elementCenterOffsets: {},
 
       // Controls panel
       showAdvanced: false,
