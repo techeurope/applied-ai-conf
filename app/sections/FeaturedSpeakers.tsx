@@ -155,30 +155,17 @@ export default function FeaturedSpeakers() {
                       {/* Divider */}
                       <div className="border-t border-white/10" />
 
-                      {/* Row 2: Building */}
+                      {/* Row 2: Impact */}
                       <div className="py-3">
                         <div className="text-xs font-mono text-gray-500 uppercase tracking-wide mb-1.5">
-                          Building
+                          Impact
                         </div>
                         <div className="text-sm text-gray-200 leading-relaxed">
                           {speaker.building}
                         </div>
                       </div>
 
-                      {/* Divider */}
-                      {speaker.vertical && <div className="border-t border-white/10" />}
-
-                      {/* Row 3: Vertical */}
-                      {speaker.vertical && (
-                        <div className="py-3">
-                          <div className="text-xs font-mono text-gray-500 uppercase tracking-wide mb-1.5">
-                            Vertical
-                          </div>
-                          <div className="text-sm text-white font-medium leading-relaxed">
-                            {speaker.vertical}
-                          </div>
-                        </div>
-                      )}
+                      {/* Vertical removed (covered by Impact) */}
                     </>
                   )}
                 </div>

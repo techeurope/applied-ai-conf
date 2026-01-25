@@ -145,7 +145,7 @@ export function InlineNewsletterForm() {
         <button
           type="submit"
           disabled={status === "loading" || !email}
-          className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all disabled:opacity-0 disabled:pointer-events-none flex items-center justify-center"
+          className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
           aria-label="Subscribe"
         >
           {status === "loading" ? (

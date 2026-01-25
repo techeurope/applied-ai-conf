@@ -1,9 +1,9 @@
 import { CONFERENCE_INFO } from "@/data/conference";
 import { NAVIGATION_ACTIONS, LUMA_EVENT_ID } from "@/data/navigation";
 import { LidarScapeBackground } from "@/components/ui/lidar-scape-background";
+import { InlineNewsletterForm } from "@/components/ui/newsletter-form";
 import { CompanyLogoMarquee } from "@/components/ui/company-logo-marquee";
-import { Ticket, Handshake, MapPin, Mail } from "lucide-react";
-import { HeroNewsletterPill } from "@/components/ui/hero-newsletter-pill";
+import { Ticket } from "lucide-react";
 
 export default function Hero() {
   const ticketAction = NAVIGATION_ACTIONS[0];
@@ -15,7 +15,7 @@ export default function Hero() {
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black pointer-events-none" />
 
       {/* Main Content */}
-      <div className="relative z-10 mx-auto flex w-full max-w-[90rem] flex-col items-center px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-12">
+      <div className="relative z-10 mx-auto flex w-full max-w-[90rem] flex-col items-center px-4 sm:px-6 lg:px-8 space-y-4 sm:space-y-7">
         {/* 1. Tech Europe */}
         <div className="font-mono text-xl sm:text-2xl md:text-3xl tracking-widest">
           <a
@@ -35,58 +35,43 @@ export default function Hero() {
           <span className="text-glow block mt-2 sm:mt-4">AI Conf</span>
         </h1>
 
-        {/* 3. Tagline - Large, breathing typography */}
-        <p className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-mono font-medium text-white/90 tracking-tight max-w-4xl leading-tight">
-          Learn how to use AI
-          <br className="hidden sm:block" />
-          <span className="sm:hidden"> </span>
-          in production
-        </p>
-
-        {/* 4. Floating Action Pills */}
-        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mt-2">
-          {/* Location Pill */}
+        {/* 3. Date + Location */}
+        <div className="-mt-1 text-xs sm:text-sm font-medium text-white/60">
+          {CONFERENCE_INFO.dateDisplay} ·{" "}
           <a
             href="https://www.thedeltacampus.com/"
             target="_blank"
             rel="noopener noreferrer"
-            className="group flex items-center gap-2 px-4 py-2.5 rounded-full border border-white/20 bg-white/5 backdrop-blur-sm hover:bg-white/10 hover:border-white/30 transition-all"
+            className="hover:text-white transition-colors underline decoration-white/20 hover:decoration-white/50"
           >
-            <MapPin className="h-4 w-4 text-white/60 group-hover:text-white/80 transition-colors" />
-            <span className="text-sm font-medium text-white/80 group-hover:text-white transition-colors">
-              {CONFERENCE_INFO.dateDisplay} · Berlin
-            </span>
+            The Delta Campus
           </a>
+        </div>
 
-          {/* Newsletter Pill */}
-          <HeroNewsletterPill />
+        {/* 4. Tagline - Large, breathing typography */}
+        <p className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-mono font-medium text-white/90 tracking-tight max-w-4xl leading-tight">
+          For teams building and running AI systems in production
+        </p>
 
-          {/* Partner Pill */}
-          <a
-            href="#tiers"
-            className="group flex items-center gap-2 px-4 py-2.5 rounded-full border border-white/20 bg-white/5 backdrop-blur-sm hover:bg-white/10 hover:border-white/30 transition-all"
-          >
-            <Handshake className="h-4 w-4 text-white/60 group-hover:text-white/80 transition-colors" />
-            <span className="text-sm font-medium text-white/80 group-hover:text-white transition-colors">
-              Partner
-            </span>
-          </a>
-
-          {/* Tickets - Primary CTA */}
+        {/* 5. Actions */}
+        <div className="flex w-full max-w-3xl flex-col items-center gap-4 sm:flex-row sm:items-center sm:justify-center">
+          <div className="w-full sm:flex-1">
+            <InlineNewsletterForm />
+          </div>
           <a
             href={ticketAction.href}
             target="_blank"
             rel="noopener noreferrer"
             data-luma-action="checkout"
             data-luma-event-id={LUMA_EVENT_ID}
-            className="group flex items-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-gray-100 transition-all shadow-lg shadow-white/10 hover:shadow-white/20 hover:scale-105"
+            className="group flex items-center justify-center gap-2 px-7 py-3 rounded-full bg-white hover:bg-gray-100 transition-all shadow-xl shadow-white/20 hover:shadow-white/30 hover:scale-[1.03] w-full sm:w-auto ring-1 ring-white/30"
           >
             <Ticket className="h-4 w-4 text-black" />
-            <span className="text-sm font-bold text-black">Get Tickets</span>
+            <span className="text-base font-bold text-black">Get Tickets</span>
           </a>
         </div>
 
-        {/* 5. Speaker Company Logos */}
+        {/* 6. Speaker Company Logos */}
         <CompanyLogoMarquee />
       </div>
     </section>

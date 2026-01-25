@@ -7,21 +7,21 @@ import { Ticket } from 'lucide-react';
 import { NAVIGATION_ACTIONS, NAVIGATION_LINKS, LUMA_EVENT_ID } from '@/data/navigation';
 
 export default function Navigation() {
-  const [isVisible, setIsVisible] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
   const isHomePage = pathname === '/';
 
   useEffect(() => {
-    // On subpages, always show navigation
+    // On subpages, always show logo
     if (!isHomePage) {
-      setIsVisible(true);
+      setIsScrolled(true);
       return;
     }
 
-    // On homepage, show nav when scrolled past 400px
+    // On homepage, show logo when scrolled
     const handleScroll = () => {
-      const show = window.scrollY > 400;
-      setIsVisible(show);
+      const showLogo = window.scrollY > 160;
+      setIsScrolled(showLogo);
     };
 
     // Check initial scroll position
@@ -32,33 +32,22 @@ export default function Navigation() {
   }, [isHomePage]);
 
   return (
-    <nav 
-      className={`fixed top-6 left-0 right-0 z-50 flex justify-center px-4 transition-all duration-500 ease-in-out ${
-        isVisible 
-          ? 'translate-y-0 opacity-100' 
-          : '-translate-y-20 opacity-0 pointer-events-none'
-      }`}
-    >
-      <div className="glass flex items-center gap-6 rounded-full px-6 py-3 transition-all duration-300 hover:border-white/20 hover:bg-white/10 shadow-lg shadow-black/20 backdrop-blur-xl">
-        {/* Left side: Conference Name */}
-        <div className="flex items-center gap-2">
-          <Link href="/" className="text-sm font-mono font-bold tracking-wide text-white transition-colors hover:text-gray-300">
-            Applied AI Conf
-          </Link>
-          <span className="hidden sm:inline text-sm text-white/70">by</span>
-          <a
-            href="https://techeurope.io"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden sm:inline text-sm font-mono text-white hover:text-gray-300 transition-colors"
-          >
-            {"{"}Tech: Europe{"}"}
-          </a>
-        </div>
+    <nav className="fixed top-6 left-0 right-0 z-50 flex justify-end px-4">
+      <div className="glass flex items-center gap-4 rounded-full px-5 py-3 transition-all duration-300 hover:border-white/20 hover:bg-white/10 shadow-lg shadow-black/20 backdrop-blur-xl">
+        {isScrolled && (
+          <>
+            <Link
+              href="/"
+              className="text-sm font-mono font-bold tracking-wide text-white transition-colors hover:text-gray-300"
+            >
+              Applied AI Conf
+            </Link>
+            <div className="h-4 w-[1px] bg-white/10"></div>
+          </>
+        )}
 
         {NAVIGATION_LINKS.length > 0 && (
           <>
-            <div className="h-4 w-[1px] bg-white/10"></div>
             <div className="flex items-center gap-6">
               {NAVIGATION_LINKS.map((link) => (
                 <Link
@@ -70,10 +59,9 @@ export default function Navigation() {
                 </Link>
               ))}
             </div>
+            <div className="h-4 w-[1px] bg-white/10"></div>
           </>
         )}
-
-        <div className="h-4 w-[1px] bg-white/10"></div>
 
         <div className="flex items-center gap-4">
           {NAVIGATION_ACTIONS.map((action) => {
