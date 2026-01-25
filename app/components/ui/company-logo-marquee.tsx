@@ -62,7 +62,7 @@ export function CompanyLogoMarquee() {
   return (
     <div className="w-full max-w-5xl mx-auto">
       <p className="text-[0.6rem] sm:text-[0.65rem] font-mono uppercase tracking-[0.25em] text-white/60">
-        with speakers from
+        attending companies
       </p>
       <div className="relative mt-3 overflow-hidden group">
         <div className="pointer-events-none absolute inset-0 z-10">
