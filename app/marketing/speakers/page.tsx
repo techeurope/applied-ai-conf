@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toPng } from "html-to-image";
 import { ChevronDown, Download } from "lucide-react";
 import { SPEAKERS } from "@/data/speakers";
@@ -17,6 +17,68 @@ type ResolutionKey = keyof typeof RESOLUTIONS;
 
 const STORAGE_KEY = "speakers-selected-index";
 const BASE_SIZE = 1080;
+
+// Google Fonts URLs for the fonts we use
+const FONT_URLS = [
+  "https://fonts.googleapis.com/css2?family=Kode+Mono:wght@400;500;600;700&display=swap",
+  "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap",
+];
+
+// Cache for font CSS to avoid refetching
+let fontEmbedCSSCache: string | null = null;
+
+async function getFontEmbedCSS(): Promise<string> {
+  if (fontEmbedCSSCache) return fontEmbedCSSCache;
+
+  try {
+    // Fetch all font CSS files
+    const cssPromises = FONT_URLS.map(async (url) => {
+      const response = await fetch(url);
+      return response.text();
+    });
+    
+    const cssTexts = await Promise.all(cssPromises);
+    let combinedCSS = cssTexts.join("\n");
+    
+    // Extract all font URLs from the CSS and convert them to base64
+    const fontUrlRegex = /url\((https:\/\/fonts\.gstatic\.com[^)]+)\)/g;
+    const fontUrls = new Set<string>();
+    let match;
+    while ((match = fontUrlRegex.exec(combinedCSS)) !== null) {
+      fontUrls.add(match[1]);
+    }
+    
+    // Fetch and convert each font to base64
+    const fontDataMap = new Map<string, string>();
+    await Promise.all(
+      Array.from(fontUrls).map(async (fontUrl) => {
+        try {
+          const response = await fetch(fontUrl);
+          const blob = await response.blob();
+          const base64 = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          });
+          fontDataMap.set(fontUrl, base64);
+        } catch (e) {
+          console.warn("Failed to fetch font:", fontUrl, e);
+        }
+      })
+    );
+    
+    // Replace all font URLs with base64 data URLs
+    fontDataMap.forEach((base64, url) => {
+      combinedCSS = combinedCSS.split(url).join(base64);
+    });
+    
+    fontEmbedCSSCache = combinedCSS;
+    return combinedCSS;
+  } catch (e) {
+    console.warn("Failed to fetch font CSS:", e);
+    return "";
+  }
+}
 
 export default function SpeakersPage() {
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -53,18 +115,30 @@ export default function SpeakersPage() {
 
     setIsExporting(true);
     try {
+      // Wait for fonts to load before exporting
+      await document.fonts.ready;
+      
+      // Get font embed CSS with base64-encoded fonts
+      const fontEmbedCSS = await getFontEmbedCSS();
+
       const filename = speaker.name.toLowerCase().replace(/\s+/g, "_");
       const resolution = RESOLUTIONS[selectedResolution];
       const pixelRatio = resolution / BASE_SIZE;
+      
       const dataUrl = await toPng(cardRef.current, {
         cacheBust: true,
         pixelRatio,
+        fontEmbedCSS,
+        skipFonts: true,
       });
 
       const link = document.createElement("a");
       link.download = `${filename}_${resolution}x${resolution}.png`;
       link.href = dataUrl;
       link.click();
+    } catch (error) {
+      console.error("Export error:", error);
+      alert("Failed to export image. Please try again.");
     } finally {
       setIsExporting(false);
     }
