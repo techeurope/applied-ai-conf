@@ -125,6 +125,13 @@ Located at `/marketing/speakers`, the speaker asset generator creates promotiona
 - **Transparent images**: Automatically uses `imageTransparent` speaker images for clean compositing
 - **Export**: High-res PNG exports at 1K/2K/4K resolutions
 
+Located at `/marketing/speakers2`, the fixed-layout speaker asset generator builds the layout directly in JSX with no drag/move controls. Features:
+
+- **Fixed layout**: No element selection or dragging; consistent, curated layout
+- **Speaker switching**: Select any speaker and load data dynamically
+- **Background modes**: Toggle lidar grid or solid backgrounds with adjustable colors
+- **Export**: High-res PNG exports at 1K/2K/4K resolutions
+
 The twitter banner generator at `/marketing/twitter-banner` creates event banners with similar customization.
 
 ## Current State
