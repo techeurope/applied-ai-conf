@@ -24,6 +24,49 @@ const MAX_CANVAS_DIM = 16384; // Browser canvas limit
 
 type LogoVariant = "dark" | "light";
 
+function exportSvg(svg: SVGElement, variant: LogoVariant): string {
+  const svgClone = svg.cloneNode(true) as SVGElement;
+  
+  // Set proper xmlns
+  svgClone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  
+  // Remove any className that might cause issues
+  svgClone.removeAttribute("class");
+  
+  // Set color based on variant
+  const fillColor = variant === "dark" ? "#ffffff" : "#000000";
+  
+  // Update all paths with currentColor
+  const paths = svgClone.querySelectorAll("path");
+  paths.forEach((path) => {
+    const currentFill = path.getAttribute("fill");
+    if (currentFill === "currentColor" || currentFill === "inherit" || !currentFill) {
+      path.setAttribute("fill", fillColor);
+    }
+  });
+  
+  // Update g elements
+  const gs = svgClone.querySelectorAll("g");
+  gs.forEach((g) => {
+    const currentFill = g.getAttribute("fill");
+    if (currentFill === "currentColor") {
+      g.setAttribute("fill", fillColor);
+    }
+  });
+  
+  return new XMLSerializer().serializeToString(svgClone);
+}
+
+function downloadSvg(svgString: string, filename: string) {
+  const blob = new Blob([svgString], { type: "image/svg+xml" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.download = filename;
+  link.href = url;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 async function renderLogoToBlob(
   svg: SVGElement,
   variant: LogoVariant
@@ -235,6 +278,12 @@ export default function LogoExportPage() {
 
           zip.file(`${logo.name}_dark.png`, darkBlob);
           zip.file(`${logo.name}_light.png`, lightBlob);
+          
+          // Add SVG files
+          const darkSvgString = exportSvg(darkSvg, "dark");
+          const lightSvgString = exportSvg(lightSvg, "light");
+          zip.file(`${logo.name}_dark.svg`, darkSvgString);
+          zip.file(`${logo.name}_light.svg`, lightSvgString);
         }
       }
 
@@ -261,7 +310,7 @@ export default function LogoExportPage() {
               Logo Export Utility
             </h1>
             <p className="text-sm text-gray-500 mt-1">
-              Export company logos as high-resolution PNGs (up to {MAX_CANVAS_DIM}px)
+              Export company logos as high-resolution PNGs (up to {MAX_CANVAS_DIM}px) or SVG files
             </p>
           </div>
           <button
@@ -291,9 +340,12 @@ export default function LogoExportPage() {
                 <div className="grid grid-cols-2 gap-4">
                   {/* Dark version */}
                   <div className="space-y-2">
-                    <span className="text-xs text-gray-500 font-mono">
-                      Dark (white logo)
-                    </span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500 font-mono">
+                        Dark (white logo)
+                      </span>
+                      <SvgDownloadButton name={logo.name} variant="dark" />
+                    </div>
                     <div
                       data-variant="dark"
                       className="bg-[#05070f] p-8 rounded-lg flex items-center justify-center border border-white/10"
@@ -304,9 +356,12 @@ export default function LogoExportPage() {
 
                   {/* Light version */}
                   <div className="space-y-2">
-                    <span className="text-xs text-gray-500 font-mono">
-                      Light (black logo)
-                    </span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500 font-mono">
+                        Light (black logo)
+                      </span>
+                      <SvgDownloadButton name={logo.name} variant="light" />
+                    </div>
                     <div
                       data-variant="light"
                       className="bg-white p-8 rounded-lg flex items-center justify-center"
@@ -326,14 +381,18 @@ export default function LogoExportPage() {
           <ol className="text-sm text-gray-400 space-y-2 list-decimal list-inside">
             <li>
               Click &quot;Export All (ZIP)&quot; to download all logos in both
-              dark and light versions
+              dark and light versions (PNG + SVG)
             </li>
             <li>
               Or click &quot;Export Both&quot; on individual logos for a
-              per-logo ZIP
+              per-logo ZIP (includes PNG and SVG)
             </li>
             <li>
-              Extract and move PNG files to{" "}
+              Click &quot;SVG&quot; button next to each variant to download
+              individual SVG files
+            </li>
+            <li>
+              Extract and move PNG/SVG files to{" "}
               <code className="bg-black/50 px-2 py-0.5 rounded">
                 public/logos/
               </code>
@@ -348,6 +407,33 @@ export default function LogoExportPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// SVG download button component
+function SvgDownloadButton({ name, variant }: { name: string; variant: LogoVariant }) {
+  const handleDownload = useCallback(() => {
+    const container = document.querySelector(`[data-logo="${name}"]`);
+    if (!container) return;
+
+    const svg = container.querySelector(
+      `[data-variant="${variant}"] svg`
+    ) as SVGElement;
+
+    if (!svg) return;
+
+    const svgString = exportSvg(svg, variant);
+    downloadSvg(svgString, `${name}_${variant}.svg`);
+  }, [name, variant]);
+
+  return (
+    <button
+      onClick={handleDownload}
+      className="px-2 py-1 text-xs bg-white/10 hover:bg-white/20 rounded border border-white/20 font-mono transition-colors"
+      title={`Download ${variant} SVG`}
+    >
+      SVG
+    </button>
   );
 }
 
@@ -377,6 +463,12 @@ function ExportButton({ name }: { name: string }) {
 
       zip.file(`${name}_dark.png`, darkBlob);
       zip.file(`${name}_light.png`, lightBlob);
+      
+      // Add SVG files
+      const darkSvgString = exportSvg(darkSvg, "dark");
+      const lightSvgString = exportSvg(lightSvg, "light");
+      zip.file(`${name}_dark.svg`, darkSvgString);
+      zip.file(`${name}_light.svg`, lightSvgString);
 
       const zipBlob = await zip.generateAsync({ type: "blob" });
 

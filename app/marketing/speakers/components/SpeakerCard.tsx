@@ -18,14 +18,30 @@ function getLogoPath(speaker: Speaker): string {
   return LOGO_MAP[key] || speaker.companyLogo || "/logos/langdock_dark.png";
 }
 
+interface ImageConfig {
+  x: number;
+  y: number;
+  scale: number;
+  gradientHeight: number;
+}
+
+const defaultImageConfig: ImageConfig = {
+  x: 213,
+  y: 29,
+  scale: 1.2,
+  gradientHeight: 40,
+};
+
 interface Props {
   speaker: Speaker;
   conferenceDate?: string;
+  imageConfig?: ImageConfig;
 }
 
 export function SpeakerCard({
   speaker,
   conferenceDate = "MAY 28, 2026",
+  imageConfig = defaultImageConfig,
 }: Props) {
   const logoPath = getLogoPath(speaker);
   return (
@@ -39,6 +55,35 @@ export function SpeakerCard({
             linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
           `,
           backgroundSize: "40px 40px",
+        }}
+      />
+
+      {/* Speaker image */}
+      <div
+        className="absolute flex items-end justify-end"
+        style={{
+          bottom: 0,
+          right: 0,
+          width: `${85 * imageConfig.scale}%`,
+          height: `${95 * imageConfig.scale}%`,
+          transform: `translate(${imageConfig.x}px, ${imageConfig.y}px)`,
+        }}
+      >
+        <img
+          src={speaker.imageTransparent || speaker.image}
+          alt={speaker.name}
+          className="h-full w-auto object-contain object-bottom"
+          crossOrigin="anonymous"
+        />
+      </div>
+
+      {/* Bottom fog gradient */}
+      <div
+        className="absolute inset-x-0 bottom-0 z-10 pointer-events-none"
+        style={{
+          height: `${imageConfig.gradientHeight}%`,
+          background:
+            "linear-gradient(0deg, rgba(10,10,10,1) 0%, rgba(10,10,10,0.9) 30%, rgba(10,10,10,0.5) 60%, rgba(10,10,10,0) 100%)",
         }}
       />
 
@@ -76,7 +121,7 @@ export function SpeakerCard({
       </div>
 
       {/* Bottom left - Speaker name stacked with role below */}
-      <div className="absolute bottom-10 left-10 z-20 flex flex-col gap-10">
+      <div className="absolute bottom-10 left-10 z-20 flex flex-col">
         <h1
           className="text-[140px] font-bold text-white tracking-tight leading-[0.85]"
           style={{ fontFamily: "'Kode Mono', monospace" }}
@@ -87,7 +132,7 @@ export function SpeakerCard({
             </span>
           ))}
         </h1>
-        <div className="flex items-center gap-5 mx-0 my-4">
+        <div className="flex items-center gap-5 mt-10">
           <span
             className="text-neutral-300 text-5xl"
             style={{ fontFamily: "'Inter', sans-serif" }}
@@ -102,16 +147,6 @@ export function SpeakerCard({
             crossOrigin="anonymous"
           />
         </div>
-      </div>
-
-      {/* Speaker image - cut off at card edge */}
-      <div className="absolute bottom-0 right-0 w-[85%] h-[95%] flex items-end justify-end">
-        <img
-          src={speaker.imageTransparent || speaker.image}
-          alt={speaker.name}
-          className="h-full w-auto object-contain object-bottom translate-x-[15%]"
-          crossOrigin="anonymous"
-        />
       </div>
     </div>
   );
