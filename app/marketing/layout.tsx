@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const marketingNavItems = [
-  { href: "/marketing", label: "Portal" },
+  { href: "/marketing", label: "Overview" },
   { href: "/marketing/speakers", label: "Speaker Assets" },
   { href: "/marketing/twitter-banner", label: "Twitter Banner" },
   { href: "/marketing/logos", label: "Logos" },

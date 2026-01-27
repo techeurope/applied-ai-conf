@@ -117,20 +117,10 @@ node scripts/crop-to-square.mjs -i public/speakers/name_fullbody_transparent.png
 
 Located at `/marketing/speakers`, the speaker asset generator creates promotional images for speakers. Features:
 
-- **Background modes**: Toggle between lidar grid animation or solid color backgrounds
-- **Solid color picker**: Any background color when grid is disabled
-- **Global text color**: Override all text elements with a single color for consistent branding
-- **Speaker role line**: Role text (e.g. "CTO @") placed next to the company logo
-- **Speaker meta card**: Role + company badge with labels, border, and logo
-- **Transparent images**: Automatically uses `imageTransparent` speaker images for clean compositing
-- **Export**: High-res PNG exports at 1K/2K/4K resolutions
-
-Located at `/marketing/speakers2`, the fixed-layout speaker asset generator builds the layout directly in JSX with no drag/move controls. Features:
-
-- **Fixed layout**: No element selection or dragging; consistent, curated layout
+- **Fixed layout**: Curated, consistent layout with speaker name, title, company logo, and transparent speaker image
 - **Speaker switching**: Select any speaker and load data dynamically
-- **Background modes**: Toggle lidar grid or solid backgrounds with adjustable colors
 - **Export**: High-res PNG exports at 1K/2K/4K resolutions
+- **Transparent images**: Automatically uses `imageTransparent` speaker images for clean compositing
 
 The twitter banner generator at `/marketing/twitter-banner` creates event banners with similar customization.
 
