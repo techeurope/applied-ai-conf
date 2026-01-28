@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { SPEAKERS } from "@/data/speakers";
 import type { Speaker } from "@/types";
+import { applyKerning } from "@/lib/utils";
 import {
   LangdockLogo,
   ChocoLogo,
@@ -100,7 +101,12 @@ export default function FeaturedSpeakers() {
                   {/* Name */}
                   <div className={isPlaceholder ? "" : "mb-4"}>
                     <h3 className="text-2xl font-bold text-white font-mono leading-tight">
-                      {speaker.name}
+                      {speaker.name.split(" ").map((word, i, words) => (
+                        <span key={i}>
+                          {applyKerning(word)}
+                          {i < words.length - 1 && " "}
+                        </span>
+                      ))}
                     </h3>
                   </div>
 

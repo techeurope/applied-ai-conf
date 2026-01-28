@@ -1,6 +1,7 @@
 "use client";
 
 import type { Speaker } from "@/types";
+import { applyKerning } from "@/lib/utils";
 
 // Map company names to actual logo files (dark versions = white logos for dark bg)
 const LOGO_MAP: Record<string, string> = {
@@ -128,7 +129,7 @@ export function SpeakerCard({
         >
           {speaker.name.split(" ").map((word, i) => (
             <span key={i} className="block">
-              {word}
+              {applyKerning(word)}
             </span>
           ))}
         </h1>
