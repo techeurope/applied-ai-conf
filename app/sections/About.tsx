@@ -107,8 +107,7 @@ export default function About() {
                 <p className="text-xs font-mono text-blue-400 mb-1">
                   THE VENUE
                 </p>
-                <p className="text-white font-bold text-lg">The Delta Campus</p>
-                <p className="text-gray-400 text-sm">Berlin</p>
+                <p className="text-white font-bold text-lg">The Delta Campus, Berlin</p>
               </div>
             </div>
           </div>

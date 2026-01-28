@@ -39,12 +39,12 @@ export default function Hero() {
         <div className="-mt-1 text-xs sm:text-sm font-medium text-white/60">
           {CONFERENCE_INFO.dateDisplay} ·{" "}
           <a
-            href="https://www.thedeltacampus.com/"
+            href="https://thedelta.io/berlin/welcome"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-white transition-colors underline decoration-white/20 hover:decoration-white/50"
           >
-            The Delta Campus
+            The Delta Campus, Berlin
           </a>
         </div>
 
