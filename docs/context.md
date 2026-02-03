@@ -154,6 +154,10 @@ The twitter banner generator at `/marketing/twitter-banner` creates event banner
 - **Primary CTA:** "Get Tickets" (links to Luma).
 - **Secondary CTAs:** "Become a Partner" (email/form links).
 
+## Content & Messaging
+
+- **Avoid attendee count claims:** Don’t publish specific attendee/participant numbers (e.g. “700+”) until venue capacity and ticket allocations are confirmed. Prefer qualitative wording (e.g. “curated in-person audience”, “builders, founders, CTOs, and engineers”).
+
 ## SEO
 
 - **Title:** "Applied AI Conference Berlin | May 28, 2026"

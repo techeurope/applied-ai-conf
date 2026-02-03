@@ -26,7 +26,7 @@ const FAQ_ITEMS = [
   {
     question: "How can my company sponsor?",
     answer: "Check out our partnership options below and get in touch.",
-    href: "#tiers",
+    href: "#partner",
   },
 ];
 
@@ -65,7 +65,7 @@ export default function FAQ() {
                     {item.question}
                   </span>
                   <span
-                    className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition-all ${
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition-all ${
                       isOpen ? "rotate-45 bg-white/20" : ""
                     }`}
                   >

@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export default function PartnershipTiers() {
   return (
-    <section id="tiers" className="relative overflow-hidden py-24 lg:py-32">
+    <section id="partner" className="relative overflow-hidden py-24 lg:py-32">
       <div className="mx-auto w-full max-w-7xl px-6 lg:px-8">
         <div className="mb-16 text-center">
           <h2 className="text-4xl font-mono font-bold tracking-tight sm:text-5xl md:text-6xl">
@@ -12,8 +12,8 @@ export default function PartnershipTiers() {
           </h2>
           <p className="mx-auto mt-4 text-lg text-gray-300 leading-relaxed max-w-3xl">
             Connect with Europe&apos;s applied AI builders. Position your brand
-            in front of 700+ founders, CTOs, and engineers shipping AI to
-            production.
+            in front of a curated, in-person audience of founders, CTOs, and
+            engineers shipping AI to production.
           </p>
         </div>
 
@@ -27,7 +27,7 @@ export default function PartnershipTiers() {
                 <li className="flex items-start gap-3">
                   <span className="text-green-400 mt-1">✓</span>
                   <span>
-                    Access to 700+ applied AI builders, founders, and CTOs
+                    Direct access to applied AI builders, founders, and CTOs
                   </span>
                 </li>
                 <li className="flex items-start gap-3">

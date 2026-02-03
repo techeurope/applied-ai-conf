@@ -85,9 +85,9 @@ const PARTNERSHIP_ADD_ONS = [
 export const PARTNERSHIP_OVERVIEW = {
   about: [
     "Applied AI Conf by {Tech: Europe} is a one-day gathering for founders, engineers & builders using ai daily on scale in europe",
-    "We're bringing together approximately 700 participants for a day of technical talks, panels, and demos spanning GPU orchestration, model evaluation, and applied AI in production.",
+    "We're bringing together a curated, in-person audience for a day of technical talks, panels, and demos spanning GPU orchestration, model evaluation, and applied AI in production.",
   ],
-  participants: "≈700 participants expected",
+  participants: "Curated in-person audience",
   focusAreas: [
     "GPU orchestration",
     "Model evaluation",
