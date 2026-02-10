@@ -63,14 +63,15 @@ export default function PrivacyPage() {
             </ul>
             
             <h2 className="text-2xl font-mono font-bold text-white mt-12 mb-6">4. Cookies and Similar Technologies</h2>
-            <p className="mb-6">We use only technically necessary cookies and similar technologies to operate this website and provide its basic functions. These may be required to:</p>
+            <p className="mb-6">We use technically necessary cookies to operate this website. In addition, we use analytics cookies (via PostHog) only after you give explicit consent through our cookie banner. These cookies help us:</p>
             <ul className="list-disc list-inside mb-8 space-y-2">
               <li>enable basic website functionality</li>
-              <li>remember your settings (for example, language or cookie preferences)</li>
+              <li>remember your settings (for example, cookie preferences)</li>
               <li>ensure the security and stability of the website</li>
+              <li>analyze site usage and improve your experience (only with your consent)</li>
             </ul>
             <p className="mb-8">
-              We do not use cookies for analytics, marketing, or cross-site tracking purposes.
+              Analytics cookies are set only after you explicitly accept them. You can decline analytics cookies at any time. No tracking data is collected without your consent.
             </p>
             <p className="mb-8">
               You can control or delete cookies through your browser settings. If you disable all cookies, some parts of the website may not function properly.
@@ -79,7 +80,7 @@ export default function PrivacyPage() {
             <h2 className="text-2xl font-mono font-bold text-white mt-12 mb-6">5. Third-Party Services</h2>
             <p className="mb-6">We may use third-party services that process your data on our behalf, including:</p>
             <ul className="list-disc list-inside mb-8 space-y-2">
-              <li><strong className="text-white">Analytics services:</strong> To analyze website usage (e.g., Google Analytics, Vercel Analytics)</li>
+              <li><strong className="text-white">Analytics services:</strong> To analyze website usage (PostHog, only with consent)</li>
               <li><strong className="text-white">Email services:</strong> To send newsletters and communications</li>
               <li><strong className="text-white">Hosting providers:</strong> To host and operate our website</li>
               <li><strong className="text-white">Form services:</strong> To process form submissions</li>

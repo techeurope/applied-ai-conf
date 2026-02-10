@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Kode_Mono, Inter } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
+import PostHogProvider from "@/components/PostHogProvider";
 import "./globals.css";
 
 const kodeMono = Kode_Mono({
@@ -96,8 +96,7 @@ export default function RootLayout({
         <script id="luma-checkout" src="https://embed.lu.ma/checkout-button.js" async />
       </head>
       <body className={`${kodeMono.variable} ${inter.variable} antialiased`}>
-        {children}
-        <Analytics />
+        <PostHogProvider>{children}</PostHogProvider>
       </body>
     </html>
   );

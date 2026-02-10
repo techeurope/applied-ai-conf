@@ -42,7 +42,7 @@ All content lives in `app/data/*.ts` as typed constants (using `satisfies`) with
 
 - **Ticketing:** Luma Events - buttons use `data-luma-action` and `data-luma-event-id` attributes, checkout script loaded in root layout.
 - **Newsletter:** Beehiiv - `POST /api/subscribe` route. Requires `BEEHIIV_API_KEY` and `BEEHIIV_PUBLICATION_ID` env vars.
-- **Analytics:** Vercel Analytics.
+- **Analytics:** PostHog (posthog-js) with cookie consent banner. Requires `NEXT_PUBLIC_POSTHOG_KEY` and `NEXT_PUBLIC_POSTHOG_HOST` env vars.
 - **3D/Shaders:** React Three Fiber + Three.js for hero background effects.
 
 ### Marketing Tools (`/marketing/*`)
