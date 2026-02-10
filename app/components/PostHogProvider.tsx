@@ -26,6 +26,8 @@ function PostHogPageView() {
 }
 
 function initPostHog(anonymous: boolean) {
+  if (typeof window !== "undefined" && window.location.hostname === "localhost") return;
+
   const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
   const host = process.env.NEXT_PUBLIC_POSTHOG_HOST;
   if (!key || !host) return;
