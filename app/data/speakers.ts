@@ -129,7 +129,7 @@ export const SPEAKERS = [
     linkedinUrl: 'https://www.linkedin.com/in/spolu/',
     bio: '',
     vertical: 'Enterprise AI',
-    building: 'The OS for enterprise AI agents, backed by Sequoia',
+    building: 'The OS for enterprise AI agents',
     initial: 'SP',
     accent: 'from-rose-400/40 via-orange-400/30 to-amber-500/40',
     image: '/speakers/stanislas_polu.jpg',
