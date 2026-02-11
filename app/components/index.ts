@@ -9,5 +9,7 @@ export { TactoLogo } from './ui/tacto-logo';
 export { KnowunityLogo } from './ui/knowunity-logo';
 export { VeedLogo } from './ui/veed-logo';
 export { CodewordsLogo } from './ui/codewords-logo';
+export { DustLogo } from './ui/dust-logo';
+export { IntercomLogo } from './ui/intercom-logo';
 export { default as CookieConsent } from './CookieConsent';
 export { default as PostHogProvider } from './PostHogProvider';

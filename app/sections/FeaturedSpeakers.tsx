@@ -14,6 +14,8 @@ import {
   KnowunityLogo,
   VeedLogo,
   CodewordsLogo,
+  DustLogo,
+  IntercomLogo,
 } from "@/components";
 
 const COMPANY_LOGOS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -24,6 +26,8 @@ const COMPANY_LOGOS: Record<string, React.ComponentType<{ className?: string }>>
   Knowunity: KnowunityLogo,
   "VEED.IO": VeedLogo,
   Codewords: CodewordsLogo,
+  Dust: DustLogo,
+  Intercom: IntercomLogo,
 };
 
 export default function FeaturedSpeakers() {

@@ -10,6 +10,8 @@ import { TactoLogo } from "@/components/ui/tacto-logo";
 import { KnowunityLogo } from "@/components/ui/knowunity-logo";
 import { VeedLogo } from "@/components/ui/veed-logo";
 import { CodewordsLogo } from "@/components/ui/codewords-logo";
+import { DustLogo } from "@/components/ui/dust-logo";
+import { IntercomLogo } from "@/components/ui/intercom-logo";
 
 type LogoComponent = React.ComponentType<{ className?: string }>;
 
@@ -21,6 +23,8 @@ const COMPANY_LOGOS: Record<string, LogoComponent> = {
   Knowunity: KnowunityLogo,
   "VEED.IO": VeedLogo,
   Codewords: CodewordsLogo,
+  Dust: DustLogo,
+  Intercom: IntercomLogo,
 };
 
 const COMPANY_ITEMS = Array.from(
