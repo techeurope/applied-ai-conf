@@ -200,22 +200,10 @@ export default function FeaturedSpeakers() {
           })}
         </div>
 
-        {/* CTA Section */}
+        {/* More speakers note */}
         <div className="mt-20 text-center">
-          <p className="mx-auto mb-6 text-sm text-gray-400 sm:text-base max-w-2xl">
-            Shipping AI-powered products to real users? Apply to speak and share
-            what you&apos;ve learned.
-          </p>
-          <Link
-            href="https://tally.so/r/gDbPed"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex h-12 items-center justify-center rounded-full bg-white px-8 text-base font-semibold text-black transition-all hover:bg-gray-200"
-          >
-            Call for proposals
-          </Link>
-          <p className="mt-4 text-xs text-gray-500">
-            Applications open until January 30, 2026
+          <p className="mx-auto text-sm text-gray-400 sm:text-base max-w-2xl">
+            We&apos;re still adding speakers to the lineup — stay tuned for more announcements.
           </p>
         </div>
       </div>

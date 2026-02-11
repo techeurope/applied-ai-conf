@@ -17,11 +17,65 @@ pnpm lint         # ESLint
 
 ### Speaker Image Pipeline
 
+Uses `agent-media` CLI (install globally: `npm i -g agent-media`). Requires `FAL_API_KEY` in environment (source `~/.zshrc`).
+
+**File naming:** `name.jpg` → `name_fullbody_square.png` → `name_fullbody_transparent_square.png`
+
+**Step 1: Extend headshot to full body (1:1 square)**
+
+The prompt is critical — use this exact prompt for consistency across all speakers:
+
 ```bash
-node scripts/generate-image.mjs -p "<prompt>" -i public/speakers/name.jpg -o public/speakers/name_fullbody_square.png -a 1:1
-node scripts/remove-background.mjs -i public/speakers/name_fullbody_square.png -o public/speakers/name_fullbody_transparent_square.png
-node scripts/crop-to-square.mjs -i public/speakers/name_fullbody_transparent.png
+agent-media image edit \
+  --in public/speakers/name.jpg \
+  --prompt "Zoom out and show the full person with complete head, shoulders and upper body. Add empty space at the top of the image above the person's head - the person should not touch the top edge. Position the person lower in the frame with padding above their head. Both shoulders must be fully visible with nothing cut off at any edge. Create a professional headshot with the person centered horizontally but positioned slightly lower with headroom above. Apply professional photo studio lighting with soft, even illumination. Apply consistent color grading: neutral to slightly warm tone (5500K), balanced contrast, natural skin tones. Keep the person exactly the same - same pose, expression, and appearance." \
+  --out public/speakers/name_fullbody_square.png \
+  --provider fal
 ```
+
+**Step 2: Color correction (professional photo grade)**
+
+Use sharp (NOT AI edit — AI edit destroys/regenerates the image). Write to a separate file first to avoid overwriting the original.
+
+```bash
+node -e "
+const sharp = require('sharp');
+const input = 'public/speakers/name_fullbody_square.png';
+const output = 'public/speakers/name_fullbody_square.png';
+sharp(input)
+  .modulate({ brightness: 1.05, saturation: 1.25 })
+  .linear([1.05, 1.0, 0.95], [5, 0, -5])
+  .toFile(output + '.tmp')
+  .then(() => { require('fs').renameSync(output + '.tmp', output); console.log('Done'); })
+  .catch(e => console.error(e));
+"
+```
+
+This applies: slight brightness boost, saturation increase, warm color shift (boost reds, reduce blues). Mimics professional studio color grading.
+
+**Step 3: Remove background**
+
+```bash
+agent-media image remove-background \
+  --in public/speakers/name_fullbody_square.png \
+  --out public/speakers/name_fullbody_transparent_square.png \
+  --provider fal
+```
+
+**Step 4: Crop to square (if needed)**
+
+```bash
+agent-media image crop \
+  --in public/speakers/name_fullbody_transparent_square.png \
+  --width 1024 --height 1024 \
+  --out public/speakers/name_fullbody_transparent_square.png
+```
+
+**Troubleshooting:**
+- Shoulders cut off → add "The [left/right] shoulder especially must be completely visible"
+- No headroom → add "Make the person smaller in the frame"
+- Color looks washed out/pale → run the color correction step (step 2)
+- NEVER use AI edit for color correction — it regenerates the image and degrades quality
 
 ## Architecture
 
