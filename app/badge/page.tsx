@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toPng } from "html-to-image";
-import { Download } from "lucide-react";
+import { Download, ImagePlus, X } from "lucide-react";
 import { BadgeCard } from "./components/BadgeCard";
 import { BadgeCardWide } from "./components/BadgeCardWide";
 import { getFontEmbedCSS } from "@/lib/font-embed";
@@ -19,8 +19,10 @@ export default function BadgePage() {
   const [name, setName] = useState("");
   const [format, setFormat] = useState<BadgeFormat>("square");
   const [isExporting, setIsExporting] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
   const previewRef = useRef<HTMLDivElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [scale, setScale] = useState(0.4);
 
   const config = FORMAT_CONFIG[format];
@@ -42,6 +44,27 @@ export default function BadgePage() {
     observer.observe(element);
     return () => observer.disconnect();
   }, [config.width]);
+
+  const handleImageUpload = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setImageUrl(event.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    },
+    []
+  );
+
+  const handleRemoveImage = useCallback(() => {
+    setImageUrl(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }, []);
 
   const handleExport = async () => {
     if (!cardRef.current || isExporting) return;
@@ -91,7 +114,7 @@ export default function BadgePage() {
         </div>
 
         {/* Controls */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-4 mb-8 max-w-xl mx-auto">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-4 mb-8 max-w-2xl mx-auto">
           {/* Name input */}
           <div className="flex-1">
             <label
@@ -110,6 +133,51 @@ export default function BadgePage() {
               className="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-neutral-600 focus:outline-none focus:border-white/60 transition-colors"
               style={{ fontFamily: "var(--font-kode-mono), monospace" }}
             />
+          </div>
+
+          {/* Photo upload */}
+          <div>
+            <label
+              className="block text-sm text-neutral-400 mb-2"
+              style={{ fontFamily: "var(--font-kode-mono), monospace" }}
+            >
+              Photo
+            </label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+              id="badge-photo"
+            />
+            {imageUrl ? (
+              <div className="flex items-center gap-2">
+                <div className="w-[46px] h-[46px] rounded-full overflow-hidden border border-white/20">
+                  <img
+                    src={imageUrl}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <button
+                  onClick={handleRemoveImage}
+                  className="p-3 rounded-lg border border-white/20 hover:border-white/40 text-neutral-400 hover:text-white transition-colors"
+                  title="Remove photo"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center gap-2 px-4 py-3 rounded-lg border border-white/20 hover:border-white/40 text-neutral-400 hover:text-white transition-colors whitespace-nowrap"
+                style={{ fontFamily: "var(--font-kode-mono), monospace" }}
+              >
+                <ImagePlus className="w-4 h-4" />
+                Add photo
+              </button>
+            )}
           </div>
 
           {/* Format toggle */}
@@ -153,9 +221,9 @@ export default function BadgePage() {
           >
             <div ref={cardRef}>
               {format === "square" ? (
-                <BadgeCard name={name} />
+                <BadgeCard name={name} imageUrl={imageUrl} />
               ) : (
-                <BadgeCardWide name={name} />
+                <BadgeCardWide name={name} imageUrl={imageUrl} />
               )}
             </div>
           </div>

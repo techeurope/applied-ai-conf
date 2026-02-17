@@ -2,17 +2,18 @@ import { CompanyLogosStrip } from "./CompanyLogosStrip";
 
 function getNameFontSize(name: string): number {
   const len = name.length;
-  if (len <= 5) return 72;
-  if (len <= 8) return 60;
-  if (len <= 12) return 48;
-  return 38;
+  if (len <= 5) return 64;
+  if (len <= 8) return 52;
+  if (len <= 12) return 42;
+  return 34;
 }
 
 interface BadgeCardProps {
   name: string;
+  imageUrl?: string | null;
 }
 
-export function BadgeCard({ name }: BadgeCardProps) {
+export function BadgeCard({ name, imageUrl }: BadgeCardProps) {
   const displayName = name || "YOUR NAME";
   const fontSize = getNameFontSize(displayName);
   const isPlaceholder = !name;
@@ -52,61 +53,69 @@ export function BadgeCard({ name }: BadgeCardProps) {
         }}
       />
 
-      {/* Main content - vertically centered */}
-      <div className="absolute inset-0 z-20 flex flex-col items-center justify-center px-16">
-        {/* {Tech: Europe} label */}
-        <span
-          className="text-white/40 text-2xl tracking-wide mb-6"
-          style={{ fontFamily: "'Kode Mono', monospace" }}
-        >
-          {"{Tech: Europe}"}
-        </span>
-
-        {/* Conference name - THE HERO */}
-        <div
-          className="text-white font-bold tracking-tight leading-[0.88] text-center"
-          style={{ fontFamily: "'Kode Mono', monospace", fontSize: "148px" }}
-        >
-          <div>APPLIED</div>
-          <div>AI CONF</div>
-        </div>
-
-        {/* Date + Location */}
-        <div
-          className="text-white/40 text-2xl tracking-[0.15em] uppercase mt-8"
-          style={{ fontFamily: "'Inter', sans-serif" }}
-        >
-          MAY 28, 2026 &middot; BERLIN
-        </div>
-
-        {/* Divider */}
-        <div className="w-32 h-px bg-white/10 my-10" />
-
-        {/* "I'm attending" + name */}
-        <div className="flex flex-col items-center gap-3">
+      {/* Narrative flow: [photo+name] "is attending" — [conference] — "with speakers from" [logos] */}
+      <div className="absolute inset-0 z-20 flex flex-col items-center justify-center px-12" style={{ gap: 56 }}>
+        {/* TOP — Photo + name + "is attending" */}
+        <div className="flex flex-col items-center gap-5">
+          <div className="flex items-center gap-6">
+            {imageUrl && (
+              <div
+                className="rounded-full overflow-hidden border-2 border-white/20 shrink-0"
+                style={{ width: 140, height: 140 }}
+              >
+                <img
+                  src={imageUrl}
+                  alt="Attendee"
+                  crossOrigin="anonymous"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+            <div
+              className={`font-bold text-white uppercase leading-[0.95] ${
+                isPlaceholder ? "opacity-20" : ""
+              } ${imageUrl ? "text-left" : "text-center"}`}
+              style={{
+                fontFamily: "'Kode Mono', monospace",
+                fontSize: `${fontSize}px`,
+              }}
+            >
+              {displayName}
+            </div>
+          </div>
           <div
-            className="text-lg tracking-[0.3em] uppercase text-white/30"
+            className="text-base tracking-[0.3em] uppercase text-white/30"
             style={{ fontFamily: "'Kode Mono', monospace" }}
           >
-            I&apos;M ATTENDING
-          </div>
-          <div
-            className={`font-bold text-white text-center uppercase leading-[0.95] ${
-              isPlaceholder ? "opacity-20" : ""
-            }`}
-            style={{
-              fontFamily: "'Kode Mono', monospace",
-              fontSize: `${fontSize}px`,
-            }}
-          >
-            {displayName}
+            is attending
           </div>
         </div>
-      </div>
 
-      {/* Bottom - Company logos */}
-      <div className="absolute bottom-12 left-12 right-12 z-20">
-        <CompanyLogosStrip height={32} rowGap={28} labelSize={13} />
+        {/* CENTER — Conference branding */}
+        <div className="flex flex-col items-center">
+          <span
+            className="text-white/40 text-xl tracking-wide mb-5"
+            style={{ fontFamily: "'Kode Mono', monospace" }}
+          >
+            {"{Tech: Europe}"}
+          </span>
+          <div
+            className="text-white font-bold tracking-tight leading-[0.88] text-center"
+            style={{ fontFamily: "'Kode Mono', monospace", fontSize: "132px" }}
+          >
+            <div>APPLIED</div>
+            <div>AI CONF</div>
+          </div>
+          <div
+            className="text-white/40 text-xl tracking-[0.15em] uppercase mt-6"
+            style={{ fontFamily: "'Inter', sans-serif" }}
+          >
+            MAY 28, 2026 &middot; BERLIN
+          </div>
+        </div>
+
+        {/* BOTTOM — "with speakers from" + logos */}
+        <CompanyLogosStrip slotHeight={32} rowGap={28} labelSize={13} label="with speakers from" />
       </div>
     </div>
   );
