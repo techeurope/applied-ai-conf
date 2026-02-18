@@ -1,51 +1,34 @@
-// Company logos for speaker companies (white/light versions for dark backgrounds)
-// Each logo has a manually tuned maxWidth (in px at slotHeight=30) to normalize
-// visual weight across different aspect ratios and baked-in whitespace.
-interface Logo {
-  name: string;
-  src: string;
-  /** Max width relative to base slotHeight of 30. Scales proportionally. */
-  maxW: number;
-}
-
-const ROW_1: Logo[] = [
-  { name: "Langdock", src: "/logos/langdock_dark.png", maxW: 110 },
-  { name: "Choco", src: "/logos/choco_dark.png", maxW: 70 },
-  { name: "Legora", src: "/logos/legora_dark.png", maxW: 60 },
-  { name: "Knowunity", src: "/logos/knowunity_dark.png", maxW: 110 },
-  { name: "VEED.IO", src: "/logos/veed.svg", maxW: 90 },
-];
-
-const ROW_2: Logo[] = [
-  { name: "Codewords", src: "/logos/codewords.svg", maxW: 120 },
-  { name: "Tacto", src: "/logos/tacto_dark.png", maxW: 90 },
-  { name: "Dust", src: "/logos/dust.svg", maxW: 70 },
-  { name: "Intercom", src: "/logos/intercom.svg", maxW: 30 },
-];
+// Speaker company names in a bordered grid (table-style)
+const ROW_1 = ["Langdock", "Choco", "Legora", "Knowunity", "VEED.IO"];
+const ROW_2 = ["Codewords", "Tacto", "Dust", "Intercom"];
 
 interface CompanyLogosStripProps {
-  /** Height of each logo slot in px */
-  slotHeight?: number;
-  /** Gap between the two logo rows */
-  rowGap?: number;
+  /** Font size for company names */
+  fontSize?: number;
   /** Font size for the label */
   labelSize?: number;
   /** Custom label text */
   label?: string;
+  /** Vertical padding inside each cell */
+  cellPadding?: number;
 }
 
-const BASE_SLOT_HEIGHT = 30;
-
 export function CompanyLogosStrip({
-  slotHeight = 30,
-  rowGap = 20,
+  fontSize = 16,
   labelSize = 13,
   label = "Speakers from",
+  cellPadding = 14,
 }: CompanyLogosStripProps) {
-  const scaleFactor = slotHeight / BASE_SLOT_HEIGHT;
+  const borderColor = "rgba(255,255,255,0.10)";
+  const cellStyle = {
+    fontFamily: "'Inter', sans-serif",
+    fontSize: `${fontSize}px`,
+    padding: `${cellPadding}px 0`,
+    borderRight: `1px solid ${borderColor}`,
+  };
 
   return (
-    <div className="flex flex-col w-full" style={{ gap: rowGap }}>
+    <div className="flex flex-col w-full" style={{ gap: 16 }}>
       <span
         className="uppercase tracking-[0.25em] text-white/30 text-center"
         style={{
@@ -55,51 +38,52 @@ export function CompanyLogosStrip({
       >
         {label}
       </span>
-      <div className="flex items-center justify-between w-full">
-        {ROW_1.map((logo) => (
-          <div
-            key={logo.name}
-            className="flex items-center justify-center"
-            style={{
-              height: slotHeight,
-              width: `${100 / ROW_1.length}%`,
-            }}
-          >
-            <img
-              src={logo.src}
-              alt={logo.name}
-              crossOrigin="anonymous"
-              className="object-contain opacity-50"
+      <div
+        className="w-full"
+        style={{ borderTop: `1px solid ${borderColor}` }}
+      >
+        {/* Row 1 */}
+        <div
+          className="flex w-full"
+          style={{
+            borderBottom: `1px solid ${borderColor}`,
+            borderLeft: `1px solid ${borderColor}`,
+          }}
+        >
+          {ROW_1.map((name) => (
+            <span
+              key={name}
+              className="text-white/40 text-center"
               style={{
-                maxHeight: slotHeight,
-                maxWidth: logo.maxW * scaleFactor,
+                ...cellStyle,
+                width: `${100 / ROW_1.length}%`,
               }}
-            />
-          </div>
-        ))}
-      </div>
-      <div className="flex items-center justify-between w-full">
-        {ROW_2.map((logo) => (
-          <div
-            key={logo.name}
-            className="flex items-center justify-center"
-            style={{
-              height: slotHeight,
-              width: `${100 / ROW_2.length}%`,
-            }}
-          >
-            <img
-              src={logo.src}
-              alt={logo.name}
-              crossOrigin="anonymous"
-              className="object-contain opacity-50"
+            >
+              {name}
+            </span>
+          ))}
+        </div>
+        {/* Row 2 */}
+        <div
+          className="flex w-full"
+          style={{
+            borderBottom: `1px solid ${borderColor}`,
+            borderLeft: `1px solid ${borderColor}`,
+          }}
+        >
+          {ROW_2.map((name) => (
+            <span
+              key={name}
+              className="text-white/40 text-center"
               style={{
-                maxHeight: slotHeight,
-                maxWidth: logo.maxW * scaleFactor,
+                ...cellStyle,
+                width: `${100 / ROW_2.length}%`,
               }}
-            />
-          </div>
-        ))}
+            >
+              {name}
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   );

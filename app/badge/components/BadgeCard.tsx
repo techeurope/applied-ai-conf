@@ -53,69 +53,74 @@ export function BadgeCard({ name, imageUrl }: BadgeCardProps) {
         }}
       />
 
-      {/* Narrative flow: [photo+name] "is attending" — [conference] — "with speakers from" [logos] */}
-      <div className="absolute inset-0 z-20 flex flex-col items-center justify-center px-12" style={{ gap: 56 }}>
-        {/* TOP — Photo + name + "is attending" */}
-        <div className="flex flex-col items-center gap-5">
-          <div className="flex items-center gap-6">
-            {imageUrl && (
+      {/* Name + Conference centered in space above the bottom grid */}
+      {/* paddingBottom = grid height (~130px) + gap (140px) to match visual symmetry */}
+      <div className="absolute inset-0 z-20 flex flex-col items-center justify-center" style={{ paddingBottom: 270 }}>
+        <div className="flex flex-col items-center" style={{ gap: 140 }}>
+          {/* TOP — Photo + name + "is attending" */}
+          <div className="flex flex-col items-center gap-5 px-12">
+            <div className="flex items-center gap-6">
+              {imageUrl && (
+                <div
+                  className="rounded-full overflow-hidden border-2 border-white/20 shrink-0"
+                  style={{ width: 140, height: 140 }}
+                >
+                  <img
+                    src={imageUrl}
+                    alt="Attendee"
+                    crossOrigin="anonymous"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
               <div
-                className="rounded-full overflow-hidden border-2 border-white/20 shrink-0"
-                style={{ width: 140, height: 140 }}
+                className={`font-bold text-white uppercase leading-[0.95] ${
+                  isPlaceholder ? "opacity-20" : ""
+                } ${imageUrl ? "text-left" : "text-center"}`}
+                style={{
+                  fontFamily: "'Kode Mono', monospace",
+                  fontSize: `${fontSize}px`,
+                }}
               >
-                <img
-                  src={imageUrl}
-                  alt="Attendee"
-                  crossOrigin="anonymous"
-                  className="w-full h-full object-cover"
-                />
+                {displayName}
               </div>
-            )}
+            </div>
             <div
-              className={`font-bold text-white uppercase leading-[0.95] ${
-                isPlaceholder ? "opacity-20" : ""
-              } ${imageUrl ? "text-left" : "text-center"}`}
-              style={{
-                fontFamily: "'Kode Mono', monospace",
-                fontSize: `${fontSize}px`,
-              }}
+              className="text-base tracking-[0.3em] uppercase text-white/30"
+              style={{ fontFamily: "'Kode Mono', monospace" }}
             >
-              {displayName}
+              is attending
             </div>
           </div>
-          <div
-            className="text-base tracking-[0.3em] uppercase text-white/30"
-            style={{ fontFamily: "'Kode Mono', monospace" }}
-          >
-            is attending
+
+          {/* CENTER — Conference branding */}
+          <div className="flex flex-col items-center px-12">
+            <span
+              className="text-white/40 text-xl tracking-wide mb-5"
+              style={{ fontFamily: "'Kode Mono', monospace" }}
+            >
+              {"{Tech: Europe}"}
+            </span>
+            <div
+              className="text-white font-bold tracking-tight leading-[0.88] text-center"
+              style={{ fontFamily: "'Kode Mono', monospace", fontSize: "156px" }}
+            >
+              <div>APPLIED</div>
+              <div>AI CONF</div>
+            </div>
+            <div
+              className="text-white/40 text-xl tracking-[0.15em] uppercase mt-6"
+              style={{ fontFamily: "'Inter', sans-serif" }}
+            >
+              MAY 28, 2026 &middot; BERLIN
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* CENTER — Conference branding */}
-        <div className="flex flex-col items-center">
-          <span
-            className="text-white/40 text-xl tracking-wide mb-5"
-            style={{ fontFamily: "'Kode Mono', monospace" }}
-          >
-            {"{Tech: Europe}"}
-          </span>
-          <div
-            className="text-white font-bold tracking-tight leading-[0.88] text-center"
-            style={{ fontFamily: "'Kode Mono', monospace", fontSize: "132px" }}
-          >
-            <div>APPLIED</div>
-            <div>AI CONF</div>
-          </div>
-          <div
-            className="text-white/40 text-xl tracking-[0.15em] uppercase mt-6"
-            style={{ fontFamily: "'Inter', sans-serif" }}
-          >
-            MAY 28, 2026 &middot; BERLIN
-          </div>
-        </div>
-
-        {/* BOTTOM — "with speakers from" + logos */}
-        <CompanyLogosStrip slotHeight={32} rowGap={28} labelSize={13} label="with speakers from" />
+      {/* BOTTOM — Company grid pinned to bottom edge */}
+      <div className="absolute bottom-0 left-0 right-0 z-20">
+        <CompanyLogosStrip fontSize={22} labelSize={13} cellPadding={18} label="with speakers from" />
       </div>
     </div>
   );

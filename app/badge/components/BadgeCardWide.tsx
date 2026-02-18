@@ -53,8 +53,8 @@ export function BadgeCardWide({ name, imageUrl }: BadgeCardWideProps) {
         }}
       />
 
-      {/* Main content - two column layout */}
-      <div className="absolute inset-0 z-20 flex items-center px-16">
+      {/* Main content centered in space above the bottom grid */}
+      <div className="absolute inset-0 z-20 flex items-center px-16" style={{ paddingBottom: 140 }}>
         {/* Left side - Photo + name + "is attending" */}
         <div className="flex-1 flex flex-col">
           <div className="flex items-center gap-4">
@@ -115,9 +115,9 @@ export function BadgeCardWide({ name, imageUrl }: BadgeCardWideProps) {
         </div>
       </div>
 
-      {/* Bottom - Company logos */}
-      <div className="absolute bottom-6 left-12 right-12 z-20">
-        <CompanyLogosStrip slotHeight={24} rowGap={20} labelSize={10} label="with speakers from" />
+      {/* BOTTOM — Company grid pinned to bottom edge */}
+      <div className="absolute bottom-0 left-0 right-0 z-20">
+        <CompanyLogosStrip fontSize={15} labelSize={10} cellPadding={10} label="with speakers from" />
       </div>
     </div>
   );
