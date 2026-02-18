@@ -295,7 +295,7 @@ export default function About() {
                 <div>
                   <p className="text-white font-semibold mb-1">Expo Area</p>
                   <p className="text-gray-400 text-sm">
-                    Sponsors and community partners showcase
+                    Partners showcase
                   </p>
                 </div>
               </div>

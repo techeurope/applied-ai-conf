@@ -14,8 +14,8 @@ export const FAQS = [
     answer: 'The full agenda will be announced in the coming weeks. Stay tuned for updates!',
   },
   {
-    question: 'Can I participate as a sponsor of the event?',
-    answer: "Yes! We'd love to have you as a sponsor. Please contact us for sponsorship opportunities.",
+    question: 'Can I participate as a partner of the event?',
+    answer: "Yes! We'd love to have you as a partner. Please contact us for partnership opportunities.",
   },
   {
     question: "What's the refund and cancellation policy?",

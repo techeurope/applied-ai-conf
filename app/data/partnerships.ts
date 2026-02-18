@@ -61,12 +61,12 @@ const PARTNERSHIP_TIERS = [
 
 const PARTNERSHIP_ADD_ONS = [
   {
-    name: "Lanyard Sponsor",
+    name: "Lanyard Partner",
     description: "Branding on all attendee badges",
     price: "€10,000",
   },
   {
-    name: "Coffee Bar Sponsor",
+    name: "Coffee Bar Partner",
     description: "Branded coffee or networking area",
     price: "€10,000",
   },
@@ -76,7 +76,7 @@ const PARTNERSHIP_ADD_ONS = [
     price: "€10,000",
   },
   {
-    name: "Evening Drinks Sponsor",
+    name: "Evening Drinks Partner",
     description: "Co-branded closing reception",
     price: "€10,000",
   },

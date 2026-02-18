@@ -24,7 +24,7 @@ const FAQ_ITEMS = [
     answer: "Yes. Reach out to us via info@techeurope.io for group bookings.",
   },
   {
-    question: "How can my company sponsor?",
+    question: "How can my company partner with us?",
     answer: "Check out our partnership options below and get in touch.",
     href: "#partner",
   },
