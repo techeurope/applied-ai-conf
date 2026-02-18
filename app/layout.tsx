@@ -89,6 +89,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <meta name="referrer" content="no-referrer-when-downgrade" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}

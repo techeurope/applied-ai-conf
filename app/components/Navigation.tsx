@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import posthog from 'posthog-js';
 import { Ticket } from 'lucide-react';
 import { NAVIGATION_ACTIONS, NAVIGATION_LINKS, LUMA_EVENT_ID } from '@/data/navigation';
 
@@ -82,6 +83,7 @@ export default function Navigation() {
                   {...(isTicket && {
                     'data-luma-action': 'checkout',
                     'data-luma-event-id': LUMA_EVENT_ID,
+                    onClick: () => posthog.capture('ticket_click', { location: 'navigation' }),
                   })}
                 >
                   {isTicket && <Ticket className="h-4 w-4" />}

@@ -1,3 +1,6 @@
+"use client";
+
+import posthog from "posthog-js";
 import { CONFERENCE_INFO } from "@/data/conference";
 import { NAVIGATION_ACTIONS, LUMA_EVENT_ID } from "@/data/navigation";
 import { LidarScapeBackground } from "@/components/ui/lidar-scape-background";
@@ -64,6 +67,7 @@ export default function Hero() {
             rel="noopener noreferrer"
             data-luma-action="checkout"
             data-luma-event-id={LUMA_EVENT_ID}
+            onClick={() => posthog.capture("ticket_click", { location: "hero" })}
             className="group flex items-center justify-center gap-2 px-7 py-3 rounded-full bg-white hover:bg-gray-100 transition-all shadow-xl shadow-white/20 hover:shadow-white/30 hover:scale-[1.03] w-full sm:w-auto ring-1 ring-white/30"
           >
             <Ticket className="h-4 w-4 text-black" />

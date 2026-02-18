@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toPng } from "html-to-image";
+import posthog from "posthog-js";
 import { Download, ImagePlus, X } from "lucide-react";
 import { BadgeCard } from "./components/BadgeCard";
 import { BadgeCardWide } from "./components/BadgeCardWide";
@@ -244,6 +245,7 @@ export default function BadgePage() {
           <button
             data-luma-action="checkout"
             data-luma-event-id={LUMA_EVENT_ID}
+            onClick={() => posthog.capture("ticket_click", { location: "badge_page" })}
             className="w-full border border-white/20 hover:border-white/40 text-white py-3 px-6 rounded-lg transition-all text-center"
             style={{ fontFamily: "var(--font-kode-mono), monospace" }}
           >
