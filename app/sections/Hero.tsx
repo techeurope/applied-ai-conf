@@ -9,7 +9,7 @@ import { CompanyLogoMarquee } from "@/components/ui/company-logo-marquee";
 import { Ticket } from "lucide-react";
 
 export default function Hero() {
-  const ticketAction = NAVIGATION_ACTIONS[0];
+  const ticketAction = NAVIGATION_ACTIONS.find(a => a.label.toLowerCase().includes('ticket'))!;
 
   return (
     <section className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden py-12 sm:py-24 text-center">
