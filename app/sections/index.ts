@@ -1,4 +1,5 @@
 export { default as Hero } from './Hero';
+export { default as ConferenceThemes } from './ConferenceThemes';
 export { default as About } from './About';
 export { default as FeaturedSpeakers } from './FeaturedSpeakers';
 export { default as Team } from './Team';

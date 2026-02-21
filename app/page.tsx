@@ -1,6 +1,7 @@
 import { Navigation, Footer } from "@/components";
 import {
   Hero,
+  ConferenceThemes,
   About,
   FeaturedSpeakers,
   PartnershipTiers,
@@ -14,6 +15,7 @@ export default function Home() {
       <Navigation />
       <main>
         <Hero />
+        <ConferenceThemes />
         <FeaturedSpeakers />
         <About />
         <PartnershipTiers />

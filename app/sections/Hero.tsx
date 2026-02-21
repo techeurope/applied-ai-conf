@@ -1,16 +1,10 @@
-"use client";
-
-import posthog from "posthog-js";
 import { CONFERENCE_INFO } from "@/data/conference";
-import { NAVIGATION_ACTIONS, LUMA_EVENT_ID } from "@/data/navigation";
 import { LidarScapeBackground } from "@/components/ui/lidar-scape-background";
 import { InlineNewsletterForm } from "@/components/ui/newsletter-form";
 import { CompanyLogoMarquee } from "@/components/ui/company-logo-marquee";
-import { Ticket } from "lucide-react";
+import { TicketButton } from "@/components/ui/ticket-button";
 
 export default function Hero() {
-  const ticketAction = NAVIGATION_ACTIONS.find(a => a.label.toLowerCase().includes('ticket'))!;
-
   return (
     <section className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden py-12 sm:py-24 text-center">
       {/* Background - Lidar Scape */}
@@ -61,18 +55,10 @@ export default function Hero() {
           <div className="w-full sm:flex-1">
             <InlineNewsletterForm />
           </div>
-          <a
-            href={ticketAction.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            data-luma-action="checkout"
-            data-luma-event-id={LUMA_EVENT_ID}
-            onClick={() => posthog.capture("ticket_click", { location: "hero" })}
+          <TicketButton
+            location="hero"
             className="group flex items-center justify-center gap-2 px-7 py-3 rounded-full bg-white hover:bg-gray-100 transition-all shadow-xl shadow-white/20 hover:shadow-white/30 hover:scale-[1.03] w-full sm:w-auto ring-1 ring-white/30"
-          >
-            <Ticket className="h-4 w-4 text-black" />
-            <span className="text-base font-bold text-black">Get Tickets</span>
-          </a>
+          />
         </div>
 
         {/* 6. Speaker Company Logos */}

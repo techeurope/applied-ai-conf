@@ -94,6 +94,8 @@ Conference data split by domain:
 
 ### Speaker Images
 
+**Minimum source resolution:** 1280×1280 pixels. Always request at least this size from speakers.
+
 Speakers have two image fields:
 - `image`: Original headshot (with background) - e.g. `/speakers/name.jpg`
 - `imageTransparent`: Square transparent PNG (fullbody, background removed) - e.g. `/speakers/name_fullbody_transparent_square.png`
