@@ -1,34 +1,10 @@
 "use client";
 
-import type React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { SPEAKERS } from "@/data/speakers";
 import type { Speaker } from "@/types";
 import { applyKerning } from "@/lib/utils";
-import {
-  LangdockLogo,
-  ChocoLogo,
-  TactoLogo,
-  LegoraLogo,
-  KnowunityLogo,
-  VeedLogo,
-  CodewordsLogo,
-  DustLogo,
-  IntercomLogo,
-} from "@/components";
-
-const COMPANY_LOGOS: Record<string, React.ComponentType<{ className?: string }>> = {
-  Langdock: LangdockLogo,
-  Choco: ChocoLogo,
-  Tacto: TactoLogo,
-  Legora: LegoraLogo,
-  Knowunity: KnowunityLogo,
-  "VEED.IO": VeedLogo,
-  Codewords: CodewordsLogo,
-  Dust: DustLogo,
-  Intercom: IntercomLogo,
-};
 
 export default function FeaturedSpeakers() {
   const speakers: Speaker[] = [...SPEAKERS];
@@ -138,25 +114,8 @@ export default function FeaturedSpeakers() {
                             <div className="text-xs font-mono text-gray-500 uppercase tracking-wide mb-1.5">
                               Company
                             </div>
-                            <div className="flex items-center">
-                              {(() => {
-                                const LogoComponent = COMPANY_LOGOS[speaker.company];
-                                return LogoComponent ? (
-                                  <LogoComponent className="h-5 w-auto text-white" />
-                                ) : speaker.companyLogo ? (
-                                  <Image
-                                    src={speaker.companyLogo}
-                                    alt={speaker.logoAlt || `${speaker.company} logo`}
-                                    width={80}
-                                    height={20}
-                                    className="h-5 w-auto"
-                                  />
-                                ) : (
-                                  <span className="text-sm text-white font-medium">
-                                    {speaker.company}
-                                  </span>
-                                );
-                              })()}
+                            <div className="text-sm text-white font-medium">
+                              {speaker.company}
                             </div>
                           </div>
                         )}
