@@ -8,7 +8,7 @@ export default function PartnershipTiers() {
   const borderColor = "rgba(255,255,255,0.10)";
 
   return (
-    <section id="partner" className="relative overflow-hidden py-24 lg:py-32">
+    <section id="partner" className="relative overflow-hidden py-24 lg:py-32 min-h-screen flex items-center">
       <div className="mx-auto w-full max-w-5xl px-6 lg:px-8">
         <h2 className="text-4xl font-mono font-bold tracking-tight text-center sm:text-5xl md:text-6xl mb-16">
           Partners
@@ -39,11 +39,11 @@ export default function PartnershipTiers() {
                   className="relative flex items-center justify-center opacity-70 hover:opacity-100 transition-opacity"
                   style={{
                     width: `${100 / PARTNERS.gold.length}%`,
-                    padding: "56px 32px",
+                    padding: "64px 40px",
                     borderRight: `1px solid ${borderColor}`,
                   }}
                 >
-                  <div className="relative h-16 w-full">
+                  <div className="relative h-24 w-full">
                     <Image
                       src={partner.logo}
                       alt={partner.logoAlt}
@@ -79,12 +79,12 @@ export default function PartnershipTiers() {
                   className="relative flex items-center justify-center opacity-50 hover:opacity-100 transition-opacity"
                   style={{
                     width: `${100 / PARTNERS.community.length}%`,
-                    padding: "32px 20px",
+                    padding: "48px 28px",
                     borderRight: `1px solid ${borderColor}`,
                   }}
                 >
                   <div
-                    className="relative h-8 w-full"
+                    className="relative h-12 w-full"
                     style={partner.logoScale ? { transform: `scale(${partner.logoScale})` } : undefined}
                   >
                     <Image
