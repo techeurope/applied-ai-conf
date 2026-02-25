@@ -29,7 +29,7 @@ export const SPEAKERS = [
     building: 'Building the voice layer for AI, ex-DeepMind & Kyutai co-founder',
     initial: 'NZ',
     accent: 'from-amber-400/40 via-orange-400/30 to-red-500/40',
-    image: '/speakers/neil_zeghidour_2.jpg',
+    image: '/speakers/neil_zeghidour_1.jpg',
     imageTransparent: '/speakers/neil_zeghidour_fullbody_transparent_square.png',
     imageAlt: 'Neil Zeghidour headshot',
   },
@@ -132,6 +132,7 @@ export const SPEAKERS = [
     image: '/speakers/steffen_hoellinger.png',
     imageTransparent: '/speakers/steffen_hoellinger_fullbody_transparent_square.png',
     imageAlt: 'Steffen Hoellinger headshot',
+    hidden: true,
   },
   {
     name: 'Meder Kamalov',
