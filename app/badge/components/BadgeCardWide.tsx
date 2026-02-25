@@ -10,10 +10,11 @@ function getNameFontSize(name: string): number {
 
 interface BadgeCardWideProps {
   name: string;
+  role?: string;
   imageUrl?: string | null;
 }
 
-export function BadgeCardWide({ name, imageUrl }: BadgeCardWideProps) {
+export function BadgeCardWide({ name, role, imageUrl }: BadgeCardWideProps) {
   const displayName = name || "YOUR NAME";
   const fontSize = getNameFontSize(displayName);
   const isPlaceholder = !name;
@@ -71,16 +72,25 @@ export function BadgeCardWide({ name, imageUrl }: BadgeCardWideProps) {
                 />
               </div>
             )}
-            <div
-              className={`font-bold text-white uppercase leading-[0.95] ${
-                isPlaceholder ? "opacity-20" : ""
-              }`}
-              style={{
-                fontFamily: "'Kode Mono', monospace",
-                fontSize: `${fontSize}px`,
-              }}
-            >
-              {displayName}
+            <div className="flex flex-col">
+              <div
+                className={`font-bold text-white uppercase leading-[0.95] ${isPlaceholder ? "opacity-20" : ""
+                  }`}
+                style={{
+                  fontFamily: "'Kode Mono', monospace",
+                  fontSize: `${fontSize}px`,
+                }}
+              >
+                {displayName}
+              </div>
+              {role && (
+                <div
+                  className="text-white/50 text-sm mt-0.5 normal-case"
+                  style={{ fontFamily: "'Inter', sans-serif" }}
+                >
+                  {role}
+                </div>
+              )}
             </div>
           </div>
           <div

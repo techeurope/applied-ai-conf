@@ -10,10 +10,11 @@ function getNameFontSize(name: string): number {
 
 interface BadgeCardProps {
   name: string;
+  role?: string;
   imageUrl?: string | null;
 }
 
-export function BadgeCard({ name, imageUrl }: BadgeCardProps) {
+export function BadgeCard({ name, role, imageUrl }: BadgeCardProps) {
   const displayName = name || "YOUR NAME";
   const fontSize = getNameFontSize(displayName);
   const isPlaceholder = !name;
@@ -74,15 +75,26 @@ export function BadgeCard({ name, imageUrl }: BadgeCardProps) {
                 </div>
               )}
               <div
-                className={`font-bold text-white uppercase leading-[0.95] ${
-                  isPlaceholder ? "opacity-20" : ""
-                } ${imageUrl ? "text-left" : "text-center"}`}
-                style={{
-                  fontFamily: "'Kode Mono', monospace",
-                  fontSize: `${fontSize}px`,
-                }}
+                className={`flex flex-col ${imageUrl ? "items-start" : "items-center"}`}
               >
-                {displayName}
+                <div
+                  className={`font-bold text-white uppercase leading-[0.95] ${isPlaceholder ? "opacity-20" : ""
+                    } ${imageUrl ? "text-left" : "text-center"}`}
+                  style={{
+                    fontFamily: "'Kode Mono', monospace",
+                    fontSize: `${fontSize}px`,
+                  }}
+                >
+                  {displayName}
+                </div>
+                {role && (
+                  <div
+                    className={`text-white/50 text-xl mt-1 normal-case ${imageUrl ? "text-left" : "text-center"}`}
+                    style={{ fontFamily: "'Inter', sans-serif" }}
+                  >
+                    {role}
+                  </div>
+                )}
               </div>
             </div>
             <div
