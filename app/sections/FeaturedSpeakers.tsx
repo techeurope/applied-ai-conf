@@ -7,7 +7,7 @@ import type { Speaker } from "@/types";
 import { applyKerning } from "@/lib/utils";
 
 export default function FeaturedSpeakers() {
-  const speakers: Speaker[] = [...SPEAKERS];
+  const speakers: Speaker[] = [...SPEAKERS.filter(s => !s.hidden)];
 
   // Calculate how many placeholders needed to fill the 3-column grid
   const placeholdersNeeded = (3 - (speakers.length % 3)) % 3;
