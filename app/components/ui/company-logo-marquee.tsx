@@ -12,6 +12,7 @@ import { VeedLogo } from "@/components/ui/veed-logo";
 import { CodewordsLogo } from "@/components/ui/codewords-logo";
 import { DustLogo } from "@/components/ui/dust-logo";
 import { IntercomLogo } from "@/components/ui/intercom-logo";
+import { GradiumLogo } from "@/components/ui/gradium-logo";
 
 type LogoComponent = React.ComponentType<{ className?: string }>;
 
@@ -25,6 +26,7 @@ const COMPANY_LOGOS: Record<string, LogoComponent> = {
   Codewords: CodewordsLogo,
   Dust: DustLogo,
   Intercom: IntercomLogo,
+  Gradium: GradiumLogo,
 };
 
 const COMPANY_ITEMS = Array.from(

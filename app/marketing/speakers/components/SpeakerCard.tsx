@@ -16,7 +16,7 @@ const LOGO_MAP: Record<string, string> = {
 
 function getLogoPath(speaker: Speaker): string {
   const key = speaker.company.toLowerCase();
-  return LOGO_MAP[key] || speaker.companyLogo || "/logos/langdock_dark.png";
+  return LOGO_MAP[key] || speaker.companyLogo || "";
 }
 
 interface ImageConfig {

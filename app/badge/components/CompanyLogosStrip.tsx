@@ -1,6 +1,6 @@
 // Speaker company names in a bordered grid (table-style)
 const ROW_1 = ["Langdock", "Choco", "Legora", "Knowunity", "VEED.IO"];
-const ROW_2 = ["Codewords", "Tacto", "Dust", "Intercom"];
+const ROW_2 = ["Gradium", "Tacto", "Dust", "Intercom"];
 
 interface CompanyLogosStripProps {
   /** Font size for company names */

@@ -11,5 +11,6 @@ export { VeedLogo } from './ui/veed-logo';
 export { CodewordsLogo } from './ui/codewords-logo';
 export { DustLogo } from './ui/dust-logo';
 export { IntercomLogo } from './ui/intercom-logo';
+export { GradiumLogo } from './ui/gradium-logo';
 export { default as CookieConsent } from './CookieConsent';
 export { default as PostHogProvider } from './PostHogProvider';

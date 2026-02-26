@@ -20,8 +20,9 @@ export const SPEAKERS = [
   },
   {
     name: 'Neil Zeghidour',
-    title: 'CEO & Founder',
+    title: 'Co-Founder & CEO',
     company: 'Gradium',
+    companyLogo: '/logos/gradium.svg',
     companyUrl: 'https://gradium.ai/',
     linkedinUrl: 'https://www.linkedin.com/in/neil-zeghidour-a838aaa7/',
     bio: '',
@@ -32,6 +33,7 @@ export const SPEAKERS = [
     image: '/speakers/neil_zeghidour_1.jpg',
     imageTransparent: '/speakers/neil_zeghidour_fullbody_transparent_square.png',
     imageAlt: 'Neil Zeghidour headshot',
+    logoAlt: 'Gradium logo',
   },
   {
     name: 'Stanislas Polu',
