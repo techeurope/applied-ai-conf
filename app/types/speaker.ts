@@ -14,6 +14,7 @@ export interface Speaker {
   imageTransparent?: string; // Transparent PNG (background removed via remove-background.mjs)
   imageAlt: string; // Alt text for headshot
   logoAlt?: string; // Alt text for company logo
+  hidden?: boolean; // Hide from public-facing speaker lists
   socials?: {
     label: string;
     url: string;
