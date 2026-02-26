@@ -18,6 +18,7 @@ const FORMAT_CONFIG = {
 
 export default function BadgePage() {
   const [name, setName] = useState("");
+  const [role, setRole] = useState("");
   const [format, setFormat] = useState<BadgeFormat>("square");
   const [isExporting, setIsExporting] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -115,35 +116,49 @@ export default function BadgePage() {
         </div>
 
         {/* Controls */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-4 mb-8 max-w-2xl mx-auto">
-          {/* Name input */}
-          <div className="flex-1">
-            <label
-              htmlFor="badge-name"
-              className="block text-sm text-neutral-400 mb-2"
-              style={{ fontFamily: "var(--font-kode-mono), monospace" }}
-            >
-              First Name
-            </label>
-            <input
-              id="badge-name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value.slice(0, 20))}
-              placeholder="Enter your first name"
-              className="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-neutral-600 focus:outline-none focus:border-white/60 transition-colors"
-              style={{ fontFamily: "var(--font-kode-mono), monospace" }}
-            />
+        <div className="space-y-5 mb-8 max-w-2xl mx-auto">
+          {/* Row 1: Name + optional Role */}
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-4">
+            <div className="flex-1">
+              <label
+                htmlFor="badge-name"
+                className="block text-sm text-neutral-400 mb-2"
+                style={{ fontFamily: "var(--font-kode-mono), monospace" }}
+              >
+                Name
+              </label>
+              <input
+                id="badge-name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value.slice(0, 20))}
+                placeholder="Enter your name"
+                className="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-neutral-600 focus:outline-none focus:border-white/60 transition-colors"
+                style={{ fontFamily: "var(--font-kode-mono), monospace" }}
+              />
+            </div>
+            <div className="sm:w-56">
+              <label
+                htmlFor="badge-role"
+                className="block text-sm text-neutral-400 mb-2"
+                style={{ fontFamily: "var(--font-kode-mono), monospace" }}
+              >
+                Role <span className="text-neutral-500 font-normal">(optional)</span>
+              </label>
+              <input
+                id="badge-role"
+                type="text"
+                value={role}
+                onChange={(e) => setRole(e.target.value.slice(0, 40))}
+                placeholder="e.g. Engineer, CTO"
+                className="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-neutral-600 focus:outline-none focus:border-white/60 transition-colors"
+                style={{ fontFamily: "var(--font-kode-mono), monospace" }}
+              />
+            </div>
           </div>
 
-          {/* Photo upload */}
-          <div>
-            <label
-              className="block text-sm text-neutral-400 mb-2"
-              style={{ fontFamily: "var(--font-kode-mono), monospace" }}
-            >
-              Photo
-            </label>
+          {/* Row 2: Photo + Format, compact */}
+          <div className="flex flex-wrap items-center gap-4">
             <input
               ref={fileInputRef}
               type="file"
@@ -152,58 +167,64 @@ export default function BadgePage() {
               className="hidden"
               id="badge-photo"
             />
-            {imageUrl ? (
-              <div className="flex items-center gap-2">
-                <div className="w-[46px] h-[46px] rounded-full overflow-hidden border border-white/20">
-                  <img
-                    src={imageUrl}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <button
-                  onClick={handleRemoveImage}
-                  className="p-3 rounded-lg border border-white/20 hover:border-white/40 text-neutral-400 hover:text-white transition-colors"
-                  title="Remove photo"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-2 px-4 py-3 rounded-lg border border-white/20 hover:border-white/40 text-neutral-400 hover:text-white transition-colors whitespace-nowrap"
+            <div className="flex items-center gap-2">
+              <span
+                className="text-sm text-neutral-400 shrink-0"
                 style={{ fontFamily: "var(--font-kode-mono), monospace" }}
               >
-                <ImagePlus className="w-4 h-4" />
-                Add photo
-              </button>
-            )}
-          </div>
-
-          {/* Format toggle */}
-          <div>
-            <label
-              className="block text-sm text-neutral-400 mb-2"
-              style={{ fontFamily: "var(--font-kode-mono), monospace" }}
-            >
-              Format
-            </label>
-            <div className="flex gap-2">
-              {(Object.keys(FORMAT_CONFIG) as BadgeFormat[]).map((key) => (
+                Photo
+              </span>
+              {imageUrl ? (
+                <>
+                  <div className="w-9 h-9 rounded-full overflow-hidden border border-white/20 shrink-0">
+                    <img
+                      src={imageUrl}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <button
+                    onClick={handleRemoveImage}
+                    className="p-2 rounded-md border border-white/20 hover:border-white/40 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+                    title="Remove photo"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </>
+              ) : (
                 <button
-                  key={key}
-                  onClick={() => setFormat(key)}
-                  className={`px-4 py-3 rounded-lg border text-sm transition-all whitespace-nowrap ${
-                    format === key
-                      ? "bg-white text-black border-white"
-                      : "bg-transparent text-white border-white/20 hover:border-white/40"
-                  }`}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-white/20 hover:border-white/40 text-neutral-400 hover:text-white transition-colors cursor-pointer text-sm"
                   style={{ fontFamily: "var(--font-kode-mono), monospace" }}
                 >
-                  {FORMAT_CONFIG[key].label}
+                  <ImagePlus className="w-3.5 h-3.5 shrink-0" />
+                  Add
                 </button>
-              ))}
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <span
+                className="text-sm text-neutral-400 shrink-0"
+                style={{ fontFamily: "var(--font-kode-mono), monospace" }}
+              >
+                Format
+              </span>
+              <div className="flex gap-1.5">
+                {(Object.keys(FORMAT_CONFIG) as BadgeFormat[]).map((key) => (
+                  <button
+                    key={key}
+                    onClick={() => setFormat(key)}
+                    title={FORMAT_CONFIG[key].label}
+                    className={`px-3 py-2 rounded-lg border text-sm transition-all cursor-pointer ${format === key
+                        ? "bg-white text-black border-white"
+                        : "bg-transparent text-white border-white/20 hover:border-white/40"
+                      }`}
+                    style={{ fontFamily: "var(--font-kode-mono), monospace" }}
+                  >
+                    {key === "square" ? "Square" : "Wide"}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -222,9 +243,9 @@ export default function BadgePage() {
           >
             <div ref={cardRef}>
               {format === "square" ? (
-                <BadgeCard name={name} imageUrl={imageUrl} />
+                <BadgeCard name={name} role={role || undefined} imageUrl={imageUrl} />
               ) : (
-                <BadgeCardWide name={name} imageUrl={imageUrl} />
+                <BadgeCardWide name={name} role={role || undefined} imageUrl={imageUrl} />
               )}
             </div>
           </div>
@@ -235,7 +256,7 @@ export default function BadgePage() {
           <button
             onClick={handleExport}
             disabled={isExporting}
-            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 px-6 rounded-lg transition-all"
+            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 px-6 rounded-lg transition-all cursor-pointer"
             style={{ fontFamily: "var(--font-kode-mono), monospace" }}
           >
             <Download className="w-4 h-4" />
@@ -246,7 +267,7 @@ export default function BadgePage() {
             data-luma-action="checkout"
             data-luma-event-id={LUMA_EVENT_ID}
             onClick={() => posthog.capture("ticket_click", { location: "badge_page" })}
-            className="w-full border border-white/20 hover:border-white/40 text-white py-3 px-6 rounded-lg transition-all text-center"
+            className="w-full border border-white/20 hover:border-white/40 text-white py-3 px-6 rounded-lg transition-all text-center cursor-pointer"
             style={{ fontFamily: "var(--font-kode-mono), monospace" }}
           >
             Get your ticket
