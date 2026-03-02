@@ -31,27 +31,9 @@ source ~/.zshrc && for v in v1 v2 v3; do agent-media image edit \
   --out public/speakers/name_fullbody_square_${v}.png; done
 ```
 
-After the user picks the best variant, rename it to `name_fullbody_square.png` for the next steps.
+After the user picks the best variant, rename it to `name_fullbody_square.png` for the next step.
 
-**Step 2: Color correction (professional photo grade)**
-
-Use sharp (NOT AI edit — AI edit destroys/regenerates the image). Write to a separate file first to avoid overwriting the original.
-
-```bash
-node -e "
-const sharp = require('sharp');
-const input = 'public/speakers/name_fullbody_square.png';
-const output = 'public/speakers/name_fullbody_square.png';
-sharp(input)
-  .modulate({ brightness: 1.05, saturation: 1.25 })
-  .linear([1.05, 1.0, 0.95], [5, 0, -5])
-  .toFile(output + '.tmp')
-  .then(() => { require('fs').renameSync(output + '.tmp', output); console.log('Done'); })
-  .catch(e => console.error(e));
-"
-```
-
-**Step 3: Remove background**
+**Step 2: Remove background**
 
 ```bash
 agent-media image remove-background \
@@ -60,14 +42,7 @@ agent-media image remove-background \
   --provider fal
 ```
 
-**Step 4: Crop to square (if needed)**
-
-```bash
-agent-media image crop \
-  --in public/speakers/name_fullbody_transparent_square.png \
-  --width 1024 --height 1024 \
-  --out public/speakers/name_fullbody_transparent_square.png
-```
+**IMPORTANT: Do NOT crop, resize, or color-correct after these steps.** Step 1 already produces a correctly sized square image. The pipeline ends after Step 2. No sharp, no post-processing.
 
 **Reference template:** `public/speakers/_reference_template.png` — abstract silhouette used as direct input to Step 1. The model matches this framing automatically. Key proportions to verify:
 - Head starts ~8% from top edge (clear headroom above)
@@ -75,9 +50,9 @@ agent-media image crop \
 - Body extends to bottom edge
 - Person centered horizontally
 
-**Quality checks (MANDATORY after every step):**
+**Quality checks (MANDATORY after Step 1):**
 1. Verify proportions match the reference template
-2. Verify dimensions are square (2K from Step 1, 1024x1024 after crop)
+2. Verify dimensions are square (2048x2048 from Step 1)
 3. Verify head is NOT cut off at top
 4. Verify both shoulders are fully visible
 5. If output is not square: PAD with background color (do NOT center-crop — that cuts heads)
@@ -85,9 +60,31 @@ agent-media image crop \
 **Troubleshooting:**
 - Shoulders cut off -> add "The [left/right] shoulder especially must be completely visible"
 - No headroom -> add "Make the person smaller in the frame"
-- Color looks washed out/pale -> run the color correction step (step 2)
-- NEVER use AI edit for color correction — it regenerates the image and degrades quality
-- Output not square -> pad to square, NEVER center-crop (cuts off heads)
+- Colors look off -> re-generate in Step 1 with a better variant, do NOT post-process
+- NEVER crop, resize, or color-correct after generation — if it doesn't look right, re-generate
+
+## Company Logo Pipeline
+
+When adding a new speaker/company, the logo must be added to **all three locations**:
+
+1. **React component** in `app/components/ui/<company>-logo.tsx` — inline SVG using `currentColor` for fill (not hardcoded colors). Follow the pattern of existing logo components (e.g., `agemo-logo.tsx`, `dust-logo.tsx`).
+2. **Company logo marquee** in `app/components/ui/company-logo-marquee.tsx` — import the component and add entry to `COMPANY_LOGOS` map (keyed by exact `company` name from `speakers.ts`).
+3. **Speaker card LOGO_MAP** in `app/marketing/speakers/components/SpeakerCard.tsx` — map lowercase company name to the static file path (for speaker cards on dark backgrounds).
+4. **Component barrel export** in `app/components/index.ts` — export the new logo component.
+
+**How to get a logo SVG:**
+- Check the company's website HTML for `<img>` or inline `<svg>` logo elements
+- Use `curl` + `grep` to extract logo URLs from the page source
+- Download the SVG and convert `fill="white"` or `fill="#xxx"` to `fill="currentColor"` for the React component
+- Also save the original SVG to `public/logos/<company>.svg` for the SpeakerCard LOGO_MAP
+
+**Checklist for new company logo:**
+- [ ] SVG file saved to `public/logos/<company>.svg`
+- [ ] React component created at `app/components/ui/<company>-logo.tsx` with `currentColor` fills
+- [ ] Added to `COMPANY_LOGOS` in `company-logo-marquee.tsx`
+- [ ] Added to `LOGO_MAP` in `SpeakerCard.tsx`
+- [ ] Exported from `app/components/index.ts`
+- [ ] Build passes (`pnpm build`)
 
 ## Slack
 
@@ -247,34 +244,21 @@ Every session gets two tags:
 
 The full content plan with agenda structure, speaker topic suggestions, format assignments, panel plans, and slot calculations lives in the **"Content Plan" tab** of the Speaker List spreadsheet (`1J3_lk00LJAER3LRDfQZi2iMamhmCNJ-QmO9e6YqGe1E`). This is the single source of truth for programme planning. Main stage has 1 keynote (30 min), 9 talks (20 min), 2 panels (45 min). Side stage has 7 sessions (30 min).
 
-### Speaker-Topic Mapping
-
-Each speaker maps to a primary cluster, engineering lens, and stage assignment:
-
-| Speaker | Company | Primary Cluster | Lens | Stage | Suggested Talk Angles |
-|---|---|---|---|---|---|
-| Des Traynor | Intercom | Production case studies | Failure postmortem | Main (keynote) | "AI-first customer service at 159K companies: what works, what fails, and how we measure" |
-| Stanislas Polu | Dust | LLM architecture | Reference architecture | Main (talk) | "The OS for AI agents: orchestrating, governing, and debugging agent fleets" |
-| Sabba Keynejad | VEED.IO | LLM architecture | Hard constraints | Main (talk) | "AI-powered video at 4M+ users: multi-model orchestration and inference cost reality" |
-| Lucas Hild | Knowunity | Production case studies | Metrics-driven | Main (talk) | "Serving AI to 23M students: latency, cost, and quality at scale" |
-| Daniel Khachab | Choco | Production case studies | Decision framework | Main (talk) | "AI in supply chains: architecture decisions when your users aren't developers" |
-| Lennard Schmidt | Langdock | Enterprise readiness | Tooling workflow | Main (talk) | "Rolling out AI to 4000+ businesses: permissions, governance, and adoption patterns" |
-| Aymeric Zhuo | Codewords | AI-native workflows | Reference architecture | Main (talk) | "From chat to automation: building AI-native workflows that replace UIs" |
-| Nico Bentenrieder | Tacto | Evaluation & observability | Failure postmortem | Main (talk) | "Building procurement intelligence: what broke when we moved from prototype to production" |
-| Jacob Lauritzen | Legora | Enterprise readiness | Hard constraints | Main (talk) | "AI for lawyers: evaluation, compliance, and the trust bar that can't slip" |
-
 ### Speaker Outreach Process
+
+Speaker-topic mapping lives in the **Content Plan tab** of the Speaker List spreadsheet. Always read it from there, never hardcode it in this file.
 
 When reaching out to a speaker about their talk topic, follow this process:
 
-1. **Check beads** — Look for an existing outreach ticket (`bd list`). Each speaker has a ticket like "outreach: [speaker name] — discuss talk topic".
-2. **Send personalized message** — Use the speaker-topic mapping above. Include:
-   - Their primary area and suggested engineering lens from the table
+1. **Check beads** — Look for an existing outreach ticket (`bd list`).
+2. **Read the Content Plan** — Pull the speaker's suggested angles, cluster, lens, and stage from the spreadsheet.
+3. **Send personalized message** — Include:
+   - Their primary area and suggested engineering lens from the Content Plan
    - Stage suggestion: Main Stage (20 min talk) or Side Stage (30 min deeper dive)
    - Ask for a 5-bullet outline (see talk brief framework below)
    - Freedom to propose their own angle
-3. **Update the beads ticket** — Add notes on what was discussed, what direction they chose.
-4. **Close the ticket** — Once a talk title and direction are confirmed.
+4. **Update the beads ticket** — Add notes on what was discussed, what direction they chose.
+5. **Close the ticket** — Once a talk title and direction are confirmed.
 
 **Talk brief framework** (send to speakers as guidance):
 
