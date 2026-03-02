@@ -1,41 +1,37 @@
-# AGENTS.md
+# CLAUDE.md
 
-This file provides guidance to AI coding agents when working with code in this repository.
+Non-obvious conventions, gotchas, and workflows that can't be inferred from reading the code.
 
-## Project Overview
+## Gotchas
 
-Next.js 16 conference website for "Applied AI Conf by {Tech: Europe}" - a one-day applied AI conference on May 28, 2026 at The Delta Campus in Berlin. Built with React 19, TypeScript (strict), Tailwind CSS v4, and React Three Fiber for shader graphics.
+- **Never run `pnpm dev`** — the user always has the dev server running already.
+- **Avoid specific attendee count claims** until confirmed. Use qualitative wording ("curated in-person audience", "builders, founders, CTOs, and engineers").
+- **Never commit content plan data to the repo** — the repo is public. Content plan lives in the "Content Plan" tab of the Speaker List spreadsheet.
 
-## Commands
-
-```bash
-pnpm dev          # Dev server with Turbopack (NEVER run this — user always has it running)
-pnpm build        # Production build
-pnpm start        # Production server
-pnpm lint         # ESLint
-```
-
-**Important:** Never start the dev server (`pnpm dev`). The user always has it running already.
-
-### Speaker Image Pipeline
+## Speaker Image Pipeline
 
 Uses `agent-media` CLI (install globally: `npm i -g agent-media`). Requires `FAL_API_KEY` in environment (source `~/.zshrc`).
 
-**Minimum source resolution:** 1280×1280 pixels. Always request at least this size from speakers. Smaller images must be upscaled before processing.
+**Minimum source resolution:** 1280x1280 pixels. Always request at least this size from speakers. Smaller images must be upscaled before processing.
 
-**File naming:** `name.jpg` → `name_fullbody_square.png` → `name_fullbody_transparent_square.png`
+**File naming:** `name.jpg` -> `name_fullbody_square.png` -> `name_fullbody_transparent_square.png`
 
 **Step 1: Extend headshot to full body (1:1 square)**
 
-The prompt is critical — use this exact prompt for consistency across all speakers:
+Uses the reference template as a direct input so the model matches the exact framing. Generate 3 variants and let the user pick the best one.
 
 ```bash
-agent-media image edit \
-  --in public/speakers/name.jpg \
-  --prompt "Zoom out and show the full person with complete head, shoulders and upper body. Add empty space at the top of the image above the person's head - the person should not touch the top edge. Position the person lower in the frame with padding above their head. Both shoulders must be fully visible with nothing cut off at any edge. Create a professional headshot with the person centered horizontally but positioned slightly lower with headroom above. Apply professional photo studio lighting with soft, even illumination. Apply consistent color grading: neutral to slightly warm tone (5500K), balanced contrast, natural skin tones. Keep the person exactly the same - same pose, expression, and appearance." \
-  --out public/speakers/name_fullbody_square.png \
-  --provider fal
+source ~/.zshrc && for v in v1 v2 v3; do agent-media image edit \
+  --in public/speakers/_reference_template.png public/speakers/name.jpg \
+  --prompt "Take the person from image two and place them into the same head-and-shoulders framing as the silhouette in image one. The person must face directly forward, looking straight at the camera, with both shoulders square and symmetrical, exactly like the silhouette. Make the person slightly smaller in the frame with more headroom above, matching the exact proportions of the silhouette template. Keep their exact facial expression from the original photo - their smile, eyes, and mood must stay exactly the same. Keep their original clothing, hair, and appearance exactly as they are. Output on a clean white background with no silhouette visible." \
+  --aspect-ratio "1:1" \
+  --resolution "2K" \
+  --model fal-ai/nano-banana-2/edit \
+  --provider fal \
+  --out public/speakers/name_fullbody_square_${v}.png; done
 ```
+
+After the user picks the best variant, rename it to `name_fullbody_square.png` for the next steps.
 
 **Step 2: Color correction (professional photo grade)**
 
@@ -55,8 +51,6 @@ sharp(input)
 "
 ```
 
-This applies: slight brightness boost, saturation increase, warm color shift (boost reds, reduce blues). Mimics professional studio color grading.
-
 **Step 3: Remove background**
 
 ```bash
@@ -75,49 +69,27 @@ agent-media image crop \
   --out public/speakers/name_fullbody_transparent_square.png
 ```
 
-**Reference template:** `public/speakers/_reference_template.png` — abstract silhouette showing the exact proportions, head position, shoulder width, and framing every speaker image must match. After every Step 1 result, visually compare against this template before proceeding. Key proportions:
+**Reference template:** `public/speakers/_reference_template.png` — abstract silhouette used as direct input to Step 1. The model matches this framing automatically. Key proportions to verify:
 - Head starts ~8% from top edge (clear headroom above)
 - Shoulders fill ~85-90% of frame width
 - Body extends to bottom edge
 - Person centered horizontally
 
 **Quality checks (MANDATORY after every step):**
-1. Compare against `_reference_template.png` for proportions
-2. Verify dimensions are 1024×1024 (square)
+1. Verify proportions match the reference template
+2. Verify dimensions are square (2K from Step 1, 1024x1024 after crop)
 3. Verify head is NOT cut off at top
 4. Verify both shoulders are fully visible
 5. If output is not square: PAD with background color (do NOT center-crop — that cuts heads)
 
 **Troubleshooting:**
-- Shoulders cut off → add "The [left/right] shoulder especially must be completely visible"
-- No headroom → add "Make the person smaller in the frame"
-- Color looks washed out/pale → run the color correction step (step 2)
+- Shoulders cut off -> add "The [left/right] shoulder especially must be completely visible"
+- No headroom -> add "Make the person smaller in the frame"
+- Color looks washed out/pale -> run the color correction step (step 2)
 - NEVER use AI edit for color correction — it regenerates the image and degrades quality
-- Output not square → pad to square, NEVER center-crop (cuts off heads)
+- Output not square -> pad to square, NEVER center-crop (cuts off heads)
 
-## Architecture
-
-**Path alias:** `@/*` maps to `./app/*` - all imports use `@/` prefix.
-
-### Data-Driven Content
-
-All content lives in `app/data/*.ts` as typed constants (using `satisfies`) with types in `app/types/*.ts`. Components import data directly - no CMS, no fetching. Example: `CONFERENCE_INFO` in `data/conference.ts` satisfies `ConferenceInfo` type.
-
-### Component Organization
-
-- **Sections** (`app/sections/`): Full-page sections composing the landing page (Hero, FeaturedSpeakers, PartnershipTiers, etc.). Export from `sections/index.ts`, compose in `app/page.tsx`.
-- **Components** (`app/components/`): Reusable elements (Navigation, Footer, SubpageLayout). SubpageLayout wraps all static pages (Team, Imprint, Privacy, Code of Conduct) with consistent Nav + Footer.
-- **UI primitives** (`app/components/ui/`): Low-level components - shader backgrounds (LidarScapeBackground, ShaderWaveBackground, FluidWaveBackground), newsletter form (3 variants), buttons, company logo SVGs.
-- **Company logos** (`app/components/ui/*-logo.tsx`): Inline SVG React components for speaker companies, imported via `@/components`.
-
-### Key Integrations
-
-- **Ticketing:** Luma Events - buttons use `data-luma-action` and `data-luma-event-id` attributes, checkout script loaded in root layout.
-- **Newsletter:** Beehiiv - `POST /api/subscribe` route. Requires `BEEHIIV_API_KEY` and `BEEHIIV_PUBLICATION_ID` env vars.
-- **Analytics:** PostHog (posthog-js) with cookie consent banner. Requires `NEXT_PUBLIC_POSTHOG_KEY` and `NEXT_PUBLIC_POSTHOG_HOST` env vars.
-- **3D/Shaders:** React Three Fiber + Three.js for hero background effects.
-
-### Slack
+## Slack
 
 Use the `agent-slack` skill to read/search/reply to Slack messages in the **{Tech: Europe}** workspace (`techeurope-slack.slack.com`). Credentials are stored at `~/.agent-slack/credentials.json` (user-level, no project config needed).
 
@@ -131,11 +103,11 @@ Use the `agent-slack` skill to read/search/reply to Slack messages in the **{Tec
 
 **Primary channel:** `#conference` (`C0A0HVBC2V8`) — all conference-related coordination.
 
-If you get `invalid_auth`, the browser token has expired. Ask the user to grab a fresh cURL from Chrome DevTools (Network tab → any `api.slack.com` request → Copy as cURL) and re-run `agent-slack auth parse-curl` or manually add with `agent-slack auth add`.
+If you get `invalid_auth`, the browser token has expired. Ask the user to grab a fresh cURL from Chrome DevTools (Network tab -> any `api.slack.com` request -> Copy as cURL) and re-run `agent-slack auth parse-curl` or manually add with `agent-slack auth add`.
 
-### Google Workspace (gog CLI)
+## Google Workspace (gog CLI)
 
-This project uses [gog](https://gogcli.sh/) to interact with Gmail, Calendar, Drive, and Sheets from the terminal.
+Uses [gog](https://gogcli.sh/) to interact with Gmail, Calendar, Drive, and Sheets from the terminal.
 
 **Prerequisites:**
 - gog CLI installed (`brew install steipete/tap/gogcli` or binary from [releases](https://github.com/steipete/gogcli/releases))
@@ -182,7 +154,7 @@ gog calendar events --today
 - **Never send emails automatically.** Always draft and review before sending.
 - Speaker communications are relationship-based.
 
-### Email Style (Tim's voice)
+## Email Style (Tim's voice)
 
 - **Never use em dashes.** Use commas, periods, or restructure instead.
 - **Sound human, not AI.** No corporate speak, no flattery, no "resonates with our audience" type bullshit. Write like a real person texting a colleague. If it sounds like ChatGPT wrote it, rewrite it.
@@ -196,7 +168,7 @@ gog calendar events --today
 - **Structure:** Greeting, context (1 sentence), ask/action, sign-off. Max 3-4 short paragraphs.
 - **First-time speaker intro:** When emailing a speaker for the first time, always open with: "Nice to meet you! I'm Tim, responsible for coordinating with all speakers for Applied AI Conf." Then follow with excitement about having them on stage before getting to the ask.
 
-### Agenda Script (`scripts/build_agenda.py`)
+## Agenda Script (`scripts/build_agenda.py`)
 
 Generates the **Agenda** sheet in the Speaker List spreadsheet. Edit the event definitions in the script, then run:
 
@@ -228,50 +200,11 @@ curl -s -X POST "https://sheets.googleapis.com/v4/spreadsheets/1J3_lk00LJAER3LRD
   -d "{\"requests\": $(cat /tmp/agenda_requests.json)}"
 ```
 
-### Marketing Tools (`/marketing/*`)
+## Task Management (Beads)
 
-Speaker card generator, twitter banner generator, logo exporter, and favicon generator. The twitter banner uses a Zustand store with undo/redo history.
+Include Beads ID in commit messages: `feat(speakers): add new speaker (bd-a1b2)`
 
-## Styling Conventions
-
-- **Dark theme:** Background `#05070f`, foreground `#f5f7ff`. All design is dark-mode only.
-- **Fonts:** Kode Mono (headings/mono elements), Inter (body/UI text).
-- **Typography fix:** `applyKerning()` in `app/lib/utils.tsx` fixes 'j' character spacing in Kode Mono by wrapping characters with adjusted margins.
-- **Utility:** `cn()` in `app/lib/utils.tsx` combines `clsx` + `tailwind-merge`.
-- **Global classes:** `.glass` (frosted backdrop), `.glass-card` (hover card effect), `.text-glow` (gradient text white to gray-500).
-- **Borders:** Subtle white borders at 5-30% opacity (`border-white/10`).
-
-### Task Management (Beads)
-
-This project uses [Beads](https://github.com/steveyegge/beads) for distributed, Git-backed task tracking. The `bd` CLI manages tasks that sync across agents via Git.
-
-**Common commands:**
-
-```bash
-bd ready              # Show your claimed tasks and what's available
-bd list               # List all open tasks
-bd create "title" -t task -p 1 --description "Details"  # Create a task
-bd update <id> --claim   # Claim a task before working on it
-bd close <id> --reason "Done: summary"  # Close a completed task
-bd sync               # Sync task database with Git
-```
-
-**Task types:** `task` (general work), `bug` (defects), `feature` (new functionality)
-
-**Commit convention:** Include Beads ID in commit messages: `feat(speakers): add new speaker (bd-a1b2)`
-
-**Multi-agent rules:**
-- Always `bd update <id> --claim` before starting work on a task
-- Always `bd sync` at session start and end
-- Check `bd ready` to avoid working on already-claimed tasks
-
-**Slack traceability:** When creating tasks from Slack messages, always include the Slack message URL in the task description for traceability. Scan `#conference` for actionable items (speaker requests, website changes, partnership inquiries, bugs).
-
-## Git Conventions
-
-Conventional commits, Angular style, all lowercase: `<type>(<scope>): <subject>`
-
-Types: `fix`, `feat`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `build`, `ci`. Present tense, under 72 characters. Always review all changes with `git status` and `git diff` before committing.
+When creating tasks from Slack messages, always include the Slack message URL in the task description for traceability.
 
 ## Programme & Topic Clusters
 
@@ -312,7 +245,7 @@ Every session gets two tags:
 
 ### Content Plan
 
-The full content plan with agenda structure, speaker topic suggestions, format assignments, panel plans, and slot calculations lives in the **"Content Plan" tab** of the Speaker List spreadsheet (`1J3_lk00LJAER3LRDfQZi2iMamhmCNJ-QmO9e6YqGe1E`). This is the single source of truth for programme planning. Main stage has 1 keynote (30 min), 9 talks (20 min), 2 panels (45 min). Side stage has 7 sessions (30 min). **Never commit content plan data to the repo** — the repo is public.
+The full content plan with agenda structure, speaker topic suggestions, format assignments, panel plans, and slot calculations lives in the **"Content Plan" tab** of the Speaker List spreadsheet (`1J3_lk00LJAER3LRDfQZi2iMamhmCNJ-QmO9e6YqGe1E`). This is the single source of truth for programme planning. Main stage has 1 keynote (30 min), 9 talks (20 min), 2 panels (45 min). Side stage has 7 sessions (30 min).
 
 ### Speaker-Topic Mapping
 
@@ -356,14 +289,9 @@ When reaching out to a speaker about their talk topic, follow this process:
 
 > - A concrete output (template, checklist, evaluation harness, reference architecture).
 > - Prerequisites (assume competent engineers; avoid niche tooling lock-in).
-> - Flow: explain → do → review → ship-home artefact.
+> - Flow: explain -> do -> review -> ship-home artefact.
 
 **Outreach tone:** *"Here are some directions we think would resonate with our audience of engineers shipping AI. Pick one that excites you, or pitch your own — we just want it to be concrete and production-real."*
-
-## Content Guidelines
-
-- Avoid specific attendee count claims until confirmed. Use qualitative wording ("curated in-person audience", "builders, founders, CTOs, and engineers").
-- Speaker data has two image fields: `image` (original headshot) and `imageTransparent` (square transparent PNG). Components prefer `imageTransparent` when available.
 
 ## Landing the Plane (Session Completion)
 
