@@ -65,6 +65,29 @@ export async function clearSheet(spreadsheetId, range, accessToken) {
 }
 
 /**
+ * Read values from a range in a spreadsheet.
+ * @param {string} spreadsheetId
+ * @param {string} range - e.g. "Sheet1!A1:Z1000"
+ * @param {string} accessToken
+ * @returns {string[][]} 2D array of cell values (empty array if no data)
+ */
+export async function readSheet(spreadsheetId, range, accessToken) {
+  const url = `${SHEETS_BASE}/${spreadsheetId}/values/${encodeURIComponent(range)}`;
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    console.error(`ERROR: Google Sheets read failed ${res.status}: ${body}`);
+    process.exit(1);
+  }
+
+  const json = await res.json();
+  return json.values || [];
+}
+
+/**
  * Write values to a range in a spreadsheet.
  * @param {string} spreadsheetId
  * @param {string} range - e.g. "Sheet1!A1:F100"

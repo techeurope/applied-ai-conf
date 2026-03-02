@@ -131,12 +131,17 @@ async function fetchAllLumaGuests() {
 }
 
 /**
- * Write subscriber data to Google Sheets.
+ * Write subscriber data to Google Sheets, preserving manual columns (G+).
+ *
+ * Flow: read existing sheet → save manual columns keyed by email →
+ * build fresh automated data (A-F) → reattach manual columns → write back.
  */
 async function writeToSheets(subscribers, lumaEmails) {
-  const { getAccessToken, clearSheet, writeToSheet } = await import(
+  const { getAccessToken, readSheet, clearSheet, writeToSheet } = await import(
     "./lib/google-sheets.mjs"
   );
+
+  const AUTOMATED_COLS = 6; // A-F
 
   const now = new Date().toISOString();
   const withTicket = subscribers.filter((s) =>
@@ -146,7 +151,39 @@ async function writeToSheets(subscribers, lumaEmails) {
     (s) => !lumaEmails.has(s.email.toLowerCase().trim())
   );
 
-  // Build rows: no-ticket first, then with-ticket
+  console.log("\nWriting to Google Sheets...");
+  const accessToken = await getAccessToken();
+
+  // 1. Read existing sheet to preserve manual columns
+  console.log("  Reading existing sheet...");
+  const existing = await readSheet(SPREADSHEET_ID, "Sheet1", accessToken);
+
+  // Save manual columns from header row (row 2, index 1) — everything past column F
+  let extraHeaders = [];
+  if (existing.length >= 2) {
+    extraHeaders = (existing[1] || []).slice(AUTOMATED_COLS);
+  }
+
+  // Save manual columns from summary row (row 1, index 0) — everything past column F
+  let extraSummary = [];
+  if (existing.length >= 1) {
+    extraSummary = (existing[0] || []).slice(AUTOMATED_COLS);
+  }
+
+  // Build map: email (lowercase) → extra columns (G+) from data rows (row 3+, index 2+)
+  const manualData = new Map();
+  for (let i = 2; i < existing.length; i++) {
+    const row = existing[i] || [];
+    const email = (row[0] || "").toLowerCase().trim();
+    if (email) {
+      const extra = row.slice(AUTOMATED_COLS);
+      if (extra.length > 0) {
+        manualData.set(email, extra);
+      }
+    }
+  }
+
+  // 2. Build fresh automated data (columns A-F)
   const dataRows = [];
 
   for (const sub of withoutTicket) {
@@ -171,7 +208,16 @@ async function writeToSheets(subscribers, lumaEmails) {
     ]);
   }
 
-  // Row 1: summary
+  // 3. Reattach manual columns to matching rows
+  for (const row of dataRows) {
+    const email = row[0].toLowerCase().trim();
+    const extra = manualData.get(email);
+    if (extra) {
+      row.push(...extra);
+    }
+  }
+
+  // Row 1: summary (preserve any extra summary columns)
   const summaryRow = [
     `Last synced: ${now}`,
     `Total: ${subscribers.length}`,
@@ -179,9 +225,10 @@ async function writeToSheets(subscribers, lumaEmails) {
     `Without ticket: ${withoutTicket.length}`,
     "",
     "",
+    ...extraSummary,
   ];
 
-  // Row 2: header
+  // Row 2: header (preserve extra header labels)
   const headerRow = [
     "Email",
     "Domain",
@@ -189,23 +236,44 @@ async function writeToSheets(subscribers, lumaEmails) {
     "Has Luma Ticket",
     "UTM Source",
     "Last Synced",
+    ...extraHeaders,
   ];
 
   const allRows = [summaryRow, headerRow, ...dataRows];
-  const range = `Sheet1!A1:F${allRows.length}`;
 
-  console.log("\nWriting to Google Sheets...");
-  const accessToken = await getAccessToken();
+  // 4. Pad all rows to the same width
+  const maxWidth = allRows.reduce((max, row) => Math.max(max, row.length), 0);
+  for (const row of allRows) {
+    while (row.length < maxWidth) {
+      row.push("");
+    }
+  }
+
+  // 5. Clear and write
+  const range = `Sheet1!A1:${columnLetter(maxWidth)}${allRows.length}`;
 
   console.log("  Clearing sheet...");
   await clearSheet(SPREADSHEET_ID, "Sheet1", accessToken);
 
-  console.log(`  Writing ${allRows.length} rows...`);
+  console.log(`  Writing ${allRows.length} rows (${maxWidth} columns)...`);
   await writeToSheet(SPREADSHEET_ID, range, allRows, accessToken);
 
   console.log(
     `  Done! https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}`
   );
+}
+
+/**
+ * Convert a 1-based column number to a spreadsheet column letter (1=A, 26=Z, 27=AA).
+ */
+function columnLetter(n) {
+  let letter = "";
+  while (n > 0) {
+    n--;
+    letter = String.fromCharCode(65 + (n % 26)) + letter;
+    n = Math.floor(n / 26);
+  }
+  return letter;
 }
 
 async function main() {
