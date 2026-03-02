@@ -75,11 +75,25 @@ agent-media image crop \
   --out public/speakers/name_fullbody_transparent_square.png
 ```
 
+**Reference template:** `public/speakers/_reference_template.png` — abstract silhouette showing the exact proportions, head position, shoulder width, and framing every speaker image must match. After every Step 1 result, visually compare against this template before proceeding. Key proportions:
+- Head starts ~8% from top edge (clear headroom above)
+- Shoulders fill ~85-90% of frame width
+- Body extends to bottom edge
+- Person centered horizontally
+
+**Quality checks (MANDATORY after every step):**
+1. Compare against `_reference_template.png` for proportions
+2. Verify dimensions are 1024×1024 (square)
+3. Verify head is NOT cut off at top
+4. Verify both shoulders are fully visible
+5. If output is not square: PAD with background color (do NOT center-crop — that cuts heads)
+
 **Troubleshooting:**
 - Shoulders cut off → add "The [left/right] shoulder especially must be completely visible"
 - No headroom → add "Make the person smaller in the frame"
 - Color looks washed out/pale → run the color correction step (step 2)
 - NEVER use AI edit for color correction — it regenerates the image and degrades quality
+- Output not square → pad to square, NEVER center-crop (cuts off heads)
 
 ## Architecture
 
@@ -140,6 +154,7 @@ This project uses [gog](https://gogcli.sh/) to interact with Gmail, Calendar, Dr
 | Speaker List | `1J3_lk00LJAER3LRDfQZi2iMamhmCNJ-QmO9e6YqGe1E` | Speakers (sheet 1) + Agenda (sheet 2) |
 | Speaker Submissions 2026 | `171VAgIJKTEPj8jPQuX_nXiQXMjbvL6FGiacov4PX9KY` | Speaker submission list |
 | Partner Companies | `1iEFn8ArYGWXMAQrPJT0adEg9xBkOTY1uNBf3NSLODLg` | Partner/sponsor tracking |
+| Newsletter Subscriber Tracking | `1bAQWcAjAdR142m0SnYwTsVlFIji3BEIHoGrOa-MFQbg` | Luma ticket vs Beehiiv subscriber sync (auto-updated every 6h) |
 
 **Common commands:**
 
@@ -179,6 +194,7 @@ gog calendar events --today
 - **German-specific:** Don't say "telefonieren", prefer "kurz austauschen". Use "Profilfoto" not "Headshot". Avoid unnatural anglicisms.
 - **Always include the Cal.com link** when scheduling: https://cal.com/tim-pietrusky/15min
 - **Structure:** Greeting, context (1 sentence), ask/action, sign-off. Max 3-4 short paragraphs.
+- **First-time speaker intro:** When emailing a speaker for the first time, always open with: "Nice to meet you! I'm Tim, responsible for coordinating with all speakers for Applied AI Conf." Then follow with excitement about having them on stage before getting to the ask.
 
 ### Agenda Script (`scripts/build_agenda.py`)
 
