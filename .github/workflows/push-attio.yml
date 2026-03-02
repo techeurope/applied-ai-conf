@@ -1,0 +1,29 @@
+name: Push Business Contacts to Attio
+
+on:
+  schedule:
+    - cron: "30 */6 * * *" # Every 6 hours (offset 30min from newsletter sync)
+  workflow_dispatch: # Manual trigger
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Push business subscribers to Attio
+        run: node scripts/push-business-to-attio.mjs
+        env:
+          BEEHIIV_API_KEY: ${{ secrets.BEEHIIV_API_KEY }}
+          BEEHIIV_PUBLICATION_ID: ${{ secrets.BEEHIIV_PUBLICATION_ID }}
+          ATTIO_API_KEY: ${{ secrets.ATTIO_API_KEY }}
