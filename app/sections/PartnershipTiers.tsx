@@ -43,7 +43,10 @@ export default function PartnershipTiers() {
                     borderRight: `1px solid ${borderColor}`,
                   }}
                 >
-                  <div className="relative h-24 w-full">
+                  <div
+                    className="relative h-24 w-full"
+                    style={partner.logoScale ? { transform: `scale(${partner.logoScale})` } : undefined}
+                  >
                     <Image
                       src={partner.logo}
                       alt={partner.logoAlt}
