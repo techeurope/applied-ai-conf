@@ -13,7 +13,7 @@ export function TicketButton({
 }) {
   return (
     <a
-      href="#"
+      href={`https://lu.ma/event/${LUMA_EVENT_ID}`}
       data-luma-action="checkout"
       data-luma-event-id={LUMA_EVENT_ID}
       onClick={() => posthog.capture("ticket_click", { location })}

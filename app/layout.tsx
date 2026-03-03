@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Kode_Mono, Inter } from "next/font/google";
+import Script from "next/script";
 import PostHogProvider from "@/components/PostHogProvider";
 import "./globals.css";
 
@@ -94,10 +95,14 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}
         />
-        <script id="luma-checkout" src="https://embed.lu.ma/checkout-button.js" async />
       </head>
       <body className={`${kodeMono.variable} ${inter.variable} antialiased`}>
         <PostHogProvider>{children}</PostHogProvider>
+        <Script
+          id="luma-checkout"
+          src="https://embed.lu.ma/checkout-button.js"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
