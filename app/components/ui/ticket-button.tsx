@@ -92,12 +92,13 @@ export function TicketButton({
       data-luma-event-id={LUMA_EVENT_ID}
       onClick={(e) => {
         e.preventDefault();
-        posthog.capture("ticket_click", { location });
-        // The Luma script's DOM0 onclick handler fires before this React
-        // handler and creates its own overlay. If the Luma script didn't
-        // load (ad blocker, network error, etc.), we open the checkout
-        // ourselves as a fallback.
+        // Open the checkout fallback first — never let analytics block it
         setTimeout(openLumaCheckout, 50);
+        try {
+          posthog.capture("ticket_click", { location });
+        } catch {
+          // PostHog not initialized or failed — ignore
+        }
       }}
       className={className}
     >
