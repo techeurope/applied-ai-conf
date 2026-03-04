@@ -20,7 +20,7 @@ const projectRoot = join(__dirname, "..");
 const speakers = [
   "daniel_khachab.jpg",
   "jacob_lauritzen.jpg",
-  "lennard_schmidt.jpg",
+  "balazs-csomor.png",
   "lucas_hild.jpg",
   "nico-bentenrieder.jpg",
 ];

@@ -165,11 +165,11 @@ Directly after “Who it’s for”.
 - Headshot alt text: Jacob Lauritzen headshot
 - Logo alt text: Legora logo
 
-#### Lennard Schmidt
+#### Balazs Csomor
 
-- Role line: CEO, Langdock
+- Role line: Software Developer, Langdock
 - Tagline: Enterprise-ready AI platform to roll out AI to all employees
-- Headshot alt text: Lennard Schmidt headshot
+- Headshot alt text: Balazs Csomor headshot
 - Logo alt text: Langdock logo
 
 #### Daniel Khachab
