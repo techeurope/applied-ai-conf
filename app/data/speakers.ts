@@ -200,7 +200,7 @@ export const SPEAKERS = [
   },
   {
     name: 'Steffen Hoellinger',
-    title: 'Field CTO, EMEA',
+    title: 'Field CTO',
     company: 'Confluent',
     companyUrl: 'https://www.confluent.io/',
     linkedinUrl: 'https://www.linkedin.com/in/hoellinger/',
