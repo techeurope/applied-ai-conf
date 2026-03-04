@@ -146,6 +146,8 @@ gog calendar events --today
 - **Never overwrite spreadsheet data.** The spreadsheet is the source of truth.
 - When syncing data: always read the sheet first, diff against new data, only add/update rows. Never delete or replace existing rows.
 - Before any bulk write operation, export current sheet contents and verify no data will be lost.
+- **Always use `--values-json` for `gog sheets update`.** Passing values as positional arguments splits on commas, corrupting adjacent rows. Always use `--values-json '[["value"]]'` instead. Update one cell at a time to avoid spillover.
+- **Always verify row numbers before writing.** Read the sheet first with `--plain`, count rows manually (header = row 1, first data = row 2), and double-check the target row before any update.
 
 **Email rules:**
 - **Never send emails automatically.** Always draft and review before sending.

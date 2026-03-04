@@ -13,6 +13,8 @@ import { CodewordsLogo } from "@/components/ui/codewords-logo";
 import { DustLogo } from "@/components/ui/dust-logo";
 import { IntercomLogo } from "@/components/ui/intercom-logo";
 import { GradiumLogo } from "@/components/ui/gradium-logo";
+import { LlamaIndexLogo } from "@/components/ui/llamaindex-logo";
+import { ConfluentLogo } from "@/components/ui/confluent-logo";
 
 type LogoComponent = React.ComponentType<{ className?: string }>;
 
@@ -27,6 +29,8 @@ const COMPANY_LOGOS: Record<string, LogoComponent> = {
   Dust: DustLogo,
   Intercom: IntercomLogo,
   Gradium: GradiumLogo,
+  LlamaIndex: LlamaIndexLogo,
+  Confluent: ConfluentLogo,
 };
 
 const COMPANY_ITEMS = Array.from(

@@ -12,6 +12,8 @@ const LOGO_MAP: Record<string, string> = {
   knowunity: "/logos/knowunity_dark.png",
   "veed.io": "/logos/veed.svg",
   codewords: "/logos/codewords.svg",
+  llamaindex: "/logos/llamaindex.svg",
+  confluent: "/logos/confluent.svg",
 };
 
 function getLogoPath(speaker: Speaker): string {
