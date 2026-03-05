@@ -1,4 +1,4 @@
-export type PartnerTier = 'gold' | 'community';
+export type PartnerTier = 'premium' | 'gold' | 'community';
 
 export interface Partner {
   name: string;
@@ -10,6 +10,7 @@ export interface Partner {
 }
 
 export interface PartnersByTier {
+  premium: Partner[];
   gold: Partner[];
   community: Partner[];
 }

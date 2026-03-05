@@ -1,6 +1,14 @@
 import type { PartnersByTier } from '@/types';
 
 export const PARTNERS = {
+  premium: [
+    {
+      name: 'Nebius',
+      logo: '/logos/nebius.svg',
+      url: 'https://nebius.com',
+      logoAlt: 'Nebius logo',
+    },
+  ],
   gold: [
     {
       name: 'RunPod',
