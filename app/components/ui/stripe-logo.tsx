@@ -6,7 +6,7 @@ export function StripeLogo({ className }: StripeLogoProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 120 60"
+      viewBox="17 12 86 36"
       fillRule="evenodd"
       fill="currentColor"
       className={className}
