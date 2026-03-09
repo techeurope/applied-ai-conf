@@ -65,6 +65,7 @@ export const SPEAKERS = [
     image: '/speakers/clelia_bertelli_fullbody_transparent_square.png',
     imageAlt: 'Clelia Astra Bertelli headshot',
     logoAlt: 'LlamaIndex logo',
+    hidden: true,
   },
   {
     name: 'Nico Bentenrieder',
