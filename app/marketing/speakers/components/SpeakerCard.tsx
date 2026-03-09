@@ -14,6 +14,7 @@ const LOGO_MAP: Record<string, string> = {
   codewords: "/logos/codewords.svg",
   llamaindex: "/logos/llamaindex.svg",
   confluent: "/logos/confluent.svg",
+  stripe: "/logos/stripe.svg",
 };
 
 function getLogoPath(speaker: Speaker): string {

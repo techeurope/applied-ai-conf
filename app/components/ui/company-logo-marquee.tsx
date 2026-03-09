@@ -15,6 +15,7 @@ import { IntercomLogo } from "@/components/ui/intercom-logo";
 import { GradiumLogo } from "@/components/ui/gradium-logo";
 import { LlamaIndexLogo } from "@/components/ui/llamaindex-logo";
 import { ConfluentLogo } from "@/components/ui/confluent-logo";
+import { StripeLogo } from "@/components/ui/stripe-logo";
 
 type LogoComponent = React.ComponentType<{ className?: string }>;
 
@@ -31,6 +32,7 @@ const COMPANY_LOGOS: Record<string, LogoComponent> = {
   Gradium: GradiumLogo,
   LlamaIndex: LlamaIndexLogo,
   Confluent: ConfluentLogo,
+  Stripe: StripeLogo,
 };
 
 const COMPANY_ITEMS = Array.from(
