@@ -8,6 +8,47 @@ Non-obvious conventions, gotchas, and workflows that can't be inferred from read
 - **Avoid specific attendee count claims** until confirmed. Use qualitative wording ("curated in-person audience", "builders, founders, CTOs, and engineers").
 - **Never commit content plan data to the repo** — the repo is public. Content plan lives in the "Content Plan" tab of the Speaker List spreadsheet.
 
+## Adding a New Speaker (Complete Checklist)
+
+When adding a new speaker, ALL of the following must be completed. Do not consider the task done until every item is checked off.
+
+### 1. Spreadsheet Updates (Speaker List spreadsheet `1J3_lk00LJAER3LRDfQZi2iMamhmCNJ-QmO9e6YqGe1E`)
+
+- [ ] **Speakers sheet** (sheet 1) — Add row with: Name, Role, Company, Vertical, Building, LinkedIn, On Website (TRUE/FALSE), Announced (FALSE), Email, Notes
+- [ ] **Content Plan sheet** — Add row with: Speaker, Company, Stage, Title, Format, Duration, Primary Cluster, Secondary Cluster, Engineering Lens, Suggested Angles, Outreach Status, Notes
+
+### 2. Codebase: Speaker Data
+
+- [ ] **`app/data/speakers.ts`** — Add speaker object with all fields (name, title, company, companyLogo, companyUrl, linkedinUrl, bio, vertical, building, initial, accent, image, imageTransparent, imageAlt, logoAlt)
+
+### 3. Company Logo (if new company)
+
+- [ ] **SVG file** saved to `public/logos/<company>.svg`
+- [ ] **React component** created at `app/components/ui/<company>-logo.tsx` with `currentColor` fills
+- [ ] **Company logo marquee** — Added to `COMPANY_LOGOS` in `app/components/ui/company-logo-marquee.tsx`
+- [ ] **Speaker card** — Added to `LOGO_MAP` in `app/marketing/speakers/components/SpeakerCard.tsx`
+- [ ] **Barrel export** — Exported from `app/components/index.ts`
+
+### 4. Speaker Image Pipeline
+
+- [ ] **Source headshot** obtained (minimum 1280x1280 pixels)
+- [ ] **Step 1: Extend to full body** — Run `agent-media image edit` with reference template, generate 3 variants, user picks best one
+- [ ] **Step 2: Remove background** — Run `agent-media image remove-background`
+- [ ] **Final files** in `public/speakers/`: `name_fullbody_square.png` and `name_fullbody_transparent_square.png`
+
+### 5. Quality Gates
+
+- [ ] `pnpm build` passes
+- [ ] Visual check: speaker appears on speakers page, logo appears in company marquee, speaker card renders correctly
+
+### 6. Beads
+
+- [ ] Create a beads issue for the speaker addition (or update existing one)
+- [ ] Close the beads issue when all steps are complete
+- [ ] Include beads ID in commit message: `feat(speakers): add Speaker Name (Company) (bd-xxxx)`
+
+**IMPORTANT:** Never consider a speaker "added" if any of these steps are missing. The most commonly missed steps are the Content Plan sheet update and the company logo pipeline.
+
 ## Speaker Image Pipeline
 
 Uses `agent-media` CLI (install globally: `npm i -g agent-media`). Requires `FAL_API_KEY` in environment (source `~/.zshrc`).
@@ -220,8 +261,10 @@ The conference programme is organized around **6 topic clusters** for engineers 
 
 ### Two-Stage Format
 
-- **Main Stage**: Keynotes (30 min), talks (20 min), panels (45 min). For CTOs, founders, engineering leaders, senior engineers. Rule: no product pitches — tooling discussed only in context of production deployment stories. No parallel session on Side Stage during keynote.
-- **Side Stage** (second stage): All slots 30 min. Deeper-dive sessions, workshops, teardowns, and partner demos.
+- **Main Stage**: For CTOs, founders, engineering leaders, senior engineers. Rule: no product pitches — tooling discussed only in context of production deployment stories. No parallel session on Side Stage during keynote.
+- **Side Stage** (second stage): Deeper-dive sessions, workshops, teardowns, and partner demos.
+
+All session formats, durations, and slot counts live in the **Agenda tab** and **Content Plan tab** of the Speaker List spreadsheet. Always read from the spreadsheet, never hardcode here.
 
 ### Panels (2 total)
 
@@ -244,7 +287,7 @@ Every session gets two tags:
 
 ### Content Plan
 
-The full content plan with agenda structure, speaker topic suggestions, format assignments, panel plans, and slot calculations lives in the **"Content Plan" tab** of the Speaker List spreadsheet (`1J3_lk00LJAER3LRDfQZi2iMamhmCNJ-QmO9e6YqGe1E`). This is the single source of truth for programme planning. Main stage has 1 keynote (30 min), 9 talks (20 min), 2 panels (45 min). Side stage has 7 sessions (30 min).
+The full content plan with agenda structure, speaker topic suggestions, format assignments, panel plans, and slot calculations lives in the **"Content Plan" tab** of the Speaker List spreadsheet (`1J3_lk00LJAER3LRDfQZi2iMamhmCNJ-QmO9e6YqGe1E`). This is the single source of truth for programme planning. Always read session formats, durations, and slot counts from the spreadsheet.
 
 ### Speaker Outreach Process
 
@@ -256,7 +299,7 @@ When reaching out to a speaker about their talk topic, follow this process:
 2. **Read the Content Plan** — Pull the speaker's suggested angles, cluster, lens, and stage from the spreadsheet.
 3. **Send personalized message** — Include:
    - Their primary area and suggested engineering lens from the Content Plan
-   - Stage suggestion: Main Stage (20 min talk) or Side Stage (30 min deeper dive)
+   - Stage and duration from the Content Plan spreadsheet
    - Ask for a 5-bullet outline (see talk brief framework below)
    - Freedom to propose their own angle
 4. **Update the beads ticket** — Add notes on what was discussed, what direction they chose.
