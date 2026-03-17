@@ -41,6 +41,9 @@ yarn-error.log*
 next-env.d.ts
 .DS_Store
 
+# WSL Zone.Identifier files
+*:Zone.Identifier
+
 # claude code
 .claude/
 

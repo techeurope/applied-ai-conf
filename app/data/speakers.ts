@@ -185,7 +185,7 @@ export const SPEAKERS = [
     logoAlt: 'Choco logo',
   },
   {
-    name: 'Balazs Csomor',
+    name: 'Balázs Csomor',
     title: 'Software Developer',
     company: 'Langdock',
     companyLogo: '/logos/langdock.svg',
@@ -198,7 +198,7 @@ export const SPEAKERS = [
     accent: 'from-emerald-400/40 via-cyan-400/30 to-sky-500/40',
     image: '/speakers/balazs-csomor.png',
     imageTransparent: '/speakers/balazs_csomor_fullbody_transparent_square.png',
-    imageAlt: 'Balazs Csomor headshot',
+    imageAlt: 'Balázs Csomor headshot',
     logoAlt: 'Langdock logo',
   },
   {
