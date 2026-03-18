@@ -186,7 +186,7 @@ export const SPEAKERS = [
   },
   {
     name: 'Balázs Csomor',
-    title: 'Software Developer',
+    title: 'Engineering Lead',
     company: 'Langdock',
     companyLogo: '/logos/langdock.svg',
     companyUrl: 'https://www.langdock.com/',
