@@ -62,10 +62,10 @@ export const SPEAKERS = [
     building: 'The open source framework for AI agents, RAG, and document processing',
     initial: 'CB',
     accent: 'from-fuchsia-400/40 via-cyan-400/30 to-purple-500/40',
-    image: '/speakers/clelia_bertelli_fullbody_transparent_square.png',
+    image: '/speakers/clelia_bertelli_fullbody_square.png',
+    imageTransparent: '/speakers/clelia_bertelli_fullbody_transparent_square.png',
     imageAlt: 'Clelia Astra Bertelli headshot',
     logoAlt: 'LlamaIndex logo',
-    hidden: true,
   },
   {
     name: 'Clara Matos',
