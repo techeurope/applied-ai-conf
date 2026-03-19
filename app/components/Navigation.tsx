@@ -83,7 +83,20 @@ export default function Navigation() {
                   {...(isTicket && {
                     'data-luma-action': 'checkout',
                     'data-luma-event-id': LUMA_EVENT_ID,
-                    onClick: () => posthog.capture('ticket_click', { location: 'navigation' }),
+                    onClick: () => {
+                      try {
+                        posthog.capture('ticket_click', { location: 'navigation' });
+                      } catch {
+                        // ignore analytics failures
+                      }
+                      try {
+                        // X ads conversion event (if pixel is present globally)
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        (window as any).twq?.('event', 'tw-p7886-rajk1', {});
+                      } catch {
+                        // ignore X tracking failures
+                      }
+                    },
                   })}
                 >
                   {isTicket && <Ticket className="h-4 w-4" />}

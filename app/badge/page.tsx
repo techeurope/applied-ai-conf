@@ -266,7 +266,20 @@ export default function BadgePage() {
           <button
             data-luma-action="checkout"
             data-luma-event-id={LUMA_EVENT_ID}
-            onClick={() => posthog.capture("ticket_click", { location: "badge_page" })}
+            onClick={() => {
+              try {
+                posthog.capture("ticket_click", { location: "badge_page" });
+              } catch {
+                // ignore analytics failures
+              }
+              try {
+                // X ads conversion event (if pixel is present globally)
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (window as any).twq?.("event", "tw-p7886-rajk1", {});
+              } catch {
+                // ignore X tracking failures
+              }
+            }}
             className="w-full border border-white/20 hover:border-white/40 text-white py-3 px-6 rounded-lg transition-all text-center cursor-pointer"
             style={{ fontFamily: "var(--font-kode-mono), monospace" }}
           >
