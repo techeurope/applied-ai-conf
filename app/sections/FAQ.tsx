@@ -17,7 +17,7 @@ const FAQ_ITEMS = [
   {
     question: "What's included in the ticket?",
     answer:
-      "Access to all talks, workshops, the partner expo, and networking. Food and non-alcoholic drinks throughout the day, plus an after party.",
+      "Access to all talks, workshops, the partner expo, and networking. Food and non-alcoholic drinks throughout the day.",
   },
   {
     question: "Can my company buy multiple tickets?",
