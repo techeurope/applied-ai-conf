@@ -103,6 +103,8 @@ export function TicketButton({
           // X ads conversion event (if pixel is present globally)
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (window as any).twq?.("event", "tw-p7886-rajk1", {});
+        } catch {
+          // X pixel not loaded — ignore
         }
       }}
       className={className}
