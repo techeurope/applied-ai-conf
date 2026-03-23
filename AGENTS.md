@@ -2,6 +2,16 @@
 
 Non-obvious conventions, gotchas, and workflows that can't be inferred from reading the code.
 
+## Third-Party API Access
+
+**Always load `.env.local` before accessing any third-party system** (Attio, Notion, Luma, Beehiiv, PostHog, etc.):
+
+```bash
+source .env.local
+```
+
+API keys for all external services live in `.env.local`. Never hardcode keys in commands or scripts.
+
 ## Gotchas
 
 - **Never run `pnpm dev`** — the user always has the dev server running already.
@@ -252,12 +262,12 @@ The conference programme is organized around **6 topic clusters** for engineers 
 
 ### Topic Clusters
 
-1. **Production Case Studies** — True implementation narratives: what shipped, what broke, what changed. Architecture decisions, rollout plans, incident postmortems, engineering/product trade-offs.
-2. **LLM Application Architecture** — RAG vs fine-tuning vs hybrid, multi-model routing, tool calling, agent orchestration, context engineering. Patterns that survive contact with production.
-3. **Evaluation, Observability & Quality** — Measurement-first approaches: offline eval, online A/B, regression suites, guardrails, golden datasets, eval harnesses, LLM-as-judge, tracing, user feedback loops.
-4. **LLMOps & AI Infrastructure** — Cost control, latency, deployment, reliability. Serving patterns, batching/caching, streaming, fallback systems, model upgrades, cost-per-task design.
-5. **Enterprise Readiness** — Security, privacy, governance, compliance. Prompt injection, data leakage, permissions, SOC2/GDPR readiness, policy-as-code.
-6. **AI-Native Workflows** — From UI to workflow; copilots vs agents; human-in-the-loop design; reliability contracts; adoption patterns.
+1. **AI Engineering** — Coding, testing, deploying with AI. How engineers integrate AI into their daily development workflow.
+2. **Production Case Studies** — True implementation narratives: what shipped, what broke, what changed. Architecture decisions, rollout plans, incident postmortems, engineering/product trade-offs.
+3. **LLM Application Architecture** — RAG vs fine-tuning vs hybrid, multi-model routing, tool calling, agent orchestration, context engineering. Patterns that survive contact with production.
+4. **Evaluation, Observability & Quality** — Measurement-first approaches: offline eval, online A/B, regression suites, guardrails, golden datasets, eval harnesses, LLM-as-judge, tracing, user feedback loops.
+5. **LLMOps & AI Infrastructure** — Cost control, latency, deployment, reliability. Serving patterns, batching/caching, streaming, fallback systems, model upgrades, cost-per-task design.
+6. **Enterprise Readiness** — Security, privacy, governance, compliance. Prompt injection, data leakage, permissions, SOC2/GDPR readiness, policy-as-code.
 
 ### Two-Stage Format
 

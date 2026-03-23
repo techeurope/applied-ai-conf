@@ -5,33 +5,33 @@ import { useEffect, useRef, useState } from "react";
 const THEMES = [
   {
     number: "01",
+    label: "AI Engineering",
+    tagline: "Coding, testing, deploying with AI",
+  },
+  {
+    number: "02",
     label: "Production Case Studies",
     tagline: "Real systems, real constraints, real lessons",
   },
   {
-    number: "02",
+    number: "03",
     label: "LLM Application Architecture",
     tagline: "Patterns for RAG, tool use, agents, and routing",
   },
   {
-    number: "03",
+    number: "04",
     label: "Evaluation & Observability",
     tagline: "Measuring quality, monitoring drift, debugging failures",
   },
   {
-    number: "04",
+    number: "05",
     label: "LLMOps & Infrastructure",
     tagline: "Serving, latency, cost, reliability, scaling",
   },
   {
-    number: "05",
+    number: "06",
     label: "Enterprise Readiness",
     tagline: "Security, privacy, governance as engineering work",
-  },
-  {
-    number: "06",
-    label: "AI-Native Workflows",
-    tagline: "How teams build and ship faster with AI-native processes",
   },
 ];
 
