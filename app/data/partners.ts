@@ -28,6 +28,7 @@ export const PARTNERS = {
       logo: '/logos/dust.svg',
       url: 'https://dust.tt',
       logoAlt: 'Dust logo',
+      logoScale: 0.55,
     },
   ],
   community: [

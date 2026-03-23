@@ -131,7 +131,7 @@ export default function PartnershipTiers() {
                   }}
                 >
                   <div
-                    className="relative h-8 w-full"
+                    className="relative h-6 w-full"
                     style={partner.logoScale ? { transform: `scale(${partner.logoScale})` } : undefined}
                   >
                     <Image
