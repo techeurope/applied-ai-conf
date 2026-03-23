@@ -52,5 +52,12 @@ export const PARTNERS = {
       url: 'https://elastic.co',
       logoAlt: 'Elastic logo',
     },
+    {
+      name: '#ai_berlin',
+      logo: '/logos/ai-berlin.svg',
+      url: 'https://ai-berlin.com',
+      logoAlt: '#ai_berlin logo',
+      logoScale: 0.85,
+    },
   ],
 } satisfies PartnersByTier;

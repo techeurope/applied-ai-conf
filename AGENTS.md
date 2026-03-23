@@ -16,16 +16,15 @@ API keys for all external services live in `.env.local`. Never hardcode keys in 
 
 - **Never run `pnpm dev`** — the user always has the dev server running already.
 - **Avoid specific attendee count claims** until confirmed. Use qualitative wording ("curated in-person audience", "builders, founders, CTOs, and engineers").
-- **Never commit content plan data to the repo** — the repo is public. Content plan lives in the "Content Plan" tab of the Speaker List spreadsheet.
+- **Never commit content plan data to the repo** — the repo is public. Content plan lives in the Notion Speakers/Agenda DB (`31a6dbf0-dcd7-806b-92bc-ee1a447a060d`).
 
 ## Adding a New Speaker (Complete Checklist)
 
 When adding a new speaker, ALL of the following must be completed. Do not consider the task done until every item is checked off.
 
-### 1. Spreadsheet Updates (Speaker List spreadsheet `1J3_lk00LJAER3LRDfQZi2iMamhmCNJ-QmO9e6YqGe1E`)
+### 1. Notion DB Update (Speakers/Agenda DB `31a6dbf0-dcd7-806b-92bc-ee1a447a060d`)
 
-- [ ] **Speakers sheet** (sheet 1) — Add row with: Name, Role, Company, Vertical, Building, LinkedIn, On Website (TRUE/FALSE), Announced (FALSE), Email, Notes
-- [ ] **Content Plan sheet** — Add row with: Speaker, Company, Stage, Title, Format, Duration, Primary Cluster, Secondary Cluster, Engineering Lens, Suggested Angles, Outreach Status, Notes
+- [ ] **Add page** to Notion DB with: Name, Role, Company, Vertical, Building, LinkedIn, Email, On Website, Announced, Session Format, Duration, Stage, Session Cluster, Suggested Angles, Notes
 
 ### 2. Codebase: Speaker Data
 
@@ -171,7 +170,7 @@ Uses [gog](https://gogcli.sh/) to interact with Gmail, Calendar, Drive, and Shee
 
 | Document | ID | Description |
 |---|---|---|
-| Speaker List | `1J3_lk00LJAER3LRDfQZi2iMamhmCNJ-QmO9e6YqGe1E` | Speakers (sheet 1) + Agenda (sheet 2) |
+| Speaker List (DEPRECATED) | `1J3_lk00LJAER3LRDfQZi2iMamhmCNJ-QmO9e6YqGe1E` | Speakers, Agenda, Content Plan tabs deprecated — use Notion DB `31a6dbf0-dcd7-806b-92bc-ee1a447a060d` |
 | Speaker Submissions 2026 | `171VAgIJKTEPj8jPQuX_nXiQXMjbvL6FGiacov4PX9KY` | Speaker submission list |
 | Partner Companies | `1iEFn8ArYGWXMAQrPJT0adEg9xBkOTY1uNBf3NSLODLg` | Partner/sponsor tracking |
 | Newsletter Subscriber Tracking | `1bAQWcAjAdR142m0SnYwTsVlFIji3BEIHoGrOa-MFQbg` | Luma ticket vs Beehiiv subscriber sync (auto-updated every 6h) |
@@ -218,37 +217,9 @@ gog calendar events --today
 - **Structure:** Greeting, context (1 sentence), ask/action, sign-off. Max 3-4 short paragraphs.
 - **First-time speaker intro:** When emailing a speaker for the first time, always open with: "Nice to meet you! I'm Tim, responsible for coordinating with all speakers for Applied AI Conf." Then follow with excitement about having them on stage before getting to the ask.
 
-## Agenda Script (`scripts/build_agenda.py`)
+## Agenda (Notion)
 
-Generates the **Agenda** sheet in the Speaker List spreadsheet. Edit the event definitions in the script, then run:
-
-```bash
-# 1. Generate JSON
-python3 scripts/build_agenda.py
-
-# 2. Clear + write data
-source ~/.zshrc.local
-gog sheets clear 1J3_lk00LJAER3LRDfQZi2iMamhmCNJ-QmO9e6YqGe1E "Agenda!A1:Z100" --account tim@techeurope.io
-
-# 3. Unmerge old cells
-ACCESS_TOKEN=$(curl -s -X POST https://oauth2.googleapis.com/token \
-  -d "client_id=$(python3 -c "import json; print(json.load(open('$HOME/.config/gogcli/credentials.json'))['client_id'])")" \
-  -d "client_secret=$(python3 -c "import json; print(json.load(open('$HOME/.config/gogcli/credentials.json'))['client_secret'])")" \
-  -d "refresh_token=$(python3 -c "import json; print(json.load(open('$HOME/.config/gogcli/credentials.json'))['refresh_token'])")" \
-  -d "grant_type=refresh_token" | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
-curl -s -X POST "https://sheets.googleapis.com/v4/spreadsheets/1J3_lk00LJAER3LRDfQZi2iMamhmCNJ-QmO9e6YqGe1E:batchUpdate" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" -H "Content-Type: application/json" \
-  -d '{"requests":[{"unmergeCells":{"range":{"sheetId":712657363,"startRowIndex":0,"endRowIndex":100,"startColumnIndex":0,"endColumnIndex":10}}}]}'
-
-# 4. Write data
-gog sheets update 1J3_lk00LJAER3LRDfQZi2iMamhmCNJ-QmO9e6YqGe1E "Agenda!A1:H$(python3 -c "import json;print(len(json.load(open('/tmp/agenda_data.json'))))")" \
-  --values-json "$(cat /tmp/agenda_data.json)" --account tim@techeurope.io
-
-# 5. Apply formatting
-curl -s -X POST "https://sheets.googleapis.com/v4/spreadsheets/1J3_lk00LJAER3LRDfQZi2iMamhmCNJ-QmO9e6YqGe1E:batchUpdate" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" -H "Content-Type: application/json" \
-  -d "{\"requests\": $(cat /tmp/agenda_requests.json)}"
-```
+The agenda is managed in the Notion Speakers/Agenda DB (`31a6dbf0-dcd7-806b-92bc-ee1a447a060d`). Each session has a `Date` property with start/end times. Sorting by Date produces the agenda order. Non-session entries (breaks, registration, remarks) have Session Format = "Break" or "Logistics".
 
 ## Task Management (Beads)
 
@@ -274,7 +245,7 @@ The conference programme is organized around **6 topic clusters** for engineers 
 - **Main Stage**: For CTOs, founders, engineering leaders, senior engineers. Rule: no product pitches — tooling discussed only in context of production deployment stories. No parallel session on Side Stage during keynote.
 - **Side Stage** (second stage): Deeper-dive sessions, workshops, teardowns, and partner demos.
 
-All session formats, durations, and slot counts live in the **Agenda tab** and **Content Plan tab** of the Speaker List spreadsheet. Always read from the spreadsheet, never hardcode here.
+All session formats, durations, and slot counts live in the Notion Speakers/Agenda DB (`31a6dbf0-dcd7-806b-92bc-ee1a447a060d`). Always read from Notion, never hardcode here.
 
 ### Panels (2 total)
 
@@ -297,19 +268,19 @@ Every session gets two tags:
 
 ### Content Plan
 
-The full content plan with agenda structure, speaker topic suggestions, format assignments, panel plans, and slot calculations lives in the **"Content Plan" tab** of the Speaker List spreadsheet (`1J3_lk00LJAER3LRDfQZi2iMamhmCNJ-QmO9e6YqGe1E`). This is the single source of truth for programme planning. Always read session formats, durations, and slot counts from the spreadsheet.
+The full content plan with agenda structure, speaker topic suggestions, format assignments, panel plans, and slot calculations lives in the Notion Speakers/Agenda DB (`31a6dbf0-dcd7-806b-92bc-ee1a447a060d`). This is the single source of truth for programme planning. Always read session formats, durations, and slot counts from Notion.
 
 ### Speaker Outreach Process
 
-Speaker-topic mapping lives in the **Content Plan tab** of the Speaker List spreadsheet. Always read it from there, never hardcode it in this file.
+Speaker-topic mapping lives in the Notion Speakers/Agenda DB (`31a6dbf0-dcd7-806b-92bc-ee1a447a060d`). Always read it from there, never hardcode it in this file.
 
 When reaching out to a speaker about their talk topic, follow this process:
 
 1. **Check beads** — Look for an existing outreach ticket (`bd list`).
-2. **Read the Content Plan** — Pull the speaker's suggested angles, cluster, lens, and stage from the spreadsheet.
+2. **Read Notion** — Pull the speaker's suggested angles, cluster, lens, and stage from the Notion DB.
 3. **Send personalized message** — Include:
-   - Their primary area and suggested engineering lens from the Content Plan
-   - Stage and duration from the Content Plan spreadsheet
+   - Their primary area and suggested engineering lens from Notion
+   - Stage and duration from Notion
    - Ask for a 5-bullet outline (see talk brief framework below)
    - Freedom to propose their own angle
 4. **Update the beads ticket** — Add notes on what was discussed, what direction they chose.
