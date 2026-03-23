@@ -5,7 +5,7 @@ import { applyKerning } from "@/lib/utils";
 
 // Map company names to actual logo files (dark versions = white logos for dark bg)
 const LOGO_MAP: Record<string, string> = {
-  legora: "/logos/legora_dark.png",
+  legora: "/logos/legora.svg",
   langdock: "/logos/langdock_dark.png",
   choco: "/logos/choco_dark.png",
   tacto: "/logos/tacto_dark.png",
@@ -17,6 +17,10 @@ const LOGO_MAP: Record<string, string> = {
   stripe: "/logos/stripe.svg",
   "sword health": "/logos/sword-health.svg",
   conduct: "/logos/conduct.svg",
+  gradium: "/logos/gradium.svg",
+  intercom: "/logos/intercom.svg",
+  dust: "/logos/dust.svg",
+  "peec ai": "/logos/peec-ai.svg",
 };
 
 function getLogoPath(speaker: Speaker): string {
