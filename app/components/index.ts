@@ -16,5 +16,6 @@ export { LlamaIndexLogo } from './ui/llamaindex-logo';
 export { ConfluentLogo } from './ui/confluent-logo';
 export { StripeLogo } from './ui/stripe-logo';
 export { SwordHealthLogo } from './ui/sword-health-logo';
+export { ConductLogo } from './ui/conduct-logo';
 export { default as CookieConsent } from './CookieConsent';
 export { default as PostHogProvider } from './PostHogProvider';

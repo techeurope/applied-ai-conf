@@ -17,6 +17,7 @@ import { LlamaIndexLogo } from "@/components/ui/llamaindex-logo";
 import { ConfluentLogo } from "@/components/ui/confluent-logo";
 import { StripeLogo } from "@/components/ui/stripe-logo";
 import { SwordHealthLogo } from "@/components/ui/sword-health-logo";
+import { ConductLogo } from "@/components/ui/conduct-logo";
 
 type LogoComponent = React.ComponentType<{ className?: string }>;
 
@@ -35,6 +36,7 @@ const COMPANY_LOGOS: Record<string, LogoComponent> = {
   Confluent: ConfluentLogo,
   Stripe: StripeLogo,
   "Sword Health": SwordHealthLogo,
+  Conduct: ConductLogo,
 };
 
 const COMPANY_ITEMS = Array.from(

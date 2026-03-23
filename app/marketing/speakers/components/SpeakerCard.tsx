@@ -16,6 +16,7 @@ const LOGO_MAP: Record<string, string> = {
   confluent: "/logos/confluent.svg",
   stripe: "/logos/stripe.svg",
   "sword health": "/logos/sword-health.svg",
+  conduct: "/logos/conduct.svg",
 };
 
 function getLogoPath(speaker: Speaker): string {
