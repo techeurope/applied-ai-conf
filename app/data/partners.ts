@@ -23,6 +23,12 @@ export const PARTNERS = {
       logoAlt: 'Stripe logo',
       logoScale: 1.35,
     },
+    {
+      name: 'Dust',
+      logo: '/logos/dust.svg',
+      url: 'https://dust.tt',
+      logoAlt: 'Dust logo',
+    },
   ],
   community: [
     {
