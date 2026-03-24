@@ -4,4 +4,5 @@ export const FOOTER_LINKS = [
   { label: "Imprint", href: "/imprint" },
   { label: "Privacy", href: "/privacy" },
   { label: "Code of Conduct", href: "/code-of-conduct" },
+  { label: "Terms", href: "/terms" },
 ] satisfies FooterLink[];

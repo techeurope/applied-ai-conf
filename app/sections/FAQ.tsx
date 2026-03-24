@@ -24,6 +24,12 @@ const FAQ_ITEMS = [
     answer: "Yes. Reach out to us via info@techeurope.io for group bookings.",
   },
   {
+    question: "What's the refund and cancellation policy?",
+    answer:
+      "Tickets are refundable up to 30 days before the event. Virtual tickets are free and can be cancelled at any time. See full Terms of Service.",
+    href: "/terms",
+  },
+  {
     question: "How can my company partner with us?",
     answer: "Check out our partnership options below and get in touch.",
     href: "#partner",
