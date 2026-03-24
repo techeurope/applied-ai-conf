@@ -10,6 +10,7 @@ export interface Speaker {
   building: string; // What they're building (short description)
   initial: string;
   accent: string;
+  talkTitle?: string; // Talk title (undefined = TBA)
   hidden?: boolean; // Speaker not yet confirmed — hide from website
   image?: string; // Original image (with background)
   imageTransparent?: string; // Transparent PNG (background removed via remove-background.mjs)

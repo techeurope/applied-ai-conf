@@ -5,3 +5,4 @@ export * from './faq';
 export * from './partner';
 export * from './navigation';
 export * from './partnership';
+export * from './agenda';
