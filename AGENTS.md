@@ -50,11 +50,10 @@ When adding a new speaker, ALL of the following must be completed. Do not consid
 - [ ] `pnpm build` passes
 - [ ] Visual check: speaker appears on speakers page, logo appears in company marquee, speaker card renders correctly
 
-### 6. Beads
+### 6. Task Tracking (Notion)
 
-- [ ] Create a beads issue for the speaker addition (or update existing one)
-- [ ] Close the beads issue when all steps are complete
-- [ ] Include beads ID in commit message: `feat(speakers): add Speaker Name (Company) (bd-xxxx)`
+- [ ] Create a task in Tim's To-Do List in Notion (`3286dbf0-dcd7-81a0-b37a-dbceaeb93467`) for the speaker addition (or update existing one)
+- [ ] Close the task when all steps are complete
 
 **IMPORTANT:** Never consider a speaker "added" if any of these steps are missing. The most commonly missed steps are the Content Plan sheet update and the company logo pipeline.
 
@@ -170,7 +169,7 @@ Uses [gog](https://gogcli.sh/) to interact with Gmail, Calendar, Drive, and Shee
 
 | Document | ID | Description |
 |---|---|---|
-| Speaker List (DEPRECATED) | `1J3_lk00LJAER3LRDfQZi2iMamhmCNJ-QmO9e6YqGe1E` | Speakers, Agenda, Content Plan tabs deprecated — use Notion DB `31a6dbf0-dcd7-806b-92bc-ee1a447a060d` |
+| Speaker List | `1J3_lk00LJAER3LRDfQZi2iMamhmCNJ-QmO9e6YqGe1E` | **Not used for speakers/agenda/content plan.** Notion DB `31a6dbf0-dcd7-806b-92bc-ee1a447a060d` is the source of truth for all speaker, agenda, and content plan data. |
 | Speaker Submissions 2026 | `171VAgIJKTEPj8jPQuX_nXiQXMjbvL6FGiacov4PX9KY` | Speaker submission list |
 | Partner Companies | `1iEFn8ArYGWXMAQrPJT0adEg9xBkOTY1uNBf3NSLODLg` | Partner/sponsor tracking |
 | Newsletter Subscriber Tracking | `1bAQWcAjAdR142m0SnYwTsVlFIji3BEIHoGrOa-MFQbg` | Luma ticket vs Beehiiv subscriber sync (auto-updated every 6h) |
@@ -221,9 +220,9 @@ gog calendar events --today
 
 The agenda is managed in the Notion Speakers/Agenda DB (`31a6dbf0-dcd7-806b-92bc-ee1a447a060d`). Each session has a `Date` property with start/end times. Sorting by Date produces the agenda order. Non-session entries (breaks, registration, remarks) have Session Format = "Break" or "Logistics".
 
-## Task Management (Beads)
+## Task Management (Notion)
 
-Include Beads ID in commit messages: `feat(speakers): add new speaker (bd-a1b2)`
+Tasks are tracked in Tim's To-Do List in Notion (database ID: `3286dbf0-dcd7-81a0-b37a-dbceaeb93467`). This is the single source of truth for task tracking.
 
 When creating tasks from Slack messages, always include the Slack message URL in the task description for traceability.
 
@@ -276,15 +275,15 @@ Speaker-topic mapping lives in the Notion Speakers/Agenda DB (`31a6dbf0-dcd7-806
 
 When reaching out to a speaker about their talk topic, follow this process:
 
-1. **Check beads** — Look for an existing outreach ticket (`bd list`).
-2. **Read Notion** — Pull the speaker's suggested angles, cluster, lens, and stage from the Notion DB.
+1. **Check Notion** — Look for an existing outreach task in Tim's To-Do List (`3286dbf0-dcd7-81a0-b37a-dbceaeb93467`).
+2. **Read Notion** — Pull the speaker's suggested angles, cluster, lens, and stage from the Speakers/Agenda DB.
 3. **Send personalized message** — Include:
    - Their primary area and suggested engineering lens from Notion
    - Stage and duration from Notion
    - Ask for a 5-bullet outline (see talk brief framework below)
    - Freedom to propose their own angle
-4. **Update the beads ticket** — Add notes on what was discussed, what direction they chose.
-5. **Close the ticket** — Once a talk title and direction are confirmed.
+4. **Update the Notion task** — Add notes on what was discussed, what direction they chose.
+5. **Close the task** — Once a talk title and direction are confirmed.
 
 **Talk brief framework** (send to speakers as guidance):
 
