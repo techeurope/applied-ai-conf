@@ -10,8 +10,8 @@ import type { AgendaSlot } from '@/types';
 
 export const AGENDA: AgendaSlot[] = [
   // ── Shared: Doors + Opening ───────────────────────────────────
-  { id: 'doors', startTime: '08:00', endTime: '09:00', title: 'Doors Open · Registration & Coffee', stage: 'main', format: 'logistics' },
-  { id: 'opening', startTime: '09:00', endTime: '09:10', title: 'Welcome', stage: 'main', format: 'logistics' },
+  { id: 'doors', startTime: '08:00', endTime: '08:45', title: 'Doors Open · Registration & Coffee', stage: 'main', format: 'logistics' },
+  { id: 'opening', startTime: '08:45', endTime: '09:10', title: 'Welcome', stage: 'main', format: 'logistics' },
 
   // ── Block 1: Morning (09:10–10:30) ────────────────────────────
   // Main: Keynote(30) + 2 talks(20)

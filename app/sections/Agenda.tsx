@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import Link from "next/link";
 import { AGENDA } from "@/data/agenda";
 import { SPEAKERS } from "@/data/speakers";
@@ -75,17 +75,15 @@ function buildTimeLabels() {
     end: timeToMinutes(s.endTime),
   }));
 
-  // Shared event start times — these should still show a time label
-  const sharedStartTimes = new Set([...sharedSlots, ...breakSlots].map((s) => s.startTime));
-
   function isInsideShared(minutes: number) {
-    // Allow the START time of shared events to show
-    const timeStr = `${Math.floor(minutes / 60).toString().padStart(2, "0")}:${(minutes % 60).toString().padStart(2, "0")}`;
-    if (sharedStartTimes.has(timeStr)) return false;
+    // Hide ALL time labels inside shared events — the shared event renders its own time in the grid
     return sharedRanges.some((r) => minutes >= r.start && minutes < r.end);
   }
 
-  const labels: { time: string; row: number; isSlotStart: boolean; mainStart: boolean; sideStart: boolean }[] = [];
+  // Collect shared event end times to detect labels right after
+  const sharedEndTimes = new Set(sharedRanges.map((r) => r.end));
+
+  const labels: { time: string; row: number; isSlotStart: boolean; mainStart: boolean; sideStart: boolean; afterShared: boolean }[] = [];
 
   for (let m = DAY_START; m <= endMin; m += MINUTES_PER_ROW) {
     const h = Math.floor(m / 60);
@@ -98,7 +96,12 @@ function buildTimeLabels() {
     const mainStart = mainStartTimes.has(time);
     const sideStart = sideStartTimes.has(time);
     const isSlotStart = mainStart || sideStart;
-    labels.push({ time, row: toRow(time), isSlotStart, mainStart, sideStart });
+    const afterShared = sharedEndTimes.has(m);
+
+    // Hide the tiny filler label right after a shared event if it's not a slot start
+    if (afterShared && !isSlotStart) continue;
+
+    labels.push({ time, row: toRow(time), isSlotStart, mainStart, sideStart, afterShared });
   }
   return labels;
 }
@@ -139,9 +142,9 @@ function SlotCell({ slot }: { slot: AgendaSlot }) {
   // Keynote
   if (isKeynote) {
     return (
-      <div className={`h-full ${ACCENT_BG.keynote} px-5 pt-0 pb-4`}>
+      <div className={`h-full ${ACCENT_BG.keynote} px-4 py-4`}>
         <span className="text-amber-400/60 text-xs font-mono uppercase tracking-widest">Main Stage</span>
-        <h4 className="text-2xl sm:text-3xl font-mono font-bold text-white tracking-tight mt-1">
+        <h4 className="text-2xl sm:text-3xl font-mono font-bold text-white tracking-tight mt-2">
           {slot.title}
         </h4>
         {speaker && (
@@ -164,7 +167,7 @@ function SlotCell({ slot }: { slot: AgendaSlot }) {
   // Welcome / Closing
   if (isCeremony) {
     return (
-      <div className={`h-full ${ACCENT_BG.logistics} px-5 pt-0 pb-4`}>
+      <div className={`h-full ${ACCENT_BG.logistics} px-4 py-4`}>
         <h4 className="text-xl sm:text-2xl font-mono font-bold text-white tracking-tight">{slot.title}</h4>
       </div>
     );
@@ -173,7 +176,7 @@ function SlotCell({ slot }: { slot: AgendaSlot }) {
   // Doors
   if (isDoors) {
     return (
-      <div className={`h-full ${ACCENT_BG.logistics} px-5 pt-0 pb-4`}>
+      <div className={`h-full ${ACCENT_BG.logistics} px-4 py-4`}>
         <p className="text-sm font-mono text-gray-400">{slot.title}</p>
       </div>
     );
@@ -182,7 +185,7 @@ function SlotCell({ slot }: { slot: AgendaSlot }) {
   // Break
   if (slot.format === "break") {
     return (
-      <div className={`h-full ${ACCENT_BG.break} px-5 pt-0 pb-4`}>
+      <div className={`h-full ${ACCENT_BG.break} px-4 py-4`}>
         <p className="text-sm font-mono text-white/50">{slot.title}</p>
       </div>
     );
@@ -259,8 +262,8 @@ function DesktopGrid({ isVisible }: { isVisible: boolean }) {
       >
 
       {/* Left time column (for main stage) — only main starts are large */}
-      {timeLabels.map(({ time, row, mainStart }) => (
-        <div key={`tl-${time}`} style={{ gridColumn: "1", gridRow: `${row}` }} className="flex items-start justify-end pr-3">
+      {timeLabels.map(({ time, row, mainStart, afterShared }) => (
+        <div key={`tl-${time}`} style={{ gridColumn: "1", gridRow: `${row}` }} className={`flex items-start justify-end pr-3 ${afterShared ? "pt-6" : ""}`}>
           <span className={`font-mono tabular-nums leading-none ${
             mainStart
               ? "text-sm text-gray-300 font-semibold"
@@ -277,8 +280,8 @@ function DesktopGrid({ isVisible }: { isVisible: boolean }) {
       ))}
 
       {/* Right time column (for side stage) — only side starts are large */}
-      {timeLabels.map(({ time, row, sideStart }) => (
-        <div key={`tr-${time}`} style={{ gridColumn: "4", gridRow: `${row}` }} className="flex items-start justify-end pr-3">
+      {timeLabels.map(({ time, row, sideStart, afterShared }) => (
+        <div key={`tr-${time}`} style={{ gridColumn: "4", gridRow: `${row}` }} className={`flex items-start justify-end pr-3 ${afterShared ? "pt-6" : ""}`}>
           <span className={`font-mono tabular-nums leading-none ${
             sideStart
               ? "text-sm text-gray-300 font-semibold"
@@ -296,25 +299,46 @@ function DesktopGrid({ isVisible }: { isVisible: boolean }) {
 
       {/* No full-height vertical divider — individual slot borders are enough */}
 
-      {/* Shared events — span all 5 columns, z-10 to cover any grid artifacts */}
-      {shared.map((slot) => (
-        <div key={slot.id} style={{
-          gridColumn: "1 / 6",
-          gridRow: `${toRow(slot.startTime)} / ${toRow(slot.startTime) + rowSpan(slot.startTime, slot.endTime)}`,
-        }} className="z-10 border-b border-white/[0.06]">
-          <SlotCell slot={slot} />
-        </div>
-      ))}
+      {/* Shared events — time in col 1, content in cols 2-5 */}
+      {shared.map((slot) => {
+        const displayTime = slot.title === "Welcome" ? "09:00" : slot.startTime;
+        const rs = toRow(slot.startTime);
+        const re = rs + rowSpan(slot.startTime, slot.endTime);
+        return (
+          <React.Fragment key={slot.id}>
+            <div style={{ gridColumn: "1", gridRow: `${rs} / ${re}` }}
+              className="z-10 flex items-start justify-end pr-3 pt-6 border-y border-white/[0.10]"
+            >
+              <span className="text-sm font-mono text-gray-300 font-semibold">{displayTime}</span>
+            </div>
+            <div style={{ gridColumn: "2 / 6", gridRow: `${rs} / ${re}` }}
+              className="z-10 border-y border-white/[0.10] pt-2"
+            >
+              <SlotCell slot={slot} />
+            </div>
+          </React.Fragment>
+        );
+      })}
 
-      {/* Shared breaks — span all 5 columns, z-10 */}
-      {sharedBreaks.map((slot) => (
-        <div key={slot.id} style={{
-          gridColumn: "1 / 6",
-          gridRow: `${toRow(slot.startTime)} / ${toRow(slot.startTime) + rowSpan(slot.startTime, slot.endTime)}`,
-        }} className="z-10 border-y border-white/[0.06]">
-          <SlotCell slot={slot} />
-        </div>
-      ))}
+      {/* Shared breaks — time in col 1, content in cols 2-5 */}
+      {sharedBreaks.map((slot) => {
+        const rs = toRow(slot.startTime);
+        const re = rs + rowSpan(slot.startTime, slot.endTime);
+        return (
+          <React.Fragment key={slot.id}>
+            <div style={{ gridColumn: "1", gridRow: `${rs} / ${re}` }}
+              className="z-10 flex items-start justify-end pr-3 pt-6 border-y border-white/[0.10]"
+            >
+              <span className="text-sm font-mono text-gray-300 font-semibold">{slot.startTime}</span>
+            </div>
+            <div style={{ gridColumn: "2 / 6", gridRow: `${rs} / ${re}` }}
+              className="z-10 border-y border-white/[0.10] pt-2"
+            >
+              <SlotCell slot={slot} />
+            </div>
+          </React.Fragment>
+        );
+      })}
 
       {/* Main stage — column 2 */}
       {main.map((slot) => (
