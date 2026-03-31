@@ -6,20 +6,31 @@ import { AGENDA } from "@/data/agenda";
 import { SPEAKERS } from "@/data/speakers";
 import type { AgendaSlot, SessionFormat } from "@/types";
 
-// ── Grid math ────────────────────────────────────────────────────
-// Each row = 5 minutes. Row height is fixed so blocks are proportional.
+// ── Grid constants ──────────────────────────────────────────────
 const MINUTES_PER_ROW = 5;
-const ROW_HEIGHT = 30; // px — 20min talk = 4 rows = 120px
-const DAY_START_H = 8;
-const DAY_START_M = 0;
-const DAY_START = DAY_START_H * 60 + DAY_START_M;
+const ROW_HEIGHT = 30; // px per 5-min row
+const BREAK_ROW_HEIGHT = 15; // px per 5-min row inside breaks/doors
+const DAY_START = 8 * 60; // 08:00
 
+// Slot top gap: black space above the slot background (wrapper pt)
+const SLOT_GAP = "pt-2"; // 8px black strip above background
+// Slot inner padding: breathing room inside the background
+const SLOT_PAD_TOP = "pt-1.5"; // 6px inside background before text
+// Time label offset: aligns time baseline with slot title baseline
+// = wrapper gap (8px) + inner padding (6px) + half-leading (~2.6px) ≈ 17px
+const TIME_OFFSET = "pt-[17px]";
+// Extra spacing after full-width shared events (slot wrapper)
+const AFTER_SHARED_SLOT = "pt-6";
+// Extra spacing after full-width shared events (time label)
+// = shared slot gap (24px) + inner padding (6px) + half-leading (~2.6px) ≈ 33px
+const AFTER_SHARED_TIME = "pt-[33px]";
+
+// ── Grid math ───────────────────────────────────────────────────
 function timeToMinutes(t: string) {
   const [h, m] = t.split(":").map(Number);
   return h * 60 + m;
 }
 
-// Grid row number (1-based, no header row in grid anymore)
 function toRow(time: string) {
   return Math.round((timeToMinutes(time) - DAY_START) / MINUTES_PER_ROW) + 1;
 }
@@ -28,86 +39,60 @@ function rowSpan(start: string, end: string) {
   return Math.round((timeToMinutes(end) - timeToMinutes(start)) / MINUTES_PER_ROW);
 }
 
-// ── Classify ─────────────────────────────────────────────────────
+// ── Classify slots ──────────────────────────────────────────────
+// Full-width: logistics, keynotes, breaks (span both stages)
+// Stage-specific: talks, panels, workshops (one stage column)
 function classify() {
-  const mainSlots = AGENDA.filter((s) => s.stage === "main");
-  const sideSlots = AGENDA.filter((s) => s.stage === "side");
-
-  const sideBreakStarts = new Set(
-    sideSlots.filter((s) => s.format === "break").map((s) => s.startTime)
-  );
-
-  const shared: AgendaSlot[] = [];
-  const sharedBreaks: AgendaSlot[] = [];
+  const fullWidth: AgendaSlot[] = [];
   const main: AgendaSlot[] = [];
-  const side = sideSlots.filter((s) => s.format !== "break" && s.format !== "logistics");
+  const side: AgendaSlot[] = [];
 
-  for (const s of mainSlots) {
-    if (s.format === "break" && sideBreakStarts.has(s.startTime)) {
-      sharedBreaks.push(s);
+  for (const s of AGENDA) {
+    const isFullWidth =
+      s.format === "logistics" ||
+      s.format === "keynote" ||
+      (s.format === "break" && s.stage === "main");
+
+    if (isFullWidth) {
+      fullWidth.push(s);
     } else if (s.format === "break") {
-      sharedBreaks.push(s); // non-shared breaks still span full width
-    } else if (s.format === "logistics" || s.format === "keynote") {
-      shared.push(s);
-    } else {
+      // Side-stage break duplicates are skipped (main break already full-width)
+      continue;
+    } else if (s.stage === "main") {
       main.push(s);
+    } else {
+      side.push(s);
     }
   }
 
-  return { shared, sharedBreaks, main, side };
+  return { fullWidth, main, side };
 }
 
-// ── Time labels ──────────────────────────────────────────────────
-function buildTimeLabels() {
-  const lastSlot = AGENDA.reduce((a, b) =>
-    timeToMinutes(a.endTime) > timeToMinutes(b.endTime) ? a : b
+// ── Time labels ─────────────────────────────────────────────────
+// Only show times at slot starts (no small filler labels between)
+function buildTimeLabels(fullWidth: AgendaSlot[]) {
+  const sharedEndMinutes = new Set(fullWidth.map((s) => timeToMinutes(s.endTime)));
+
+  // Collect unique start times per stage (excluding full-width events)
+  const stageSlots = AGENDA.filter(
+    (s) => s.format !== "logistics" && s.format !== "keynote" && !(s.format === "break" && s.stage === "main")
   );
-  const endMin = timeToMinutes(lastSlot.endTime);
 
-  // Track which stages have a slot starting at each time
-  const mainStartTimes = new Set(AGENDA.filter((s) => s.stage === "main").map((s) => s.startTime));
-  const sideStartTimes = new Set(AGENDA.filter((s) => s.stage === "side").map((s) => s.startTime));
+  const mainStarts = new Set(stageSlots.filter((s) => s.stage === "main").map((s) => s.startTime));
+  const sideStarts = new Set(stageSlots.filter((s) => s.stage === "side").map((s) => s.startTime));
+  const allTimes = new Set([...mainStarts, ...sideStarts]);
 
-  // Build shared time ranges (logistics, keynotes, breaks) to hide time labels inside them
-  const { shared: sharedSlots, sharedBreaks: breakSlots } = classify();
-  const sharedRanges = [...sharedSlots, ...breakSlots].map((s) => ({
-    start: timeToMinutes(s.startTime),
-    end: timeToMinutes(s.endTime),
+  return [...allTimes].map((time) => ({
+    time,
+    row: toRow(time),
+    mainStart: mainStarts.has(time),
+    sideStart: sideStarts.has(time),
+    afterShared: sharedEndMinutes.has(timeToMinutes(time)),
   }));
-
-  function isInsideShared(minutes: number) {
-    // Hide ALL time labels inside shared events — the shared event renders its own time in the grid
-    return sharedRanges.some((r) => minutes >= r.start && minutes < r.end);
-  }
-
-  // Collect shared event end times to detect labels right after
-  const sharedEndTimes = new Set(sharedRanges.map((r) => r.end));
-
-  const labels: { time: string; row: number; isSlotStart: boolean; mainStart: boolean; sideStart: boolean; afterShared: boolean }[] = [];
-
-  for (let m = DAY_START; m <= endMin; m += MINUTES_PER_ROW) {
-    const h = Math.floor(m / 60);
-    const min = m % 60;
-    const time = `${h.toString().padStart(2, "0")}:${min.toString().padStart(2, "0")}`;
-
-    // Skip labels inside shared events — those events cover everything
-    if (isInsideShared(m)) continue;
-
-    const mainStart = mainStartTimes.has(time);
-    const sideStart = sideStartTimes.has(time);
-    const isSlotStart = mainStart || sideStart;
-    const afterShared = sharedEndTimes.has(m);
-
-    // Hide the tiny filler label right after a shared event if it's not a slot start
-    if (afterShared && !isSlotStart) continue;
-
-    labels.push({ time, row: toRow(time), isSlotStart, mainStart, sideStart, afterShared });
-  }
-  return labels;
 }
 
-// ── Solid dark backgrounds (no opacity — hides grid lines behind) ─
-const ACCENT_BG: Record<SessionFormat, string> = {
+// ── Slot backgrounds ────────────────────────────────────────────
+const SLOT_BG: Record<SessionFormat, string> = {
   keynote: "bg-[#0f0d08]",
   talk: "bg-[#08090d]",
   panel: "bg-[#0b080e]",
@@ -116,103 +101,96 @@ const ACCENT_BG: Record<SessionFormat, string> = {
   logistics: "bg-[#0a0a0d]",
 };
 
-const ACCENT_BORDER: Record<SessionFormat, string> = {
-  keynote: "border-l-amber-400",
-  talk: "border-l-white/20",
-  panel: "border-l-violet-400",
-  workshop: "border-l-emerald-400",
-  break: "",
-  logistics: "",
-};
-
-// ── Cell content ─────────────────────────────────────────────────
+// ── Slot cell content ───────────────────────────────────────────
 function SlotCell({ slot }: { slot: AgendaSlot }) {
-  const speaker = slot.speakerName
-    ? SPEAKERS.find((s) => s.name === slot.speakerName)
-    : null;
+  const speakers = (slot.speakerNames ?? (slot.speakerName ? [slot.speakerName] : []))
+    .map((name) => SPEAKERS.find((s) => s.name === name))
+    .filter(Boolean);
   const isTBA =
-    !slot.speakerName &&
+    speakers.length === 0 &&
     slot.format !== "keynote" &&
     slot.format !== "logistics" &&
     slot.format !== "break";
-  const isKeynote = slot.format === "keynote";
-  const isCeremony = slot.format === "logistics" && (slot.title === "Welcome" || slot.title === "Closing Remarks");
-  const isDoors = slot.format === "logistics" && slot.title.includes("Doors");
 
-  // Keynote
-  if (isKeynote) {
+  // Keynote — full height, amber accent
+  if (slot.format === "keynote") {
     return (
-      <div className={`h-full ${ACCENT_BG.keynote} px-4 py-4`}>
+      <div className={`h-full ${SLOT_BG.keynote} px-4 py-4`}>
         <span className="text-amber-400/60 text-xs font-mono uppercase tracking-widest">Main Stage</span>
         <h4 className="text-2xl sm:text-3xl font-mono font-bold text-white tracking-tight mt-2">
           {slot.title}
         </h4>
-        {speaker && (
+        {speakers[0] && (
           <div className="flex items-center gap-2 mt-2">
-            {speaker.linkedinUrl ? (
-              <Link href={speaker.linkedinUrl} target="_blank" rel="noopener noreferrer"
+            {speakers[0].linkedinUrl ? (
+              <Link href={speakers[0].linkedinUrl} target="_blank" rel="noopener noreferrer"
                 className="text-base font-mono text-gray-200 hover:text-white transition-colors">
-                {speaker.name}
+                {speakers[0].name}
               </Link>
             ) : (
-              <span className="text-base font-mono text-gray-200">{speaker.name}</span>
+              <span className="text-base font-mono text-gray-200">{speakers[0].name}</span>
             )}
-            {speaker.company && <span className="text-sm text-gray-500">· {speaker.company}</span>}
+            {speakers[0].company && <span className="text-sm text-gray-500">· {speakers[0].company}</span>}
           </div>
         )}
       </div>
     );
   }
 
-  // Welcome / Closing
-  if (isCeremony) {
+  // Welcome / Closing — full height
+  if (slot.format === "logistics" && (slot.title === "Welcome" || slot.title === "Closing Remarks")) {
     return (
-      <div className={`h-full ${ACCENT_BG.logistics} px-4 py-4`}>
+      <div className={`h-full ${SLOT_BG.logistics} px-4 py-4`}>
         <h4 className="text-xl sm:text-2xl font-mono font-bold text-white tracking-tight">{slot.title}</h4>
       </div>
     );
   }
 
-  // Doors
-  if (isDoors) {
+  // Doors / Registration — full height
+  if (slot.format === "logistics") {
     return (
-      <div className={`h-full ${ACCENT_BG.logistics} px-4 py-4`}>
+      <div className={`h-full ${SLOT_BG.logistics} px-4 py-4`}>
         <p className="text-sm font-mono text-gray-400">{slot.title}</p>
       </div>
     );
   }
 
-  // Break
+  // Break — full height
   if (slot.format === "break") {
     return (
-      <div className={`h-full ${ACCENT_BG.break} px-4 py-4`}>
+      <div className={`h-full ${SLOT_BG.break} px-4 py-4`}>
         <p className="text-sm font-mono text-white/50">{slot.title}</p>
       </div>
     );
   }
 
-  // Talk / Panel / Workshop: title → speaker → length
+  // Talk / Panel / Workshop — NO h-full (background wraps content only)
   return (
-    <div className={`h-full ${ACCENT_BG[slot.format]} px-4 pt-0 pb-3 ${
-      isTBA ? "opacity-40" : ""
-    }`}>
+    <div className={`${SLOT_BG[slot.format]} px-4 ${SLOT_PAD_TOP} pb-3 ${isTBA ? "opacity-40" : ""}`}>
       {slot.format === "panel" && (
         <span className="text-[9px] font-mono uppercase tracking-widest bg-violet-500/20 text-violet-300 px-1.5 py-0.5 rounded mb-1 inline-block">Panel</span>
       )}
       <h4 className={`text-sm leading-snug font-medium ${isTBA ? "text-gray-600 italic" : "text-white"}`}>
         {isTBA ? "To be announced" : slot.title}
       </h4>
-      {speaker && (
-        <div className="mt-1 flex items-center gap-1.5">
-          {speaker.linkedinUrl ? (
-            <Link href={speaker.linkedinUrl} target="_blank" rel="noopener noreferrer"
-              className="text-xs font-mono text-gray-300 hover:text-white transition-colors">
-              {speaker.name}
-            </Link>
-          ) : (
-            <span className="text-xs font-mono text-gray-300">{speaker.name}</span>
+      {speakers.length > 0 && (
+        <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+          {speakers.map((sp, i) => (
+            <React.Fragment key={sp!.name}>
+              {i > 0 && <span className="text-[11px] text-gray-600">&</span>}
+              {sp!.linkedinUrl ? (
+                <Link href={sp!.linkedinUrl} target="_blank" rel="noopener noreferrer"
+                  className="text-xs font-mono text-gray-300 hover:text-white transition-colors">
+                  {sp!.name}
+                </Link>
+              ) : (
+                <span className="text-xs font-mono text-gray-300">{sp!.name}</span>
+              )}
+            </React.Fragment>
+          ))}
+          {speakers[speakers.length - 1]!.company && (
+            <span className="text-[11px] text-gray-500">· {speakers[speakers.length - 1]!.company}</span>
           )}
-          {speaker.company && <span className="text-[11px] text-gray-500">· {speaker.company}</span>}
         </div>
       )}
       {slot.description && <p className="text-[10px] text-gray-500 mt-0.5">{slot.description}</p>}
@@ -220,24 +198,64 @@ function SlotCell({ slot }: { slot: AgendaSlot }) {
   );
 }
 
-// ── Desktop grid ─────────────────────────────────────────────────
-function DesktopGrid({ isVisible }: { isVisible: boolean }) {
-  const { shared, sharedBreaks, main, side } = useMemo(() => classify(), []);
-  const timeLabels = useMemo(() => buildTimeLabels(), []);
+// ── Time label cell ─────────────────────────────────────────────
+function TimeLabel({ time, isSlotStart, afterShared }: {
+  time: string;
+  isSlotStart: boolean;
+  afterShared: boolean;
+}) {
+  if (!isSlotStart) return null;
+  const pad = afterShared ? AFTER_SHARED_TIME : TIME_OFFSET;
+  return (
+    <div className={`flex items-start justify-end pr-3 ${pad}`}>
+      <span className="text-sm font-mono tabular-nums leading-none text-gray-300 font-semibold">
+        {time}
+      </span>
+    </div>
+  );
+}
 
-  // Total rows needed
-  const lastSlot = AGENDA.reduce((a, b) => timeToMinutes(a.endTime) > timeToMinutes(b.endTime) ? a : b);
+// ── Desktop grid ────────────────────────────────────────────────
+function DesktopGrid({ isVisible }: { isVisible: boolean }) {
+  const { fullWidth, main, side } = useMemo(() => classify(), []);
+  const timeLabels = useMemo(() => buildTimeLabels(fullWidth), [fullWidth]);
+
+  const lastSlot = AGENDA.reduce((a, b) =>
+    timeToMinutes(a.endTime) > timeToMinutes(b.endTime) ? a : b
+  );
   const totalRows = Math.round((timeToMinutes(lastSlot.endTime) - DAY_START) / MINUTES_PER_ROW) + 1;
+
+  // Times right after full-width events need extra spacing
+  const afterFullWidthTimes = useMemo(
+    () => new Set(fullWidth.map((s) => s.endTime)),
+    [fullWidth]
+  );
+
+  // Compressed row template: breaks & doors use smaller row height
+  const rowTemplate = useMemo(() => {
+    const compressedRows = new Set<number>();
+    for (const s of fullWidth) {
+      if (s.format !== "break" && !s.title.includes("Doors")) continue;
+      const start = toRow(s.startTime);
+      const span = rowSpan(s.startTime, s.endTime);
+      for (let i = 0; i < span; i++) compressedRows.add(start + i);
+    }
+    return Array.from({ length: totalRows }, (_, i) =>
+      compressedRows.has(i + 1) ? `${BREAK_ROW_HEIGHT}px` : `${ROW_HEIGHT}px`
+    ).join(" ");
+  }, [fullWidth, totalRows]);
+
+  const gridCols = "4rem 1fr 2rem 4rem 1fr";
 
   return (
     <div
       className={`hidden lg:block transition-all duration-700 ${isVisible ? "opacity-100" : "opacity-0 translate-y-8"}`}
       style={{ transitionDelay: "200ms" }}
     >
-      {/* Sticky stage headers — OUTSIDE the grid so sticky works */}
-      {/* Grid: time | main | gap | time | side */}
-      <div className="sticky top-0 z-20 bg-black border-b border-white/[0.08]"
-        style={{ display: "grid", gridTemplateColumns: "4rem 1fr 2rem 4rem 1fr" }}
+      {/* Sticky stage headers */}
+      <div
+        className="sticky top-0 z-20 bg-black border-b border-white/[0.08]"
+        style={{ display: "grid", gridTemplateColumns: gridCols }}
       >
         <div className="py-3" />
         <div className="py-3 pl-4 flex items-center gap-2">
@@ -252,126 +270,90 @@ function DesktopGrid({ isVisible }: { isVisible: boolean }) {
         </div>
       </div>
 
-      {/* The actual grid: time | main | gap | time | side */}
+      {/* The timetable grid */}
       <div
         className="grid"
         style={{
-          gridTemplateColumns: "4rem 1fr 2rem 4rem 1fr",
-          gridTemplateRows: `repeat(${totalRows}, ${ROW_HEIGHT}px)`,
+          gridTemplateColumns: gridCols,
+          gridTemplateRows: rowTemplate,
         }}
       >
+        {/* Time labels — left column (main stage) */}
+        {timeLabels.map(({ time, row, mainStart, afterShared }) => (
+          <div key={`tl-${time}`} style={{ gridColumn: "1", gridRow: `${row}` }}>
+            <TimeLabel time={time} isSlotStart={mainStart} afterShared={afterShared} />
+          </div>
+        ))}
 
-      {/* Left time column (for main stage) — only main starts are large */}
-      {timeLabels.map(({ time, row, mainStart, afterShared }) => (
-        <div key={`tl-${time}`} style={{ gridColumn: "1", gridRow: `${row}` }} className={`flex items-start justify-end pr-3 ${afterShared ? "pt-6" : ""}`}>
-          <span className={`font-mono tabular-nums leading-none ${
-            mainStart
-              ? "text-sm text-gray-300 font-semibold"
-              : "text-[9px] text-gray-700"
-          }`}>
-            {time}
-          </span>
-        </div>
-      ))}
+        {/* Time labels — right column (side stage) */}
+        {timeLabels.map(({ time, row, sideStart, afterShared }) => (
+          <div key={`tr-${time}`} style={{ gridColumn: "4", gridRow: `${row}` }}>
+            <TimeLabel time={time} isSlotStart={sideStart} afterShared={afterShared} />
+          </div>
+        ))}
 
-      {/* Main stage slot start lines — rendered in main column */}
-      {timeLabels.filter(l => l.mainStart).map(({ time, row }) => (
-        <div key={`ml-${time}`} style={{ gridColumn: "2", gridRow: `${row}` }} className="border-t border-white/[0.08]" />
-      ))}
+        {/* Full-width events (keynotes, logistics, breaks) */}
+        {fullWidth.map((slot) => {
+          const displayTime = slot.title === "Welcome" ? "09:00" : slot.startTime;
+          const rs = toRow(slot.startTime);
+          const re = rs + rowSpan(slot.startTime, slot.endTime);
+          return (
+            <React.Fragment key={slot.id}>
+              <div
+                style={{ gridColumn: "1", gridRow: `${rs} / ${re}` }}
+                className="z-10 flex items-start justify-end pr-3 pt-6 border-y border-white/[0.10]"
+              >
+                <span className="text-sm font-mono text-gray-300 font-semibold">{displayTime}</span>
+              </div>
+              <div
+                style={{ gridColumn: "2 / 6", gridRow: `${rs} / ${re}` }}
+                className="z-10 border-y border-white/[0.10] pt-2"
+              >
+                <SlotCell slot={slot} />
+              </div>
+            </React.Fragment>
+          );
+        })}
 
-      {/* Right time column (for side stage) — only side starts are large */}
-      {timeLabels.map(({ time, row, sideStart, afterShared }) => (
-        <div key={`tr-${time}`} style={{ gridColumn: "4", gridRow: `${row}` }} className={`flex items-start justify-end pr-3 ${afterShared ? "pt-6" : ""}`}>
-          <span className={`font-mono tabular-nums leading-none ${
-            sideStart
-              ? "text-sm text-gray-300 font-semibold"
-              : "text-[9px] text-gray-700"
-          }`}>
-            {time}
-          </span>
-        </div>
-      ))}
+        {/* Main stage slots — column 2 */}
+        {main.map((slot) => (
+          <div
+            key={slot.id}
+            style={{
+              gridColumn: "2",
+              gridRow: `${toRow(slot.startTime)} / ${toRow(slot.startTime) + rowSpan(slot.startTime, slot.endTime)}`,
+            }}
+            className={afterFullWidthTimes.has(slot.startTime) ? AFTER_SHARED_SLOT : SLOT_GAP}
+          >
+            <SlotCell slot={slot} />
+          </div>
+        ))}
 
-      {/* Side stage slot start lines — rendered in side column */}
-      {timeLabels.filter(l => l.sideStart).map(({ time, row }) => (
-        <div key={`sl-${time}`} style={{ gridColumn: "5", gridRow: `${row}` }} className="border-t border-white/[0.08]" />
-      ))}
-
-      {/* No full-height vertical divider — individual slot borders are enough */}
-
-      {/* Shared events — time in col 1, content in cols 2-5 */}
-      {shared.map((slot) => {
-        const displayTime = slot.title === "Welcome" ? "09:00" : slot.startTime;
-        const rs = toRow(slot.startTime);
-        const re = rs + rowSpan(slot.startTime, slot.endTime);
-        return (
-          <React.Fragment key={slot.id}>
-            <div style={{ gridColumn: "1", gridRow: `${rs} / ${re}` }}
-              className="z-10 flex items-start justify-end pr-3 pt-6 border-y border-white/[0.10]"
-            >
-              <span className="text-sm font-mono text-gray-300 font-semibold">{displayTime}</span>
-            </div>
-            <div style={{ gridColumn: "2 / 6", gridRow: `${rs} / ${re}` }}
-              className="z-10 border-y border-white/[0.10] pt-2"
-            >
-              <SlotCell slot={slot} />
-            </div>
-          </React.Fragment>
-        );
-      })}
-
-      {/* Shared breaks — time in col 1, content in cols 2-5 */}
-      {sharedBreaks.map((slot) => {
-        const rs = toRow(slot.startTime);
-        const re = rs + rowSpan(slot.startTime, slot.endTime);
-        return (
-          <React.Fragment key={slot.id}>
-            <div style={{ gridColumn: "1", gridRow: `${rs} / ${re}` }}
-              className="z-10 flex items-start justify-end pr-3 pt-6 border-y border-white/[0.10]"
-            >
-              <span className="text-sm font-mono text-gray-300 font-semibold">{slot.startTime}</span>
-            </div>
-            <div style={{ gridColumn: "2 / 6", gridRow: `${rs} / ${re}` }}
-              className="z-10 border-y border-white/[0.10] pt-2"
-            >
-              <SlotCell slot={slot} />
-            </div>
-          </React.Fragment>
-        );
-      })}
-
-      {/* Main stage — column 2 */}
-      {main.map((slot) => (
-        <div key={slot.id} style={{
-          gridColumn: "2",
-          gridRow: `${toRow(slot.startTime)} / ${toRow(slot.startTime) + rowSpan(slot.startTime, slot.endTime)}`,
-        }} className="border-b border-white/[0.04]">
-          <SlotCell slot={slot} />
-        </div>
-      ))}
-
-      {/* Side stage — column 5 */}
-      {side.map((slot) => (
-        <div key={slot.id} style={{
-          gridColumn: "5",
-          gridRow: `${toRow(slot.startTime)} / ${toRow(slot.startTime) + rowSpan(slot.startTime, slot.endTime)}`,
-        }} className="border-b border-white/[0.04]">
-          <SlotCell slot={slot} />
-        </div>
-      ))}
+        {/* Side stage slots — column 5 */}
+        {side.map((slot) => (
+          <div
+            key={slot.id}
+            style={{
+              gridColumn: "5",
+              gridRow: `${toRow(slot.startTime)} / ${toRow(slot.startTime) + rowSpan(slot.startTime, slot.endTime)}`,
+            }}
+            className={afterFullWidthTimes.has(slot.startTime) ? AFTER_SHARED_SLOT : SLOT_GAP}
+          >
+            <SlotCell slot={slot} />
+          </div>
+        ))}
       </div>
     </div>
   );
 }
 
-// ── Mobile ───────────────────────────────────────────────────────
+// ── Mobile view ─────────────────────────────────────────────────
 function MobileView({ activeStage, isVisible }: { activeStage: "main" | "side"; isVisible: boolean }) {
   const rows = useMemo(() => {
     const slots = AGENDA.filter(
       (s) => s.stage === activeStage || (s.stage === "main" && (s.format === "logistics" || s.format === "keynote" || s.format === "break"))
     ).sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
 
-    // Deduplicate breaks (both stages have same break)
     const seen = new Set<string>();
     return slots.filter((s) => {
       const key = `${s.startTime}-${s.format}`;
@@ -398,7 +380,7 @@ function MobileView({ activeStage, isVisible }: { activeStage: "main" | "side"; 
   );
 }
 
-// ── Export ────────────────────────────────────────────────────────
+// ── Export ───────────────────────────────────────────────────────
 export default function Agenda() {
   const ref = useRef<HTMLElement>(null);
   const [isVisible, setIsVisible] = useState(false);

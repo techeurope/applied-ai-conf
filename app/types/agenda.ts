@@ -7,6 +7,7 @@ export interface AgendaSlot {
   endTime: string; // "09:30"
   title: string;
   speakerName?: string; // Matches SPEAKERS[].name for lookups
+  speakerNames?: string[]; // Multiple speakers (e.g. joint talks)
   stage: Stage;
   format: SessionFormat;
   description?: string;
