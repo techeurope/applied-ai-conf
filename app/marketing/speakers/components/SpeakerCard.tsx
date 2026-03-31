@@ -1,32 +1,45 @@
 "use client";
 
+import type React from "react";
 import type { Speaker } from "@/types";
 import { applyKerning } from "@/lib/utils";
+import { LegoraLogo } from "@/components/ui/legora-logo";
+import { LangdockLogo } from "@/components/ui/langdock-logo";
+import { ChocoLogo } from "@/components/ui/choco-logo";
+import { TactoLogo } from "@/components/ui/tacto-logo";
+import { KnowunityLogo } from "@/components/ui/knowunity-logo";
+import { VeedLogo } from "@/components/ui/veed-logo";
+import { CodewordsLogo } from "@/components/ui/codewords-logo";
+import { DustLogo } from "@/components/ui/dust-logo";
+import { IntercomLogo } from "@/components/ui/intercom-logo";
+import { GradiumLogo } from "@/components/ui/gradium-logo";
+import { LlamaIndexLogo } from "@/components/ui/llamaindex-logo";
+import { ConfluentLogo } from "@/components/ui/confluent-logo";
+import { StripeLogo } from "@/components/ui/stripe-logo";
+import { SwordHealthLogo } from "@/components/ui/sword-health-logo";
+import { ConductLogo } from "@/components/ui/conduct-logo";
+import { PeecAiLogo } from "@/components/ui/peec-ai-logo";
 
-// Map company names to actual logo files (dark versions = white logos for dark bg)
-const LOGO_MAP: Record<string, string> = {
-  legora: "/logos/legora.svg",
-  langdock: "/logos/langdock_dark.png",
-  choco: "/logos/choco_dark.png",
-  tacto: "/logos/tacto_dark.png",
-  knowunity: "/logos/knowunity_dark.png",
-  "veed.io": "/logos/veed.svg",
-  codewords: "/logos/codewords.svg",
-  llamaindex: "/logos/llamaindex.svg",
-  confluent: "/logos/confluent.svg",
-  stripe: "/logos/stripe.svg",
-  "sword health": "/logos/sword-health.svg",
-  conduct: "/logos/conduct.svg",
-  gradium: "/logos/gradium.svg",
-  intercom: "/logos/intercom.svg",
-  dust: "/logos/dust.svg",
-  "peec ai": "/logos/peec-ai.svg",
+type LogoComponent = React.ComponentType<{ className?: string }>;
+
+const COMPANY_LOGOS: Record<string, LogoComponent> = {
+  Langdock: LangdockLogo,
+  Choco: ChocoLogo,
+  Tacto: TactoLogo,
+  Legora: LegoraLogo,
+  Knowunity: KnowunityLogo,
+  "VEED.IO": VeedLogo,
+  Codewords: CodewordsLogo,
+  Dust: DustLogo,
+  Intercom: IntercomLogo,
+  Gradium: GradiumLogo,
+  LlamaIndex: LlamaIndexLogo,
+  Confluent: ConfluentLogo,
+  Stripe: StripeLogo,
+  "Sword Health": SwordHealthLogo,
+  Conduct: ConductLogo,
+  "Peec AI": PeecAiLogo,
 };
-
-function getLogoPath(speaker: Speaker): string {
-  const key = speaker.company.toLowerCase();
-  return LOGO_MAP[key] || speaker.companyLogo || "";
-}
 
 interface ImageConfig {
   x: number;
@@ -53,7 +66,7 @@ export function SpeakerCard({
   conferenceDate = "MAY 28, 2026",
   imageConfig = defaultImageConfig,
 }: Props) {
-  const logoPath = getLogoPath(speaker);
+  const LogoComponent = COMPANY_LOGOS[speaker.company];
   return (
     <div className="relative w-[1080px] h-[1080px] bg-[#0a0a0a] overflow-hidden border border-neutral-800">
       {/* Subtle grid pattern */}
@@ -150,12 +163,9 @@ export function SpeakerCard({
             {speaker.title}
           </span>
           <span className="text-neutral-500 text-5xl">at</span>
-          <img
-            src={logoPath}
-            alt={speaker.logoAlt}
-            className="h-14 w-auto object-contain"
-            crossOrigin="anonymous"
-          />
+          {LogoComponent && (
+            <LogoComponent className="h-14 w-auto text-white" />
+          )}
         </div>
       </div>
     </div>
