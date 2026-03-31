@@ -18,5 +18,6 @@ export { StripeLogo } from './ui/stripe-logo';
 export { SwordHealthLogo } from './ui/sword-health-logo';
 export { ConductLogo } from './ui/conduct-logo';
 export { PeecAiLogo } from './ui/peec-ai-logo';
+export { AiCousticsLogo } from './ui/ai-coustics-logo';
 export { default as CookieConsent } from './CookieConsent';
 export { default as PostHogProvider } from './PostHogProvider';

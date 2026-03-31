@@ -19,6 +19,7 @@ import { StripeLogo } from "@/components/ui/stripe-logo";
 import { SwordHealthLogo } from "@/components/ui/sword-health-logo";
 import { ConductLogo } from "@/components/ui/conduct-logo";
 import { PeecAiLogo } from "@/components/ui/peec-ai-logo";
+import { AiCousticsLogo } from "@/components/ui/ai-coustics-logo";
 
 type LogoComponent = React.ComponentType<{ className?: string }>;
 
@@ -39,6 +40,7 @@ const COMPANY_LOGOS: Record<string, LogoComponent> = {
   "Sword Health": SwordHealthLogo,
   Conduct: ConductLogo,
   "Peec AI": PeecAiLogo,
+  "ai-coustics": AiCousticsLogo,
 };
 
 const COMPANY_ITEMS = Array.from(

@@ -21,7 +21,7 @@ export const AGENDA: AgendaSlot[] = [
   { id: 'main-2', startTime: '10:10', endTime: '10:30', title: 'Building a Universal Agent for Legal', speakerNames: ['Zino Kader', 'Jakob Emmerling'], stage: 'main', format: 'talk' },
   // Side: 2 talks(20) starting after keynote
   { id: 'side-1', startTime: '09:45', endTime: '10:05', title: 'The Anatomy of LobsterX, a Document Processing Agent', speakerName: 'Clelia Astra Bertelli', stage: 'side', format: 'talk' },
-  { id: 'side-2', startTime: '10:10', endTime: '10:30', title: 'To be announced', stage: 'side', format: 'talk' },
+  { id: 'side-2', startTime: '10:10', endTime: '10:30', title: 'Audio Intelligence: The Hidden Layer Driving Voice AI Reliability', speakerName: 'Fabian Seipel', stage: 'side', format: 'talk' },
 
   // ── Coffee Break (10:30–10:50) ────────────────────────────────
   { id: 'break-1', startTime: '10:30', endTime: '10:50', title: 'Coffee Break', stage: 'main', format: 'break' },
