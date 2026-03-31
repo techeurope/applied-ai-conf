@@ -4,7 +4,7 @@ import { CTANewsletterForm } from "@/components/ui/newsletter-form";
 
 export default function CallToAction() {
   return (
-    <section className="relative py-24 lg:py-32">
+    <section className="relative py-16 lg:py-20">
       <div className="relative mx-auto max-w-4xl px-6 lg:px-8">
         <div className="glass-card rounded-3xl border border-white/10 bg-black/40 backdrop-blur-xl p-10 lg:p-16">
           {/* Header */}

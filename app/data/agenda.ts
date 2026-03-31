@@ -6,7 +6,8 @@ import type { AgendaSlot } from '@/types';
 // Block 1 (09:10–10:30): Keynote(30) + 2 talks(20)
 // Block 2 (10:50–12:25): 4 main talks(20) + side sessions
 // Block 3 (13:30–14:50): Panel(30) + 2 main talks(20) + side sessions
-// Block 4 (15:15–16:35): Panel(30) + 2 main talks(20) + side sessions
+// Block 4 (15:15–16:50): 4 main talks(20) + side sessions
+// Block 5 (17:10–17:50): 2 main talks(20) + side sessions
 
 export const AGENDA: AgendaSlot[] = [
   // ── Shared: Doors + Opening ───────────────────────────────────
@@ -65,7 +66,19 @@ export const AGENDA: AgendaSlot[] = [
   { id: 'side-9', startTime: '15:40', endTime: '16:00', title: 'To be announced', stage: 'side', format: 'talk' },
   { id: 'side-10', startTime: '16:05', endTime: '16:25', title: 'To be announced', stage: 'side', format: 'talk' },
 
+  // ── Coffee Break (16:50–17:10) ──────────────────────────────
+  { id: 'break-3', startTime: '16:50', endTime: '17:10', title: 'Coffee Break', stage: 'main', format: 'break' },
+  { id: 'break-3-side', startTime: '16:30', endTime: '17:10', title: 'Coffee Break', stage: 'side', format: 'break' },
+
+  // ── Block 5: Late Afternoon (17:10–17:50) ────────────────────
+  // Main: 2 talks(20)
+  { id: 'main-13', startTime: '17:10', endTime: '17:30', title: 'To be announced', stage: 'main', format: 'talk' },
+  { id: 'main-14', startTime: '17:35', endTime: '17:55', title: 'To be announced', stage: 'main', format: 'talk' },
+  // Side: 2 sessions
+  { id: 'side-11', startTime: '17:10', endTime: '17:30', title: 'To be announced', stage: 'side', format: 'talk' },
+  { id: 'side-12', startTime: '17:35', endTime: '17:55', title: 'To be announced', stage: 'side', format: 'talk' },
+
   // ── Shared: Closing ───────────────────────────────────────────
-  { id: 'keynote-close', startTime: '16:55', endTime: '17:25', title: 'Shipping Fin to Production: What Worked, What Broke, What Changed', speakerName: 'Des Traynor', stage: 'main', format: 'keynote' },
-  { id: 'closing', startTime: '17:25', endTime: '17:35', title: 'Closing Remarks', stage: 'main', format: 'logistics' },
+  { id: 'keynote-close', startTime: '18:00', endTime: '18:30', title: 'Shipping Fin to Production: What Worked, What Broke, What Changed', speakerName: 'Des Traynor', stage: 'main', format: 'keynote' },
+  { id: 'closing', startTime: '18:30', endTime: '18:40', title: 'Closing Remarks', stage: 'main', format: 'logistics' },
 ];

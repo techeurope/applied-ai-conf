@@ -8,22 +8,26 @@ import type { AgendaSlot, SessionFormat } from "@/types";
 
 // ── Grid constants ──────────────────────────────────────────────
 const MINUTES_PER_ROW = 5;
-const ROW_HEIGHT = 30; // px per 5-min row
-const BREAK_ROW_HEIGHT = 15; // px per 5-min row inside breaks/doors
+const ROW_HEIGHT = 20; // px per 5-min row
+const BREAK_ROW_HEIGHT = 8; // px per 5-min row inside logistics
+// Target visual height for all breaks (matches coffee break: 4 rows × 16px)
+const BREAK_TARGET_HEIGHT = 48;
+// Target visual height for keynotes (enough for title + speaker)
+const KEYNOTE_TARGET_HEIGHT = 64;
 const DAY_START = 8 * 60; // 08:00
 
 // Slot top gap: black space above the slot background (wrapper pt)
-const SLOT_GAP = "pt-2"; // 8px black strip above background
+const SLOT_GAP = "pt-1"; // 4px black strip above background
 // Slot inner padding: breathing room inside the background
-const SLOT_PAD_TOP = "pt-1.5"; // 6px inside background before text
+const SLOT_PAD_TOP = "pt-1"; // 4px inside background before text
 // Time label offset: aligns time baseline with slot title baseline
-// = wrapper gap (8px) + inner padding (6px) + half-leading (~2.6px) ≈ 17px
-const TIME_OFFSET = "pt-[17px]";
+// = wrapper gap (4px) + inner padding (4px) + half-leading (~1px) ≈ 9px
+const TIME_OFFSET = "pt-[9px]";
 // Extra spacing after full-width shared events (slot wrapper)
-const AFTER_SHARED_SLOT = "pt-6";
+const AFTER_SHARED_SLOT = "pt-3";
 // Extra spacing after full-width shared events (time label)
-// = shared slot gap (24px) + inner padding (6px) + half-leading (~2.6px) ≈ 33px
-const AFTER_SHARED_TIME = "pt-[33px]";
+// = shared slot gap (12px) + inner padding (4px) + half-leading (~1px) ≈ 17px
+const AFTER_SHARED_TIME = "pt-[17px]";
 
 // ── Grid math ───────────────────────────────────────────────────
 function timeToMinutes(t: string) {
@@ -97,7 +101,7 @@ const SLOT_BG: Record<SessionFormat, string> = {
   talk: "bg-[#08090d]",
   panel: "bg-[#0b080e]",
   workshop: "bg-[#080c0a]",
-  break: "bg-[#0a0a0d]",
+  break: "bg-[#18181b]",
   logistics: "bg-[#0a0a0d]",
 };
 
@@ -115,22 +119,21 @@ function SlotCell({ slot }: { slot: AgendaSlot }) {
   // Keynote — full height, amber accent
   if (slot.format === "keynote") {
     return (
-      <div className={`h-full ${SLOT_BG.keynote} px-4 py-4`}>
-        <span className="text-amber-400/60 text-xs font-mono uppercase tracking-widest">Main Stage</span>
-        <h4 className="text-2xl sm:text-3xl font-mono font-bold text-white tracking-tight mt-2">
+      <div className={`h-full ${SLOT_BG.keynote} px-3 ${SLOT_PAD_TOP} pb-2`}>
+        <h4 className="text-sm leading-snug font-medium text-white">
           {slot.title}
         </h4>
         {speakers[0] && (
-          <div className="flex items-center gap-2 mt-2">
+          <div className="mt-1 flex items-center gap-1.5">
             {speakers[0].linkedinUrl ? (
               <Link href={speakers[0].linkedinUrl} target="_blank" rel="noopener noreferrer"
-                className="text-base font-mono text-gray-200 hover:text-white transition-colors">
+                className="text-xs font-mono text-gray-300 hover:text-white transition-colors">
                 {speakers[0].name}
               </Link>
             ) : (
-              <span className="text-base font-mono text-gray-200">{speakers[0].name}</span>
+              <span className="text-xs font-mono text-gray-300">{speakers[0].name}</span>
             )}
-            {speakers[0].company && <span className="text-sm text-gray-500">· {speakers[0].company}</span>}
+            {speakers[0].company && <span className="text-[11px] text-gray-500">· {speakers[0].company}</span>}
           </div>
         )}
       </div>
@@ -140,17 +143,17 @@ function SlotCell({ slot }: { slot: AgendaSlot }) {
   // Welcome / Closing — full height
   if (slot.format === "logistics" && (slot.title === "Welcome" || slot.title === "Closing Remarks")) {
     return (
-      <div className={`h-full ${SLOT_BG.logistics} px-4 py-4`}>
-        <h4 className="text-xl sm:text-2xl font-mono font-bold text-white tracking-tight">{slot.title}</h4>
+      <div className={`h-full ${SLOT_BG.logistics} px-3 ${SLOT_PAD_TOP} pb-2`}>
+        <h4 className="text-sm leading-snug font-medium text-white">{slot.title}</h4>
       </div>
     );
   }
 
-  // Doors / Registration — full height
+  // Doors / Registration — same style as breaks
   if (slot.format === "logistics") {
     return (
-      <div className={`h-full ${SLOT_BG.logistics} px-4 py-4`}>
-        <p className="text-sm font-mono text-gray-400">{slot.title}</p>
+      <div className={`h-full ${SLOT_BG.break} px-3 ${SLOT_PAD_TOP} pb-2`}>
+        <p className="text-sm font-mono text-white">{slot.title}</p>
       </div>
     );
   }
@@ -158,15 +161,15 @@ function SlotCell({ slot }: { slot: AgendaSlot }) {
   // Break — full height
   if (slot.format === "break") {
     return (
-      <div className={`h-full ${SLOT_BG.break} px-4 py-4`}>
-        <p className="text-sm font-mono text-white/50">{slot.title}</p>
+      <div className={`h-full ${SLOT_BG.break} px-3 ${SLOT_PAD_TOP} pb-2`}>
+        <p className="text-sm font-mono text-white">{slot.title}</p>
       </div>
     );
   }
 
   // Talk / Panel / Workshop — NO h-full (background wraps content only)
   return (
-    <div className={`${SLOT_BG[slot.format]} px-4 ${SLOT_PAD_TOP} pb-3 ${isTBA ? "opacity-40" : ""}`}>
+    <div className={`${SLOT_BG[slot.format]} px-3 ${SLOT_PAD_TOP} pb-2 ${isTBA ? "opacity-40" : ""}`}>
       {slot.format === "panel" && (
         <span className="text-[9px] font-mono uppercase tracking-widest bg-violet-500/20 text-violet-300 px-1.5 py-0.5 rounded mb-1 inline-block">Panel</span>
       )}
@@ -231,17 +234,25 @@ function DesktopGrid({ isVisible }: { isVisible: boolean }) {
     [fullWidth]
   );
 
-  // Compressed row template: breaks & doors use smaller row height
+  // Compressed row template: full-width events use smaller row heights
+  // Breaks all get the same total height regardless of duration
   const rowTemplate = useMemo(() => {
-    const compressedRows = new Set<number>();
+    const compressedRows = new Map<number, number>(); // row -> height
     for (const s of fullWidth) {
-      if (s.format !== "break" && !s.title.includes("Doors")) continue;
+      if (s.format !== "break" && s.format !== "keynote" && s.format !== "logistics") continue;
       const start = toRow(s.startTime);
       const span = rowSpan(s.startTime, s.endTime);
-      for (let i = 0; i < span; i++) compressedRows.add(start + i);
+      const isBreakStyle = s.format === "break" ||
+        (s.format === "logistics" && s.title !== "Welcome" && s.title !== "Closing Remarks");
+      const height = isBreakStyle
+        ? Math.round(BREAK_TARGET_HEIGHT / span)
+        : s.format === "keynote"
+          ? Math.round(KEYNOTE_TARGET_HEIGHT / span)
+          : BREAK_ROW_HEIGHT;
+      for (let i = 0; i < span; i++) compressedRows.set(start + i, height);
     }
     return Array.from({ length: totalRows }, (_, i) =>
-      compressedRows.has(i + 1) ? `${BREAK_ROW_HEIGHT}px` : `${ROW_HEIGHT}px`
+      compressedRows.has(i + 1) ? `${compressedRows.get(i + 1)}px` : `${ROW_HEIGHT}px`
     ).join(" ");
   }, [fullWidth, totalRows]);
 
@@ -258,15 +269,13 @@ function DesktopGrid({ isVisible }: { isVisible: boolean }) {
         style={{ display: "grid", gridTemplateColumns: gridCols }}
       >
         <div className="py-3" />
-        <div className="py-3 pl-4 flex items-center gap-2">
-          <div className="h-2 w-2 rounded-full bg-white/60" />
-          <span className="text-xs font-mono font-bold text-white uppercase tracking-widest">Main Stage</span>
+        <div className="py-3 pl-4 flex items-center">
+          <span className="text-lg font-mono font-bold text-white uppercase tracking-widest">Main Stage</span>
         </div>
         <div className="py-3" />
         <div className="py-3" />
-        <div className="py-3 pl-4 flex items-center gap-2">
-          <div className="h-2 w-2 rounded-full bg-white/30" />
-          <span className="text-xs font-mono font-bold text-white uppercase tracking-widest">Side Stage</span>
+        <div className="py-3 pl-4 flex items-center">
+          <span className="text-lg font-mono font-bold text-white uppercase tracking-widest">Side Stage</span>
         </div>
       </div>
 
@@ -301,7 +310,7 @@ function DesktopGrid({ isVisible }: { isVisible: boolean }) {
             <React.Fragment key={slot.id}>
               <div
                 style={{ gridColumn: "1", gridRow: `${rs} / ${re}` }}
-                className="z-10 flex items-start justify-end pr-3 pt-6 border-y border-white/[0.10]"
+                className="z-10 flex items-start justify-end pr-3 pt-[13px] border-y border-white/[0.10]"
               >
                 <span className="text-sm font-mono text-gray-300 font-semibold">{displayTime}</span>
               </div>
@@ -393,13 +402,13 @@ export default function Agenda() {
   }, []);
 
   return (
-    <section ref={ref} id="schedule" className="relative w-full bg-black py-28 lg:py-40">
+    <section ref={ref} id="schedule" className="relative w-full bg-black py-16 lg:py-20">
       <div className="mx-auto w-full max-w-7xl px-6 lg:px-8">
-        <div className={`mb-14 transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
-          <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-mono font-bold text-white tracking-tighter leading-[1.05]">
-            One day. Two stages.
+        <div className={`mb-8 transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
+          <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-mono font-bold text-white tracking-tighter leading-[1.05] text-center">
+            Agenda
           </h2>
-          <p className="text-lg sm:text-xl text-gray-400 mt-4">What keeps engineers and builders up at night.</p>
+          <p className="text-lg sm:text-xl text-gray-400 mt-2 text-center">One day. Two stages.</p>
         </div>
 
         {/* Mobile tabs */}

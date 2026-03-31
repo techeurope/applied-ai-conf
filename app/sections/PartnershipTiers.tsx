@@ -9,7 +9,7 @@ export default function PartnershipTiers() {
   const borderColor = "rgba(255,255,255,0.10)";
 
   return (
-    <section id="partner" className="relative overflow-hidden py-24 lg:py-32 min-h-screen flex items-center">
+    <section id="partner" className="relative overflow-hidden py-16 lg:py-20 min-h-screen flex items-center">
       <div className="mx-auto w-full max-w-5xl px-6 lg:px-8">
         <h2 className="text-4xl font-mono font-bold tracking-tight text-center sm:text-5xl md:text-6xl mb-16">
           Partners
