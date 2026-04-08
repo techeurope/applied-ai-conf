@@ -1,18 +1,6 @@
-interface AiCousticsLogoProps {
-  className?: string;
-}
-
-export function AiCousticsLogo({ className }: AiCousticsLogoProps) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 2076 268"
-      fill="currentColor"
-      className={className}
-      aria-label="ai-coustics"
-    >
-      <g transform="translate(0,268) scale(0.1,-0.1)" stroke="none">
-        <path d="M2456 2659 c-189 -28 -440 -132 -592 -247 -144 -109 -280 -265 -376
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2076 268" fill="currentColor">
+<g transform="translate(0,268) scale(0.1,-0.1)" stroke="none">
+<path d="M2456 2659 c-189 -28 -440 -132 -592 -247 -144 -109 -280 -265 -376
 -432 -79 -137 -144 -356 -155 -522 l-6 -98 -664 0 -663 0 0 -46 c0 -81 30
 -255 62 -354 147 -460 523 -799 1001 -902 82 -17 134 -22 267 -21 175 0 248
 11 405 60 395 124 727 457 854 855 59 188 61 212 61 1001 l0 717 -67 -1 c-38
@@ -90,8 +78,6 @@ l-146 0 -29 -29z M16713 2655 c-32 -22 -43 -75 -43 -198 0 -182 15 -200 177
 886 0 886 -33 29 c-31 28 -36 29 -130 29 -61 -1 -106 -6 -121 -14z M6560 1247
 c-38 -19 -50 -54 -50 -145 0 -94 16 -137 56 -152 15 -6 222 -10 500 -10 l476
 0 29 29 c28 29 29 32 29 131 0 99 -1 102 -29 131 l-29 29 -479 0 c-363 0 -484
--3 -503 -13z" />
-      </g>
-    </svg>
-  );
-}
+-3 -503 -13z"/>
+</g>
+</svg>

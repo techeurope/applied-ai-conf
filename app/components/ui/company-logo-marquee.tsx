@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import type React from "react";
-import { SPEAKERS } from "@/data/speakers";
 import { LegoraLogo } from "@/components/ui/legora-logo";
 import { LangdockLogo } from "@/components/ui/langdock-logo";
 import { ChocoLogo } from "@/components/ui/choco-logo";
@@ -20,6 +19,17 @@ import { SwordHealthLogo } from "@/components/ui/sword-health-logo";
 import { ConductLogo } from "@/components/ui/conduct-logo";
 import { PeecAiLogo } from "@/components/ui/peec-ai-logo";
 import { AiCousticsLogo } from "@/components/ui/ai-coustics-logo";
+import { ParloaLogo } from "@/components/ui/parloa-logo";
+import { MicrosoftLogo } from "@/components/ui/microsoft-logo";
+import { SapLogo } from "@/components/ui/sap-logo";
+import { BloombergLogo } from "@/components/ui/bloomberg-logo";
+import { SiemensLogo } from "@/components/ui/siemens-logo";
+import { AllianzLogo } from "@/components/ui/allianz-logo";
+import { SoundCloudLogo } from "@/components/ui/soundcloud-logo";
+import { MiroLogo } from "@/components/ui/miro-logo";
+import { FlinkLogo } from "@/components/ui/flink-logo";
+import { BlinkistLogo } from "@/components/ui/blinkist-logo";
+import { StellantisLogo } from "@/components/ui/stellantis-logo";
 
 type LogoComponent = React.ComponentType<{ className?: string }>;
 
@@ -41,19 +51,56 @@ const COMPANY_LOGOS: Record<string, LogoComponent> = {
   Conduct: ConductLogo,
   "Peec AI": PeecAiLogo,
   "ai-coustics": AiCousticsLogo,
+  Parloa: ParloaLogo,
+  Microsoft: MicrosoftLogo,
+  SAP: SapLogo,
+  Bloomberg: BloombergLogo,
+  Siemens: SiemensLogo,
+  Allianz: AllianzLogo,
+  SoundCloud: SoundCloudLogo,
+  Miro: MiroLogo,
+  Flink: FlinkLogo,
+  Blinkist: BlinkistLogo,
+  Stellantis: StellantisLogo,
 };
 
-const COMPANY_ITEMS = Array.from(
-  new Map(
-    SPEAKERS.filter((speaker) => speaker.company).map((speaker) => [
-      speaker.company,
-      {
-        name: speaker.company,
-        url: speaker.companyUrl,
-      },
-    ])
-  ).values()
-).filter((company) => COMPANY_LOGOS[company.name]);
+// Square/compact logos need a larger height to match the visual weight of wide wordmarks
+// Square/compact logos need a larger height to match the visual weight of wide wordmarks
+const LOGO_SIZE_OVERRIDES: Record<string, string> = {
+  SoundCloud: "h-8 sm:h-10 lg:h-12 w-auto",
+};
+
+// Manually ordered: alternating prominent (big-name) and less prominent companies
+const COMPANY_ITEMS = [
+  { name: "Microsoft", url: "https://www.microsoft.com" },
+  { name: "Dust", url: "https://dust.tt" },
+  { name: "Siemens", url: "https://www.siemens.com" },
+  { name: "Langdock", url: "https://langdock.com" },
+  { name: "Bloomberg", url: "https://www.bloomberg.com" },
+  { name: "Choco", url: "https://choco.com" },
+  { name: "SAP", url: "https://www.sap.com" },
+  { name: "Tacto", url: "https://tacto.ai" },
+  { name: "Allianz", url: "https://www.allianz.com" },
+  { name: "Knowunity", url: "https://knowunity.de" },
+  { name: "SoundCloud", url: "https://soundcloud.com" },
+  { name: "Conduct", url: "https://conduct.com" },
+  { name: "Stripe", url: "https://stripe.com" },
+  { name: "Legora", url: "https://legora.ai" },
+  { name: "Miro", url: "https://miro.com" },
+  { name: "VEED.IO", url: "https://veed.io" },
+  { name: "Stellantis", url: "https://www.stellantis.com" },
+  { name: "Codewords", url: "https://codewords.com" },
+  { name: "Flink", url: "https://www.flink.com" },
+  { name: "Gradium", url: "https://gradium.co" },
+  { name: "Intercom", url: "https://intercom.com" },
+  { name: "Peec AI", url: "https://peec.ai" },
+  { name: "Blinkist", url: "https://www.blinkist.com" },
+  { name: "ai-coustics", url: "https://ai-coustics.com" },
+  { name: "Confluent", url: "https://confluent.io" },
+  { name: "Parloa", url: "https://parloa.com" },
+  { name: "LlamaIndex", url: "https://llamaindex.ai" },
+  { name: "Sword Health", url: "https://swordhealth.com" },
+];
 
 export function CompanyLogoMarquee() {
   const trackRef = useRef<HTMLDivElement>(null);
@@ -107,9 +154,10 @@ export function CompanyLogoMarquee() {
             >
               {COMPANY_ITEMS.map((company) => {
                 const LogoComponent = COMPANY_LOGOS[company.name];
+                const sizeClass = LOGO_SIZE_OVERRIDES[company.name] ?? "h-4 sm:h-5 lg:h-6 w-auto";
                 const logoContent = (
                   <>
-                    <LogoComponent className="h-4 sm:h-5 lg:h-6 w-auto" />
+                    <LogoComponent className={sizeClass} />
                     <span className="sr-only">{company.name}</span>
                   </>
                 );
