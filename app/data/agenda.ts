@@ -16,7 +16,7 @@ export const AGENDA: AgendaSlot[] = [
 
   // ── Block 1: Morning (09:10–10:30) ────────────────────────────
   // Main: Keynote(30) + 2 talks(20)
-  { id: 'keynote-open', startTime: '09:10', endTime: '09:40', title: 'Keynote', stage: 'main', format: 'keynote' },
+  { id: 'keynote-open', startTime: '09:10', endTime: '09:40', title: 'Opening Keynote', speakerName: 'Danila Shtan', stage: 'main', format: 'keynote' },
   { id: 'main-1', startTime: '09:45', endTime: '10:05', title: 'Building Dust: The Architecture Behind Deploying and Governing Fleets of AI Agents', speakerName: 'Stanislas Polu', stage: 'main', format: 'talk' },
   { id: 'main-2', startTime: '10:10', endTime: '10:30', title: 'Building a Universal Agent for Legal', speakerNames: ['Zino Kader', 'Jakob Emmerling'], stage: 'main', format: 'talk' },
   // Side: 2 talks(20) starting after keynote
