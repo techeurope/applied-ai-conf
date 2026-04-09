@@ -198,6 +198,11 @@ gog calendar events --today
 - **Always use `--values-json` for `gog sheets update`.** Passing values as positional arguments splits on commas, corrupting adjacent rows. Always use `--values-json '[["value"]]'` instead. Update one cell at a time to avoid spillover.
 - **Always verify row numbers before writing.** Read the sheet first with `--plain`, count rows manually (header = row 1, first data = row 2), and double-check the target row before any update.
 
+**Draft rules:**
+- **Never use `gog gmail drafts update`** — it strips `In-Reply-To` and `References` headers, causing the draft to disappear from the Gmail thread view.
+- **Always create reply drafts with `--reply-to-message-id`:** `gog gmail drafts create --to ... --subject "Re: ..." --reply-to-message-id "<message-id>" --body "..."`. This sets proper threading headers so the draft appears inline in the conversation.
+- To get the message ID to reply to, read the thread first with `gog gmail read <thread-id> --json` and use the `id` of the message you're replying to.
+
 **Email rules:**
 - **Never send emails automatically.** Always draft and review before sending.
 - Speaker communications are relationship-based.
@@ -301,6 +306,34 @@ When reaching out to a speaker about their talk topic, follow this process:
 > - Flow: explain -> do -> review -> ship-home artefact.
 
 **Outreach tone:** *"Here are some directions we think would resonate with our audience of engineers shipping AI. Pick one that excites you, or pitch your own — we just want it to be concrete and production-real."*
+
+### First-Contact Email Template (New Speakers)
+
+When drafting the first email to a new speaker, **always** use this structure. Do NOT suggest specific topics or directions. Instead, give them the full overview and let them choose.
+
+**Structure:**
+1. **Intro** — "Nice to meet you! I'm Tim, responsible for coordinating with all speakers for Applied AI Conf." + excitement
+2. **6 topic clusters** — List all six with one-line descriptions (AI Engineering, Production Case Studies, LLM Application Architecture, Evaluation/Observability/Quality, LLMOps/AI Infrastructure, Enterprise Readiness)
+3. **What matters** — "concrete and production-real. No product pitches, just real engineering experiences."
+4. **5-bullet outline request** — System overview, Constraints, Evaluation, Failure mode, 3 takeaways
+5. **Flexibility** — "Totally fine to adjust the structure if something else makes more sense for your story."
+6. **Website listing** — Present what we'd put on the website as a suggestion for the speaker to confirm or adjust. Format:
+   ```
+   - Name: {Full Name}
+   - Role: {Role}
+   - Company: {Company}
+   - LinkedIn: {LinkedIn URL}
+   ```
+   Research the speaker's name, role, company, and LinkedIn beforehand. If unsure about the exact role, make a best guess and let them correct it. Then ask for a headshot photo (minimum 1280x1280 pixels).
+7. **Sign-off**
+
+**Rules:**
+- Do NOT suggest specific topics based on the speaker's background
+- Do NOT pre-select a topic cluster for them
+- Present all 6 clusters neutrally and let them pick
+- Always draft in chat first for review, never create Gmail drafts directly
+- Match the language of the thread (English/German)
+- Do NOT include the Cal.com link by default. Only offer it if the speaker explicitly asks for a call or if the conversation reaches a point where a sync is needed.
 
 ## Landing the Plane (Session Completion)
 
