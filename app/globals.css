@@ -101,12 +101,7 @@ body {
 
 .logo-marquee {
   width: max-content;
-  animation: logo-marquee 70s linear infinite;
   will-change: transform;
-}
-
-.group:hover .logo-marquee {
-  animation-play-state: paused;
 }
 
 @media (prefers-reduced-motion: reduce) {

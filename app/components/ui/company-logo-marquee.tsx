@@ -104,9 +104,15 @@ const COMPANY_ITEMS = [
   { name: "Sword Health", url: "https://swordhealth.com" },
 ];
 
+const NORMAL_SPEED = 100; // pixels per second
+const HOVER_SPEED = NORMAL_SPEED * 0.2;
+
 export function CompanyLogoMarquee() {
   const trackRef = useRef<HTMLDivElement>(null);
-  const [offset, setOffset] = useState(0);
+  const positionRef = useRef(0);
+  const groupWidthRef = useRef(0);
+  const hoveredRef = useRef(false);
+  const currentSpeedRef = useRef(NORMAL_SPEED);
 
   useEffect(() => {
     const track = trackRef.current;
@@ -117,23 +123,57 @@ export function CompanyLogoMarquee() {
     );
     if (!primaryGroup) return;
 
-    const updateOffset = () => {
-      setOffset(primaryGroup.scrollWidth);
+    const updateWidth = () => {
+      groupWidthRef.current = primaryGroup.scrollWidth;
+    };
+    updateWidth();
+
+    const resizeObserver = new ResizeObserver(updateWidth);
+    resizeObserver.observe(primaryGroup);
+
+    let prevTime = performance.now();
+    let rafId: number;
+
+    const tick = (now: number) => {
+      const dt = (now - prevTime) / 1000;
+      prevTime = now;
+
+      // Smoothly interpolate speed toward target
+      const targetSpeed = hoveredRef.current ? HOVER_SPEED : NORMAL_SPEED;
+      currentSpeedRef.current += (targetSpeed - currentSpeedRef.current) * 0.05;
+
+      positionRef.current -= currentSpeedRef.current * dt;
+      const w = groupWidthRef.current;
+      if (w > 0 && positionRef.current <= -w) {
+        positionRef.current += w;
+      }
+
+      track.style.transform = `translateX(${positionRef.current}px)`;
+      rafId = requestAnimationFrame(tick);
     };
 
-    updateOffset();
+    rafId = requestAnimationFrame(tick);
 
-    const resizeObserver = new ResizeObserver(updateOffset);
-    resizeObserver.observe(primaryGroup);
-    return () => resizeObserver.disconnect();
+    return () => {
+      cancelAnimationFrame(rafId);
+      resizeObserver.disconnect();
+    };
   }, []);
+
+  const reducedMotion =
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   return (
     <div className="w-full max-w-5xl mx-auto">
       <p className="text-[0.6rem] sm:text-[0.65rem] font-mono uppercase tracking-[0.25em] text-white/60">
         attending companies
       </p>
-      <div className="relative mt-3 overflow-hidden group">
+      <div
+        className="relative mt-3 overflow-hidden"
+        onMouseEnter={() => (hoveredRef.current = true)}
+        onMouseLeave={() => (hoveredRef.current = false)}
+      >
         <div className="pointer-events-none absolute inset-0 z-10">
           <div className="absolute left-0 top-0 h-full w-12 sm:w-16 bg-linear-to-r from-black via-black/60 to-transparent" />
           <div className="absolute right-0 top-0 h-full w-12 sm:w-16 bg-linear-to-l from-black via-black/60 to-transparent" />
@@ -141,11 +181,7 @@ export function CompanyLogoMarquee() {
         <div
           ref={trackRef}
           className="logo-marquee flex items-center py-2"
-          style={
-            offset
-              ? ({ "--logo-marquee-offset": `${offset}px` } as React.CSSProperties)
-              : undefined
-          }
+          style={reducedMotion ? { transform: "translateX(0)" } : undefined}
         >
           {[0, 1].map((repeatIndex) => (
             <div
