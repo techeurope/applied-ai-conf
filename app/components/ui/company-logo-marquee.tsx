@@ -30,6 +30,7 @@ import { MiroLogo } from "@/components/ui/miro-logo";
 import { FlinkLogo } from "@/components/ui/flink-logo";
 import { BlinkistLogo } from "@/components/ui/blinkist-logo";
 import { StellantisLogo } from "@/components/ui/stellantis-logo";
+import { OpenAiLogo } from "@/components/ui/openai-logo";
 
 type LogoComponent = React.ComponentType<{ className?: string }>;
 
@@ -62,6 +63,7 @@ const COMPANY_LOGOS: Record<string, LogoComponent> = {
   Flink: FlinkLogo,
   Blinkist: BlinkistLogo,
   Stellantis: StellantisLogo,
+  OpenAI: OpenAiLogo,
 };
 
 // Square/compact logos need a larger height to match the visual weight of wide wordmarks

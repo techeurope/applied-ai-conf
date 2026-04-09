@@ -30,5 +30,6 @@ export { MiroLogo } from './ui/miro-logo';
 export { FlinkLogo } from './ui/flink-logo';
 export { BlinkistLogo } from './ui/blinkist-logo';
 export { StellantisLogo } from './ui/stellantis-logo';
+export { OpenAiLogo } from './ui/openai-logo';
 export { default as CookieConsent } from './CookieConsent';
 export { default as PostHogProvider } from './PostHogProvider';
