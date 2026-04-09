@@ -10,7 +10,7 @@ export default function PartnershipTiers() {
 
   return (
     <section id="partner" className="relative overflow-hidden py-16 lg:py-20 min-h-screen flex items-center">
-      <div className="mx-auto w-full max-w-5xl px-6 lg:px-8">
+      <div className="mx-auto w-[90vw] max-w-[90vw] px-6 lg:px-8">
         <h2 className="text-4xl font-mono font-bold tracking-tight text-center sm:text-5xl md:text-6xl mb-16">
           Partners
         </h2>
@@ -111,8 +111,9 @@ export default function PartnershipTiers() {
               Community
             </span>
             <div
-              className="flex w-full"
+              className="grid justify-center"
               style={{
+                gridTemplateColumns: "repeat(auto-fill, 200px)",
                 borderBottom: `1px solid ${borderColor}`,
                 borderLeft: `1px solid ${borderColor}`,
               }}
@@ -125,13 +126,12 @@ export default function PartnershipTiers() {
                   rel="noopener noreferrer"
                   className="relative flex items-center justify-center opacity-50 hover:opacity-100 transition-opacity"
                   style={{
-                    width: `${100 / PARTNERS.community.length}%`,
                     padding: "36px 24px",
                     borderRight: `1px solid ${borderColor}`,
                   }}
                 >
                   <div
-                    className="relative h-6 w-full"
+                    className="relative h-6 w-[152px]"
                     style={partner.logoScale ? { transform: `scale(${partner.logoScale})` } : undefined}
                   >
                     <Image

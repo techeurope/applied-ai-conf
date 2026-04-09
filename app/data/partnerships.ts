@@ -21,7 +21,7 @@ const PARTNERSHIP_TIERS = [
     limit: "Max. 2 partners",
     includes: [
       "Premium entrance-level booth (6 × 6 m)",
-      "Main-stage keynote or panel participation",
+      "Main-stage keynote",
       "Logo featured on signage, agenda, and website",
       "Integration in recap video and media content",
       "10 full-access passes",

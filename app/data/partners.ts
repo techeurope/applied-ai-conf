@@ -8,6 +8,12 @@ export const PARTNERS = {
       url: 'https://nebius.com',
       logoAlt: 'Nebius logo',
     },
+    {
+      name: 'IT-Schulungen.com',
+      logo: '/logos/it-schulungen.png',
+      url: 'https://www.it-schulungen.com',
+      logoAlt: 'IT-Schulungen.com logo',
+    },
   ],
   gold: [
     {
@@ -51,13 +57,6 @@ export const PARTNERS = {
       logo: '/logos/elastic.svg',
       url: 'https://elastic.co',
       logoAlt: 'Elastic logo',
-    },
-    {
-      name: '#ai_berlin',
-      logo: '/logos/ai-berlin.svg',
-      url: 'https://ai-berlin.com',
-      logoAlt: '#ai_berlin logo',
-      logoScale: 0.85,
     },
   ],
 } satisfies PartnersByTier;

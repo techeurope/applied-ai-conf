@@ -99,7 +99,6 @@ function buildTimeLabels(fullWidth: AgendaSlot[]) {
 const SLOT_BG: Record<SessionFormat, string> = {
   keynote: "bg-[#0f0d08]",
   talk: "bg-[#08090d]",
-  panel: "bg-[#0b080e]",
   workshop: "bg-[#080c0a]",
   break: "bg-[#18181b]",
   logistics: "bg-[#0a0a0d]",
@@ -170,9 +169,6 @@ function SlotCell({ slot }: { slot: AgendaSlot }) {
   // Talk / Panel / Workshop — NO h-full (background wraps content only)
   return (
     <div className={`${SLOT_BG[slot.format]} px-3 ${SLOT_PAD_TOP} pb-2 ${isTBA ? "opacity-40" : ""}`}>
-      {slot.format === "panel" && (
-        <span className="text-[9px] font-mono uppercase tracking-widest bg-violet-500/20 text-violet-300 px-1.5 py-0.5 rounded mb-1 inline-block">Panel</span>
-      )}
       <h4 className={`text-sm leading-snug font-medium ${isTBA ? "text-gray-600 italic" : "text-white"}`}>
         {isTBA ? "To be announced" : slot.title}
       </h4>

@@ -1,5 +1,5 @@
 export type Stage = 'main' | 'side';
-export type SessionFormat = 'keynote' | 'talk' | 'panel' | 'workshop' | 'break' | 'logistics';
+export type SessionFormat = 'keynote' | 'talk' | 'workshop' | 'break' | 'logistics';
 
 export interface AgendaSlot {
   id: string;
