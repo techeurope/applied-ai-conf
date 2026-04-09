@@ -8,12 +8,6 @@ export const PARTNERS = {
       url: 'https://nebius.com',
       logoAlt: 'Nebius logo',
     },
-    {
-      name: 'IT-Schulungen.com',
-      logo: '/logos/it-schulungen.png',
-      url: 'https://www.it-schulungen.com',
-      logoAlt: 'IT-Schulungen.com logo',
-    },
   ],
   gold: [
     {
