@@ -124,15 +124,9 @@ export default function FeaturedSpeakers() {
                       )}
                     </p>
                     <div className="min-h-[3.75rem] mt-1.5">
-                      {speaker.talkTitle ? (
-                        <p className="text-sm text-gray-300 leading-relaxed line-clamp-3">
-                          {speaker.talkTitle}
-                        </p>
-                      ) : (
-                        <p className="text-sm text-gray-500 leading-relaxed line-clamp-3">
-                          {speaker.building}
-                        </p>
-                      )}
+                      <p className="text-sm text-gray-300 leading-relaxed line-clamp-3">
+                        {speaker.talkTitle || speaker.building}
+                      </p>
                     </div>
                   </div>
                 </div>
