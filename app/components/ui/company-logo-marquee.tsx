@@ -31,6 +31,7 @@ import { FlinkLogo } from "@/components/ui/flink-logo";
 import { BlinkistLogo } from "@/components/ui/blinkist-logo";
 import { StellantisLogo } from "@/components/ui/stellantis-logo";
 import { OpenAiLogo } from "@/components/ui/openai-logo";
+import { DlthubLogo } from "@/components/ui/dlthub-logo";
 
 type LogoComponent = React.ComponentType<{ className?: string }>;
 
@@ -64,6 +65,7 @@ const COMPANY_LOGOS: Record<string, LogoComponent> = {
   Blinkist: BlinkistLogo,
   Stellantis: StellantisLogo,
   OpenAI: OpenAiLogo,
+  dltHub: DlthubLogo,
 };
 
 // Square/compact logos need a larger height to match the visual weight of wide wordmarks
@@ -102,6 +104,7 @@ const COMPANY_ITEMS = [
   { name: "Parloa", url: "https://parloa.com" },
   { name: "LlamaIndex", url: "https://llamaindex.ai" },
   { name: "Sword Health", url: "https://swordhealth.com" },
+  { name: "dltHub", url: "https://dlthub.com" },
 ];
 
 const NORMAL_SPEED = 100; // pixels per second

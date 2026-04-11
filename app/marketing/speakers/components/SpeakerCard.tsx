@@ -22,6 +22,7 @@ import { PeecAiLogo } from "@/components/ui/peec-ai-logo";
 import { AiCousticsLogo } from "@/components/ui/ai-coustics-logo";
 import { ParloaLogo } from "@/components/ui/parloa-logo";
 import { OpenAiLogo } from "@/components/ui/openai-logo";
+import { DlthubLogo } from "@/components/ui/dlthub-logo";
 
 type LogoComponent = React.ComponentType<{ className?: string }>;
 
@@ -45,6 +46,7 @@ const COMPANY_LOGOS: Record<string, LogoComponent> = {
   "ai-coustics": AiCousticsLogo,
   Parloa: ParloaLogo,
   OpenAI: OpenAiLogo,
+  dltHub: DlthubLogo,
 };
 
 interface ImageConfig {
