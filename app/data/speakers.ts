@@ -129,7 +129,7 @@ export const SPEAKERS = [
   },
   {
     name: 'Alena Astrakhantseva',
-    title: 'Lead DevRel EU',
+    title: 'Developer Relations',
     company: 'dltHub',
     companyLogo: '/logos/dlthub.svg',
     companyUrl: 'https://dlthub.com/',
