@@ -51,6 +51,13 @@ export const PARTNERS = {
       logoAlt: 'dltHub logo',
       logoScale: 0.5,
     },
+    {
+      name: 'Elastic',
+      logo: '/logos/elastic.svg',
+      url: 'https://elastic.co',
+      logoAlt: 'Elastic logo',
+      logoScale: 1.3,
+    },
   ],
   community: [
     {
@@ -66,13 +73,6 @@ export const PARTNERS = {
       url: 'https://deepmind.google',
       logoAlt: 'Google DeepMind logo',
       logoScale: 1.15,
-    },
-    {
-      name: 'Elastic',
-      logo: '/logos/elastic.svg',
-      url: 'https://elastic.co',
-      logoAlt: 'Elastic logo',
-      logoScale: 1.3,
     },
     {
       name: 'ai|coustics',

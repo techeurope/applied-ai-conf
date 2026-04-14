@@ -118,7 +118,7 @@ export default function PartnershipTiers() {
               }}
             >
               {(() => {
-                const COMMUNITY_SLOTS = PARTNERS.community.length + 2;
+                const COMMUNITY_SLOTS = PARTNERS.community.length + 3;
                 const slotWidth = `${100 / COMMUNITY_SLOTS}%`;
                 return (
                   <>
