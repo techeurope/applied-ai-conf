@@ -62,7 +62,7 @@ export const AGENDA: AgendaSlot[] = [
   { id: 'main-12', startTime: '16:05', endTime: '16:25', title: 'To be announced', stage: 'main', format: 'talk' },
   { id: 'main-13', startTime: '16:30', endTime: '16:50', title: 'To be announced', stage: 'main', format: 'talk' },
   // Side: 3 sessions
-  { id: 'side-8', startTime: '15:15', endTime: '15:35', title: 'To be announced', stage: 'side', format: 'talk' },
+  { id: 'side-8', startTime: '15:15', endTime: '15:35', title: 'The 100x Inference Tax You Don\'t Have to Pay', speakerName: 'Jacek Golebiowski', stage: 'side', format: 'talk' },
   { id: 'side-9', startTime: '15:40', endTime: '16:00', title: 'To be announced', stage: 'side', format: 'talk' },
   { id: 'side-10', startTime: '16:05', endTime: '16:25', title: 'To be announced', stage: 'side', format: 'talk' },
 

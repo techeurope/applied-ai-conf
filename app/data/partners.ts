@@ -52,5 +52,11 @@ export const PARTNERS = {
       url: 'https://elastic.co',
       logoAlt: 'Elastic logo',
     },
+    {
+      name: 'distil labs',
+      logo: '/logos/distil-labs.svg',
+      url: 'https://www.distillabs.ai',
+      logoAlt: 'distil labs logo',
+    },
   ],
 } satisfies PartnersByTier;

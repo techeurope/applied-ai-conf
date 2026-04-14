@@ -426,6 +426,5 @@ export const SPEAKERS = [
     imageTransparent: '/speakers/jacek_golebiowski_fullbody_transparent_square.png',
     imageAlt: 'Jacek Golebiowski headshot',
     logoAlt: 'distil labs logo',
-    hidden: true,
   },
 ] satisfies Speaker[];
