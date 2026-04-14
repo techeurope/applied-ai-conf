@@ -111,38 +111,57 @@ export default function PartnershipTiers() {
               Community
             </span>
             <div
-              className="grid justify-center"
+              className="flex w-full"
               style={{
-                gridTemplateColumns: "repeat(auto-fill, 200px)",
                 borderBottom: `1px solid ${borderColor}`,
                 borderLeft: `1px solid ${borderColor}`,
               }}
             >
-              {PARTNERS.community.map((partner) => (
-                <Link
-                  key={partner.name}
-                  href={partner.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="relative flex items-center justify-center opacity-50 hover:opacity-100 transition-opacity"
-                  style={{
-                    padding: "36px 24px",
-                    borderRight: `1px solid ${borderColor}`,
-                  }}
-                >
-                  <div
-                    className="relative h-6 w-[152px]"
-                    style={partner.logoScale ? { transform: `scale(${partner.logoScale})` } : undefined}
-                  >
-                    <Image
-                      src={partner.logo}
-                      alt={partner.logoAlt}
-                      fill
-                      className="object-contain"
-                    />
-                  </div>
-                </Link>
-              ))}
+              {(() => {
+                const COMMUNITY_SLOTS = PARTNERS.community.length + 2;
+                const slotWidth = `${100 / COMMUNITY_SLOTS}%`;
+                return (
+                  <>
+                    {PARTNERS.community.map((partner) => (
+                      <Link
+                        key={partner.name}
+                        href={partner.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="relative flex items-center justify-center opacity-50 hover:opacity-100 transition-opacity"
+                        style={{
+                          width: slotWidth,
+                          padding: "36px 24px",
+                          borderRight: `1px solid ${borderColor}`,
+                        }}
+                      >
+                        <div
+                          className="relative h-6 w-[152px]"
+                          style={partner.logoScale ? { transform: `scale(${partner.logoScale})` } : undefined}
+                        >
+                          <Image
+                            src={partner.logo}
+                            alt={partner.logoAlt}
+                            fill
+                            className="object-contain"
+                          />
+                        </div>
+                      </Link>
+                    ))}
+                    {Array.from({ length: COMMUNITY_SLOTS - PARTNERS.community.length }).map((_, i) => (
+                      <div
+                        key={`community-empty-${i}`}
+                        aria-hidden="true"
+                        style={{
+                          width: slotWidth,
+                          padding: "36px 24px",
+                          borderRight: `1px solid ${borderColor}`,
+                        }}
+                      />
+                    ))}
+                  </>
+                );
+              })()}
             </div>
           </div>
         </div>

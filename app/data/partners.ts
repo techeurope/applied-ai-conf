@@ -11,6 +11,13 @@ export const PARTNERS = {
   ],
   gold: [
     {
+      name: 'OpenAI',
+      logo: '/logos/openai.svg',
+      url: 'https://openai.com',
+      logoAlt: 'OpenAI logo',
+      logoScale: 0.9,
+    },
+    {
       name: 'RunPod',
       logo: '/logos/runpod.svg',
       url: 'https://runpod.io',
@@ -21,7 +28,14 @@ export const PARTNERS = {
       logo: '/logos/stripe.svg',
       url: 'https://stripe.com',
       logoAlt: 'Stripe logo',
-      logoScale: 1.35,
+      logoScale: 1.0,
+    },
+    {
+      name: 'Modal',
+      logo: '/logos/modal.svg',
+      url: 'https://modal.com',
+      logoAlt: 'Modal logo',
+      logoScale: 0.9,
     },
     {
       name: 'Dust',
@@ -29,6 +43,13 @@ export const PARTNERS = {
       url: 'https://dust.tt',
       logoAlt: 'Dust logo',
       logoScale: 0.55,
+    },
+    {
+      name: 'dltHub',
+      logo: '/logos/dlthub.svg',
+      url: 'https://dlthub.com',
+      logoAlt: 'dltHub logo',
+      logoScale: 0.5,
     },
   ],
   community: [
@@ -51,12 +72,26 @@ export const PARTNERS = {
       logo: '/logos/elastic.svg',
       url: 'https://elastic.co',
       logoAlt: 'Elastic logo',
+      logoScale: 1.3,
+    },
+    {
+      name: 'ai|coustics',
+      logo: '/logos/ai-coustics.svg',
+      url: 'https://ai-coustics.com',
+      logoAlt: 'ai|coustics logo',
     },
     {
       name: 'distil labs',
       logo: '/logos/distil-labs.svg',
       url: 'https://www.distillabs.ai',
       logoAlt: 'distil labs logo',
+    },
+    {
+      name: 'AI Nation',
+      logo: '/logos/ai-nation.svg',
+      url: 'https://www.ai-nation.de',
+      logoAlt: 'AI Nation logo',
+      logoScale: 0.9,
     },
   ],
 } satisfies PartnersByTier;
