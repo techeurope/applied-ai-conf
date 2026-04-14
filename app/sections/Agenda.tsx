@@ -168,10 +168,9 @@ function SlotCell({ slot }: { slot: AgendaSlot }) {
 
   // Talk / Panel / Workshop — NO h-full (background wraps content only)
   const displayTitle = slot.title || speakers[0]?.vertical || "";
-  const titleIsFallback = !slot.title && !!speakers[0]?.vertical;
   return (
     <div className={`${SLOT_BG[slot.format]} px-3 ${SLOT_PAD_TOP} pb-2 ${isTBA ? "opacity-40" : ""}`}>
-      <h4 className={`text-sm leading-snug font-medium ${isTBA ? "text-gray-600 italic" : titleIsFallback ? "text-gray-400 italic" : "text-white"}`}>
+      <h4 className={`text-sm leading-snug font-medium ${isTBA ? "text-gray-600 italic" : "text-white"}`}>
         {isTBA ? "To be announced" : displayTitle}
       </h4>
       {speakers.length > 0 && (
