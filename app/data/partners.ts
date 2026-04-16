@@ -56,7 +56,7 @@ export const PARTNERS = {
       logo: '/logos/elastic.svg',
       url: 'https://elastic.co',
       logoAlt: 'Elastic logo',
-      logoScale: 1.3,
+      logoScale: 0.85,
     },
   ],
   community: [

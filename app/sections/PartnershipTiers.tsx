@@ -67,40 +67,58 @@ export default function PartnershipTiers() {
             >
               Gold
             </span>
-            <div
-              className="flex w-full"
-              style={{
-                borderBottom: `1px solid ${borderColor}`,
-                borderLeft: `1px solid ${borderColor}`,
-              }}
-            >
-              {PARTNERS.gold.map((partner) => (
-                <Link
-                  key={partner.name}
-                  href={partner.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="relative flex items-center justify-center opacity-70 hover:opacity-100 transition-opacity"
+            {(() => {
+              const GOLD_COLS = 4;
+              const totalSlots = Math.ceil(PARTNERS.gold.length / GOLD_COLS) * GOLD_COLS;
+              return (
+                <div
+                  className="grid w-full"
                   style={{
-                    width: `${100 / PARTNERS.gold.length}%`,
-                    padding: "48px 32px",
-                    borderRight: `1px solid ${borderColor}`,
+                    gridTemplateColumns: `repeat(${GOLD_COLS}, 1fr)`,
+                    borderBottom: `1px solid ${borderColor}`,
+                    borderLeft: `1px solid ${borderColor}`,
                   }}
                 >
-                  <div
-                    className="relative h-16 w-full"
-                    style={partner.logoScale ? { transform: `scale(${partner.logoScale})` } : undefined}
-                  >
-                    <Image
-                      src={partner.logo}
-                      alt={partner.logoAlt}
-                      fill
-                      className="object-contain"
+                  {PARTNERS.gold.map((partner) => (
+                    <Link
+                      key={partner.name}
+                      href={partner.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="relative flex items-center justify-center opacity-70 hover:opacity-100 transition-opacity"
+                      style={{
+                        padding: "48px 32px",
+                        borderRight: `1px solid ${borderColor}`,
+                        borderTop: `1px solid ${borderColor}`,
+                      }}
+                    >
+                      <div
+                        className="relative h-16 w-full"
+                        style={partner.logoScale ? { transform: `scale(${partner.logoScale})` } : undefined}
+                      >
+                        <Image
+                          src={partner.logo}
+                          alt={partner.logoAlt}
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
+                    </Link>
+                  ))}
+                  {Array.from({ length: totalSlots - PARTNERS.gold.length }).map((_, i) => (
+                    <div
+                      key={`gold-empty-${i}`}
+                      aria-hidden="true"
+                      style={{
+                        padding: "48px 32px",
+                        borderRight: `1px solid ${borderColor}`,
+                        borderTop: `1px solid ${borderColor}`,
+                      }}
                     />
-                  </div>
-                </Link>
-              ))}
-            </div>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
 
           {/* Community */}
