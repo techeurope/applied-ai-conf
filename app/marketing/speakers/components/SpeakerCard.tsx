@@ -71,12 +71,14 @@ interface Props {
   speaker: Speaker;
   conferenceDate?: string;
   imageConfig?: ImageConfig;
+  hidePhoto?: boolean;
 }
 
 export function SpeakerCard({
   speaker,
   conferenceDate = "MAY 28, 2026",
   imageConfig = defaultImageConfig,
+  hidePhoto = false,
 }: Props) {
   const LogoComponent = COMPANY_LOGOS[speaker.company];
   return (
@@ -94,23 +96,25 @@ export function SpeakerCard({
       />
 
       {/* Speaker image */}
-      <div
-        className="absolute flex items-end justify-end"
-        style={{
-          bottom: 0,
-          right: 0,
-          width: `${85 * imageConfig.scale}%`,
-          height: `${95 * imageConfig.scale}%`,
-          transform: `translate(${imageConfig.x}px, ${imageConfig.y}px)`,
-        }}
-      >
-        <img
-          src={speaker.imageTransparent || speaker.image}
-          alt={speaker.name}
-          className="h-full w-auto object-contain object-bottom"
-          crossOrigin="anonymous"
-        />
-      </div>
+      {!hidePhoto && (
+        <div
+          className="absolute flex items-end justify-end"
+          style={{
+            bottom: 0,
+            right: 0,
+            width: `${85 * imageConfig.scale}%`,
+            height: `${95 * imageConfig.scale}%`,
+            transform: `translate(${imageConfig.x}px, ${imageConfig.y}px)`,
+          }}
+        >
+          <img
+            src={speaker.imageTransparent || speaker.image}
+            alt={speaker.name}
+            className="h-full w-auto object-contain object-bottom"
+            crossOrigin="anonymous"
+          />
+        </div>
+      )}
 
       {/* Bottom fog gradient */}
       <div

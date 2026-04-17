@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { toPng } from "html-to-image";
+import { toPng, toSvg } from "html-to-image";
 import { ChevronDown, Download } from "lucide-react";
 import { SPEAKERS } from "@/data/speakers";
 import { CONFERENCE_INFO } from "@/data/conference";
@@ -96,7 +96,9 @@ export default function SpeakersPage() {
   const [selectedResolution, setSelectedResolution] =
     useState<ResolutionKey>("2K");
   const [isExporting, setIsExporting] = useState(false);
+  const [isExportingSvg, setIsExportingSvg] = useState(false);
   const cardRef = useRef<HTMLDivElement | null>(null);
+  const svgCardRef = useRef<HTMLDivElement | null>(null);
   const previewRef = useRef<HTMLDivElement | null>(null);
   const [scale, setScale] = useState(0.5);
 
@@ -141,6 +143,33 @@ export default function SpeakersPage() {
       alert("Failed to export image. Please try again.");
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const handleExportSvg = async () => {
+    if (!svgCardRef.current || isExportingSvg) return;
+
+    setIsExportingSvg(true);
+    try {
+      await document.fonts.ready;
+      const fontEmbedCSS = await getFontEmbedCSS();
+      const filename = speaker.name.toLowerCase().replace(/\s+/g, "_");
+
+      const dataUrl = await toSvg(svgCardRef.current, {
+        cacheBust: true,
+        fontEmbedCSS,
+        skipFonts: true,
+      });
+
+      const link = document.createElement("a");
+      link.download = `${filename}_template.svg`;
+      link.href = dataUrl;
+      link.click();
+    } catch (error) {
+      console.error("SVG export error:", error);
+      alert("Failed to export SVG. Please try again.");
+    } finally {
+      setIsExportingSvg(false);
     }
   };
 
@@ -190,6 +219,25 @@ export default function SpeakersPage() {
           </div>
         </div>
 
+        {/* Off-screen card without photo for SVG template export */}
+        <div
+          aria-hidden
+          style={{
+            position: "fixed",
+            left: "-99999px",
+            top: 0,
+            pointerEvents: "none",
+          }}
+        >
+          <div ref={svgCardRef}>
+            <SpeakerCard
+              speaker={speaker}
+              conferenceDate={dateLine}
+              hidePhoto
+            />
+          </div>
+        </div>
+
         {/* Controls */}
         <div className="w-full lg:w-80 border-l border-white/10 p-4 space-y-6">
           {/* Speaker selector */}
@@ -233,15 +281,25 @@ export default function SpeakersPage() {
             </div>
           </div>
 
-          {/* Export button */}
-          <button
-            onClick={handleExport}
-            disabled={isExporting}
-            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-mono py-3 px-4 rounded-lg transition-all"
-          >
-            <Download className="w-4 h-4" />
-            {isExporting ? "Exporting..." : `Export PNG (${selectedResolution})`}
-          </button>
+          {/* Export buttons */}
+          <div className="space-y-2">
+            <button
+              onClick={handleExport}
+              disabled={isExporting}
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-mono py-3 px-4 rounded-lg transition-all"
+            >
+              <Download className="w-4 h-4" />
+              {isExporting ? "Exporting..." : `Export PNG (${selectedResolution})`}
+            </button>
+            <button
+              onClick={handleExportSvg}
+              disabled={isExportingSvg}
+              className="w-full flex items-center justify-center gap-2 bg-transparent border border-white/20 hover:border-white/40 disabled:opacity-50 disabled:cursor-not-allowed text-white font-mono py-3 px-4 rounded-lg transition-all"
+            >
+              <Download className="w-4 h-4" />
+              {isExportingSvg ? "Exporting..." : "Export SVG template (no photo)"}
+            </button>
+          </div>
 
           {/* Speaker info */}
           <div className="border-t border-white/10 pt-4 space-y-3">
