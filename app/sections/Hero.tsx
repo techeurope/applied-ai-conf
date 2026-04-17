@@ -47,7 +47,7 @@ export default function Hero() {
 
         {/* 4. Tagline - Large, breathing typography */}
         <p className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl font-mono font-medium text-white/90 tracking-tight max-w-4xl leading-tight">
-          For teams building and running AI systems in production
+          For teams building &amp; running<br />AI systems in production
         </p>
 
         {/* 5. Actions */}

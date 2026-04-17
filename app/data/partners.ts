@@ -43,7 +43,7 @@ export const PARTNERS = {
       logo: '/logos/dust.svg',
       url: 'https://dust.tt',
       logoAlt: 'Dust logo',
-      logoScale: 0.7,
+      logoScale: 0.6,
     },
     {
       name: 'dltHub',
@@ -93,6 +93,24 @@ export const PARTNERS = {
       url: 'https://www.ai-nation.de',
       logoAlt: 'AI Nation logo',
       logoScale: 0.9,
+    },
+    {
+      name: 'Restate',
+      logo: '/logos/restate.svg',
+      url: 'https://restate.dev',
+      logoAlt: 'Restate logo',
+    },
+    {
+      name: 'Zero',
+      logo: '/logos/zero.svg',
+      url: 'https://zero.inc',
+      logoAlt: 'Zero logo',
+    },
+    {
+      name: 'Linkup',
+      logo: '/logos/linkup-logo.svg',
+      url: 'https://www.linkup.so',
+      logoAlt: 'Linkup logo',
     },
   ],
 } satisfies PartnersByTier;
