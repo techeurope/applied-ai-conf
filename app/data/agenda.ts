@@ -36,33 +36,33 @@ export const AGENDA: AgendaSlot[] = [
 
   // ── 11:15–11:35 ──────────────────────────────────────────────
   { id: 'main-4', startTime: '11:15', endTime: '11:35', title: 'Procurement Intelligence: When AI Meets Atoms & Bits', speakerName: 'Nico Bentenrieder', stage: 'main', format: 'talk' },
-  { id: 'side-4', startTime: '11:15', endTime: '11:35', title: '', speakerName: 'Alena Astrakhantseva', stage: 'side', format: 'talk' },
+  { id: 'side-4', startTime: '11:15', endTime: '11:35', title: 'To be announced', speakerName: 'Alena Astrakhantseva', stage: 'side', format: 'talk' },
 
   // 5 min changeover (11:35–11:40)
 
   // ── 11:40–12:00 ──────────────────────────────────────────────
   { id: 'main-5', startTime: '11:40', endTime: '12:00', title: 'From Batch to Streaming: Architecture Decisions for AI-Ready Data Pipelines', speakerName: 'Steffen Hoellinger', stage: 'main', format: 'talk' },
-  { id: 'side-5', startTime: '11:40', endTime: '12:00', title: '', speakerName: 'Katia Gil Guzman', stage: 'side', format: 'talk' },
+  { id: 'side-5', startTime: '11:40', endTime: '12:00', title: 'To be announced', speakerName: 'Katia Gil Guzman', stage: 'side', format: 'talk' },
 
   // 5 min changeover (12:00–12:05)
 
   // ── 12:05–12:25 ──────────────────────────────────────────────
   { id: 'main-6', startTime: '12:05', endTime: '12:25', title: 'Building Voice AI Infrastructure: Ultra-Low Latency Model Serving at Scale', speakerName: 'Neil Zeghidour', stage: 'main', format: 'talk' },
-  { id: 'side-6', startTime: '12:05', endTime: '12:25', title: 'To be announced', stage: 'side', format: 'talk' },
+  { id: 'side-6', startTime: '12:05', endTime: '12:25', title: 'To be announced', speakerName: 'Rachel Nabors', stage: 'side', format: 'talk' },
 
   // ── Lunch Break (12:30–13:30) ─────────────────────────────────
   { id: 'lunch', startTime: '12:30', endTime: '13:30', title: 'Lunch Break', stage: 'main', format: 'break' },
   { id: 'lunch-side', startTime: '12:30', endTime: '13:30', title: 'Lunch Break', stage: 'side', format: 'break' },
 
   // ── 13:30–14:00 ──────────────────────────────────────────────
-  { id: 'main-7', startTime: '13:30', endTime: '13:50', title: 'To be announced', stage: 'main', format: 'talk' },
+  { id: 'main-7', startTime: '13:30', endTime: '13:50', title: 'To be announced', speakerName: 'Simon Edwardsen', stage: 'main', format: 'talk' },
   { id: 'side-7', startTime: '13:30', endTime: '14:00', title: 'Teaching Agents to Pay: What Devs Need to Know', speakerName: 'Ben Smith', stage: 'side', format: 'talk' },
 
   // 5 min changeover (14:00–14:05)
 
   // ── 14:05–14:25 ──────────────────────────────────────────────
   { id: 'main-8', startTime: '14:05', endTime: '14:25', title: 'Cache Money: How Prompt Caching Cut Our LLM Bills in Half', speakerName: 'Balázs Csomor', stage: 'main', format: 'talk' },
-  { id: 'side-8', startTime: '14:05', endTime: '14:25', title: 'To be announced', stage: 'side', format: 'talk' },
+  { id: 'side-8', startTime: '14:05', endTime: '14:25', title: 'To be announced', speakerNames: ['Lucia Loher', 'Patrick Löber'], stage: 'side', format: 'talk' },
 
   // 5 min changeover (14:25–14:30)
 
@@ -87,13 +87,13 @@ export const AGENDA: AgendaSlot[] = [
   // 5 min changeover (16:10–16:15)
 
   // ── 16:15–16:35 ──────────────────────────────────────────────
-  { id: 'main-12', startTime: '16:15', endTime: '16:35', title: '', speakerName: 'Sabba Keynejad', stage: 'main', format: 'talk' },
-  { id: 'side-12', startTime: '16:15', endTime: '16:35', title: 'To be announced', stage: 'side', format: 'talk' },
+  { id: 'main-12', startTime: '16:15', endTime: '16:35', title: 'To be announced', speakerName: 'Sabba Keynejad', stage: 'main', format: 'talk' },
+  { id: 'side-12', startTime: '16:15', endTime: '16:35', title: 'To be announced', speakerName: 'Stephan Ewen', stage: 'side', format: 'talk' },
 
   // 5 min changeover (16:35–16:40)
 
   // ── 16:40–17:00 ──────────────────────────────────────────────
-  { id: 'main-13', startTime: '16:40', endTime: '17:00', title: '', speakerName: 'Masashi Beheim', stage: 'main', format: 'talk' },
+  { id: 'main-13', startTime: '16:40', endTime: '17:00', title: 'To be announced', speakerName: 'Masashi Beheim', stage: 'main', format: 'talk' },
   { id: 'side-13', startTime: '16:40', endTime: '17:00', title: 'To be announced', stage: 'side', format: 'talk' },
 
   // 5 min changeover (17:00–17:05)
@@ -105,7 +105,7 @@ export const AGENDA: AgendaSlot[] = [
   // 5 min changeover (17:25–17:30)
 
   // ── 17:30–17:50 ──────────────────────────────────────────────
-  { id: 'main-15', startTime: '17:30', endTime: '17:50', title: 'To be announced', stage: 'main', format: 'talk' },
+  { id: 'main-15', startTime: '17:30', endTime: '17:50', title: 'Model Routing in Production: What We Learned the Hard Way', speakerName: 'Bruno Show', stage: 'main', format: 'talk' },
 
   // ── Closing (18:00–18:40) ─────────────────────────────────────
   { id: 'keynote-close', startTime: '18:00', endTime: '18:30', title: 'Shipping Fin to Production: What Worked, What Broke, What Changed', speakerName: 'Des Traynor', stage: 'main', format: 'keynote' },
