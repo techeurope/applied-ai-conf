@@ -18,6 +18,7 @@
     "@splinetool/runtime": "^1.10.82",
     "@types/three": "^0.180.0",
     "clsx": "^2.1.1",
+    "dom-to-svg": "^0.12.2",
     "html-to-image": "^1.11.13",
     "jszip": "^3.10.1",
     "lucide-react": "^0.551.0",

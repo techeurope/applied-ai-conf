@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080">
+  <title>Applied AI Conf — Speaker Template</title>
+  <desc>Editable template. Replace {SPEAKER NAME}, {TITLE}, and {LOGO} placeholder. Fonts: Kode Mono, Inter.</desc>
+
+  <defs>
+    <linearGradient id="fog" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#0a0a0a" stop-opacity="1"/>
+      <stop offset="30%" stop-color="#0a0a0a" stop-opacity="0.9"/>
+      <stop offset="60%" stop-color="#0a0a0a" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#0a0a0a" stop-opacity="0"/>
+    </linearGradient>
+    <pattern id="grid" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#ffffff" stroke-opacity="0.03" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <g id="background">
+    <rect width="1080" height="1080" fill="#0a0a0a"/>
+    <rect width="1080" height="1080" fill="url(#grid)"/>
+  </g>
+
+  <!-- Speaker photo placeholder (replace this group with the speaker cutout) -->
+  <g id="speaker-photo-placeholder">
+    <rect x="540" y="180" width="540" height="900" fill="#ffffff" fill-opacity="0.02" stroke="#ffffff" stroke-opacity="0.1" stroke-dasharray="8 8"/>
+    <text x="810" y="630" font-family="'Kode Mono', monospace" font-size="24" fill="#737373" text-anchor="middle">{SPEAKER PHOTO}</text>
+  </g>
+
+  <!-- Bottom fog gradient -->
+  <rect id="fog-gradient" x="0" y="648" width="1080" height="432" fill="url(#fog)" pointer-events="none"/>
+
+  <!-- Top left: conference branding -->
+  <g id="branding">
+    <text x="40" y="68" font-family="'Kode Mono', monospace" font-size="20" fill="#737373" letter-spacing="0.5">{Tech: Europe}</text>
+    <text x="40" y="128" font-family="'Kode Mono', monospace" font-size="48" font-weight="700" fill="#ffffff" letter-spacing="-1">APPLIED</text>
+    <text x="40" y="174" font-family="'Kode Mono', monospace" font-size="48" font-weight="700" fill="#ffffff" letter-spacing="-1">AI CONF</text>
+  </g>
+
+  <!-- Top right: date and location -->
+  <g id="date-location">
+    <text x="1040" y="68" font-family="Inter, sans-serif" font-size="24" fill="#737373" text-anchor="end" letter-spacing="2.4">MAY 28, 2026</text>
+    <text x="1040" y="106" font-family="Inter, sans-serif" font-size="24" fill="#737373" text-anchor="end" letter-spacing="2.4">THE DELTA CAMPUS, BERLIN</text>
+  </g>
+
+  <!-- Bottom left: speaker name + title + logo placeholder -->
+  <g id="speaker-info">
+    <text x="40" y="870" font-family="'Kode Mono', monospace" font-size="140" font-weight="700" fill="#ffffff" letter-spacing="-4">{SPEAKER}</text>
+    <text x="40" y="1010" font-family="'Kode Mono', monospace" font-size="140" font-weight="700" fill="#ffffff" letter-spacing="-4">{NAME}</text>
+    <g id="title-row" transform="translate(40, 1040)">
+      <text x="0" y="0" font-family="Inter, sans-serif" font-size="32" fill="#d4d4d4">{Title}</text>
+      <text x="260" y="0" font-family="Inter, sans-serif" font-size="32" fill="#737373">at</text>
+      <rect x="310" y="-30" width="140" height="40" fill="none" stroke="#ffffff" stroke-opacity="0.2" stroke-dasharray="6 6"/>
+      <text x="380" y="-4" font-family="'Kode Mono', monospace" font-size="16" fill="#737373" text-anchor="middle">{LOGO}</text>
+    </g>
+  </g>
+</svg>

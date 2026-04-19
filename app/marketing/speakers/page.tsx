@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { toPng, toSvg } from "html-to-image";
+import { toPng } from "html-to-image";
 import { ChevronDown, Download } from "lucide-react";
 import { SPEAKERS } from "@/data/speakers";
 import { CONFERENCE_INFO } from "@/data/conference";
@@ -152,19 +152,19 @@ export default function SpeakersPage() {
     setIsExportingSvg(true);
     try {
       await document.fonts.ready;
-      const fontEmbedCSS = await getFontEmbedCSS();
+      const { elementToSVG, inlineResources } = await import("dom-to-svg");
+      const svgDocument = elementToSVG(svgCardRef.current);
+      await inlineResources(svgDocument.documentElement);
+      const svgString = new XMLSerializer().serializeToString(svgDocument);
+      const blob = new Blob([svgString], { type: "image/svg+xml" });
+      const url = URL.createObjectURL(blob);
       const filename = speaker.name.toLowerCase().replace(/\s+/g, "_");
 
-      const dataUrl = await toSvg(svgCardRef.current, {
-        cacheBust: true,
-        fontEmbedCSS,
-        skipFonts: true,
-      });
-
       const link = document.createElement("a");
-      link.download = `${filename}_template.svg`;
-      link.href = dataUrl;
+      link.download = `${filename}_vector.svg`;
+      link.href = url;
       link.click();
+      URL.revokeObjectURL(url);
     } catch (error) {
       console.error("SVG export error:", error);
       alert("Failed to export SVG. Please try again.");
@@ -219,23 +219,25 @@ export default function SpeakersPage() {
           </div>
         </div>
 
-        {/* Off-screen card without photo for SVG template export */}
+        {/* Hidden card rendered at origin for SVG export
+            (clip-path hides visually without inheriting opacity/visibility to children) */}
         <div
           aria-hidden
+          ref={svgCardRef}
           style={{
             position: "fixed",
-            left: "-99999px",
+            left: 0,
             top: 0,
+            clipPath: "inset(100%)",
             pointerEvents: "none",
+            zIndex: -1,
           }}
         >
-          <div ref={svgCardRef}>
-            <SpeakerCard
-              speaker={speaker}
-              conferenceDate={dateLine}
-              hidePhoto
-            />
-          </div>
+          <SpeakerCard
+            speaker={speaker}
+            conferenceDate={dateLine}
+            hidePhoto
+          />
         </div>
 
         {/* Controls */}
@@ -291,13 +293,21 @@ export default function SpeakersPage() {
               <Download className="w-4 h-4" />
               {isExporting ? "Exporting..." : `Export PNG (${selectedResolution})`}
             </button>
+            <a
+              href="/marketing/speaker-template.svg"
+              download="speaker_template.svg"
+              className="w-full flex items-center justify-center gap-2 bg-transparent border border-white/20 hover:border-white/40 text-white font-mono py-3 px-4 rounded-lg transition-all"
+            >
+              <Download className="w-4 h-4" />
+              Download SVG template
+            </a>
             <button
               onClick={handleExportSvg}
               disabled={isExportingSvg}
-              className="w-full flex items-center justify-center gap-2 bg-transparent border border-white/20 hover:border-white/40 disabled:opacity-50 disabled:cursor-not-allowed text-white font-mono py-3 px-4 rounded-lg transition-all"
+              className="w-full flex items-center justify-center gap-1.5 bg-transparent text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed font-mono py-1.5 px-2 rounded transition-all text-xs"
             >
-              <Download className="w-4 h-4" />
-              {isExportingSvg ? "Exporting..." : "Export SVG template (no photo)"}
+              <Download className="w-3 h-3" />
+              {isExportingSvg ? "Exporting..." : "Export current speaker as SVG"}
             </button>
           </div>
 
