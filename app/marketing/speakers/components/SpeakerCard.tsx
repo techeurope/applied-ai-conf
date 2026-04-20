@@ -36,7 +36,7 @@ const COMPANY_LOGOS: Record<string, LogoComponent> = {
   Legora: LegoraLogo,
   Knowunity: KnowunityLogo,
   "VEED.IO": VeedLogo,
-  Codewords: CodewordsLogo,
+  CodeWords: CodewordsLogo,
   Dust: DustLogo,
   Intercom: IntercomLogo,
   Gradium: GradiumLogo,

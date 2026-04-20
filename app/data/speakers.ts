@@ -274,7 +274,7 @@ export const SPEAKERS = [
   {
     name: 'Osman Ramadan',
     title: 'Co-Founder & CTO',
-    company: 'Agemo',
+    company: 'CodeWords',
     companyLogo: '/logos/codewords.svg',
     companyUrl: 'https://codewords.ai/',
     linkedinUrl: 'https://www.linkedin.com/in/osmanio-ramadan/',
@@ -286,7 +286,7 @@ export const SPEAKERS = [
     image: '/speakers/osman_ramadan.jpg',
     imageTransparent: '/speakers/osman_ramadan_fullbody_transparent_square.png',
     imageAlt: 'Osman Ramadan headshot',
-    logoAlt: 'Agemo logo',
+    logoAlt: 'CodeWords logo',
   },
   {
     name: 'Steffen Hoellinger',
