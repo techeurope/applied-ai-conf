@@ -51,9 +51,11 @@ export function PartnerCard({
 }: Props) {
   const style = TIER_STYLES[tier];
   const logoScale = partner.logoScale ?? 1;
-  // Baseline logo bounding box, scaled per-partner for visual consistency
-  const logoHeight = 320 * logoScale;
-  const logoWidth = 760 * logoScale;
+  // Baseline logo bounding box, scaled per-partner for visual consistency.
+  // Capped to the 918px separator width (Figma safe zone) so wide logos at
+  // high logoScale don't bleed past the card margins.
+  const logoHeight = Math.min(420 * logoScale, 460);
+  const logoWidth = Math.min(900 * logoScale, 918);
 
   return (
     <div className="relative w-[1080px] h-[1080px] bg-[#0a0a0a] overflow-hidden border border-neutral-800">
@@ -140,14 +142,16 @@ export function PartnerCard({
         </div>
       </div>
 
-      {/* Horizontal divider line */}
+      {/* Horizontal divider line (from Figma spec) */}
       <div
-        className="absolute left-0 right-0 z-20 pointer-events-none"
+        className="absolute z-20 pointer-events-none"
         style={{
-          top: "72%",
-          height: "1px",
+          left: "81px",
+          top: "711px",
+          width: "918px",
+          height: "5px",
           background:
-            "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%)",
+            "linear-gradient(90deg, rgba(217, 217, 217, 0) 0%, #D9D9D9 50%, rgba(115, 115, 115, 0) 100%)",
         }}
       />
 
