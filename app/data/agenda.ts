@@ -54,58 +54,34 @@ export const AGENDA: AgendaSlot[] = [
   { id: 'lunch', startTime: '12:30', endTime: '13:30', title: 'Lunch Break', stage: 'main', format: 'break' },
   { id: 'lunch-side', startTime: '12:30', endTime: '13:30', title: 'Lunch Break', stage: 'side', format: 'break' },
 
-  // ── 13:30–14:00 ──────────────────────────────────────────────
+  // ── Post-lunch: Main stage (20 min + 5 min changeover) ────────
   { id: 'main-7', startTime: '13:30', endTime: '13:50', title: 'To be announced', speakerName: 'Simon Edwardsen', stage: 'main', format: 'talk' },
+  { id: 'main-8', startTime: '13:55', endTime: '14:15', title: 'Cache Money: How Prompt Caching Cut Our LLM Bills in Half', speakerName: 'Balázs Csomor', stage: 'main', format: 'talk' },
+  { id: 'main-9', startTime: '14:20', endTime: '14:40', title: 'Making AI Understand ERPs', speakerName: 'Henry Thompson', stage: 'main', format: 'talk' },
+
+  // ── Post-lunch: Demo stage (mix 20/30 min + 5 min changeover) ─
   { id: 'side-7', startTime: '13:30', endTime: '14:00', title: 'Teaching Agents to Pay: What Devs Need to Know', speakerName: 'Ben Smith', stage: 'side', format: 'talk' },
-
-  // 5 min changeover (14:00–14:05)
-
-  // ── 14:05–14:25 ──────────────────────────────────────────────
-  { id: 'main-8', startTime: '14:05', endTime: '14:25', title: 'Cache Money: How Prompt Caching Cut Our LLM Bills in Half', speakerName: 'Balázs Csomor', stage: 'main', format: 'talk' },
   { id: 'side-8', startTime: '14:05', endTime: '14:25', title: 'To be announced', speakerNames: ['Lucia Loher', 'Patrick Löber'], stage: 'side', format: 'talk' },
-
-  // 5 min changeover (14:25–14:30)
-
-  // ── 14:30–14:50 ──────────────────────────────────────────────
-  { id: 'main-9', startTime: '14:30', endTime: '14:50', title: 'Making AI Understand ERPs', speakerName: 'Henry Thompson', stage: 'main', format: 'talk' },
   { id: 'side-9', startTime: '14:30', endTime: '14:50', title: 'The 100x Inference Tax You Don\'t Have to Pay', speakerName: 'Jacek Golebiowski', stage: 'side', format: 'talk' },
 
   // ── Coffee Break (14:50–15:15) ────────────────────────────────
   { id: 'break-2', startTime: '14:50', endTime: '15:15', title: 'Coffee Break', stage: 'main', format: 'break' },
   { id: 'break-2-side', startTime: '14:50', endTime: '15:15', title: 'Coffee Break', stage: 'side', format: 'break' },
 
-  // ── 15:15–15:45 ──────────────────────────────────────────────
+  // ── Post-coffee2: Main stage (20 min + 5 min changeover) ─────
   { id: 'main-10', startTime: '15:15', endTime: '15:35', title: 'From SEO to GEO: How We Track Visibility Across AI Responses', speakerName: 'Oğuz Gültepe', stage: 'main', format: 'talk' },
-  { id: 'side-10', startTime: '15:15', endTime: '15:45', title: 'To be announced', stage: 'side', format: 'talk' },
+  { id: 'main-11', startTime: '15:40', endTime: '16:00', title: 'Building a Universal Agent for Legal', speakerNames: ['Zino Kader', 'Jakob Emmerling'], stage: 'main', format: 'talk' },
+  { id: 'main-12', startTime: '16:05', endTime: '16:25', title: 'To be announced', speakerName: 'Sabba Keynejad', stage: 'main', format: 'talk' },
+  { id: 'main-13', startTime: '16:30', endTime: '16:50', title: 'To be announced', speakerName: 'Masashi Beheim', stage: 'main', format: 'talk' },
+  { id: 'main-14', startTime: '16:55', endTime: '17:15', title: 'AI-Empowered Engineering Through Collaborative Tooling', speakerName: 'Łukasz Sągol', stage: 'main', format: 'talk' },
+  { id: 'main-15', startTime: '17:20', endTime: '17:40', title: 'Model Routing in Production: What We Learned the Hard Way', speakerName: 'Bruno Show', stage: 'main', format: 'talk' },
 
-  // 5 min changeover (15:45–15:50)
-
-  // ── 15:50–16:10 ──────────────────────────────────────────────
-  { id: 'main-11', startTime: '15:50', endTime: '16:10', title: 'Building a Universal Agent for Legal', speakerNames: ['Zino Kader', 'Jakob Emmerling'], stage: 'main', format: 'talk' },
-  { id: 'side-11', startTime: '15:50', endTime: '16:10', title: 'To be announced', stage: 'side', format: 'talk' },
-
-  // 5 min changeover (16:10–16:15)
-
-  // ── 16:15–16:35 ──────────────────────────────────────────────
-  { id: 'main-12', startTime: '16:15', endTime: '16:35', title: 'To be announced', speakerName: 'Sabba Keynejad', stage: 'main', format: 'talk' },
+  // ── Post-coffee2: Demo stage (mix 20/30 min + 5 min changeover)
+  { id: 'side-10', startTime: '15:15', endTime: '15:45', title: 'To be announced', speakerName: 'Nebius', stage: 'side', format: 'talk' },
+  { id: 'side-11', startTime: '15:50', endTime: '16:10', title: 'To be announced', speakerName: 'Modal', stage: 'side', format: 'talk' },
   { id: 'side-12', startTime: '16:15', endTime: '16:35', title: 'To be announced', speakerName: 'Stephan Ewen', stage: 'side', format: 'talk' },
-
-  // 5 min changeover (16:35–16:40)
-
-  // ── 16:40–17:00 ──────────────────────────────────────────────
-  { id: 'main-13', startTime: '16:40', endTime: '17:00', title: 'To be announced', speakerName: 'Masashi Beheim', stage: 'main', format: 'talk' },
-  { id: 'side-13', startTime: '16:40', endTime: '17:00', title: 'To be announced', stage: 'side', format: 'talk' },
-
-  // 5 min changeover (17:00–17:05)
-
-  // ── 17:05–17:25 ──────────────────────────────────────────────
-  { id: 'main-14', startTime: '17:05', endTime: '17:25', title: 'AI-Empowered Engineering Through Collaborative Tooling', speakerName: 'Łukasz Sągol', stage: 'main', format: 'talk' },
-  { id: 'side-14', startTime: '17:05', endTime: '17:25', title: 'To be announced', stage: 'side', format: 'talk' },
-
-  // 5 min changeover (17:25–17:30)
-
-  // ── 17:30–17:50 ──────────────────────────────────────────────
-  { id: 'main-15', startTime: '17:30', endTime: '17:50', title: 'Model Routing in Production: What We Learned the Hard Way', speakerName: 'Bruno Show', stage: 'main', format: 'talk' },
+  { id: 'side-13', startTime: '16:40', endTime: '17:10', title: 'To be announced', speakerName: 'Runpod', stage: 'side', format: 'talk' },
+  { id: 'side-14', startTime: '17:15', endTime: '17:35', title: 'To be announced', speakerName: 'Linkup', stage: 'side', format: 'talk' },
 
   // ── Closing (18:00–18:40) ─────────────────────────────────────
   { id: 'keynote-close', startTime: '18:00', endTime: '18:30', title: 'Shipping Fin to Production: What Worked, What Broke, What Changed', speakerName: 'Des Traynor', stage: 'main', format: 'keynote' },

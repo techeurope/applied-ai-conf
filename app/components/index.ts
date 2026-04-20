@@ -33,5 +33,6 @@ export { StellantisLogo } from './ui/stellantis-logo';
 export { OpenAiLogo } from './ui/openai-logo';
 export { DlthubLogo } from './ui/dlthub-logo';
 export { DistilLabsLogo } from './ui/distil-labs-logo';
+export { ArizeLogo } from './ui/arize-logo';
 export { default as CookieConsent } from './CookieConsent';
 export { default as PostHogProvider } from './PostHogProvider';

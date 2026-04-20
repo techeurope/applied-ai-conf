@@ -166,7 +166,7 @@ function SlotCell({ slot }: { slot: AgendaSlot }) {
     );
   }
 
-  // Talk / Panel / Workshop — NO h-full (background wraps content only)
+  // Talk / Panel / Workshop
   const displayTitle = slot.title || speakers[0]?.vertical || "";
   return (
     <div className={`${SLOT_BG[slot.format]} px-3 ${SLOT_PAD_TOP} pb-2 ${isTBA ? "opacity-40" : ""}`}>

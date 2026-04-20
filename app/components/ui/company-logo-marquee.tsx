@@ -33,6 +33,7 @@ import { StellantisLogo } from "@/components/ui/stellantis-logo";
 import { OpenAiLogo } from "@/components/ui/openai-logo";
 import { DlthubLogo } from "@/components/ui/dlthub-logo";
 import { DistilLabsLogo } from "@/components/ui/distil-labs-logo";
+import { ArizeLogo } from "@/components/ui/arize-logo";
 
 type LogoComponent = React.ComponentType<{ className?: string }>;
 
@@ -68,6 +69,7 @@ const COMPANY_LOGOS: Record<string, LogoComponent> = {
   OpenAI: OpenAiLogo,
   dltHub: DlthubLogo,
   "distil labs": DistilLabsLogo,
+  Arize: ArizeLogo,
 };
 
 // Square/compact logos need a larger height to match the visual weight of wide wordmarks

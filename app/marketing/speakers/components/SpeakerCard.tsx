@@ -25,6 +25,7 @@ import { OpenAiLogo } from "@/components/ui/openai-logo";
 import { DlthubLogo } from "@/components/ui/dlthub-logo";
 import { DistilLabsLogo } from "@/components/ui/distil-labs-logo";
 import { MiroLogo } from "@/components/ui/miro-logo";
+import { ArizeLogo } from "@/components/ui/arize-logo";
 
 type LogoComponent = React.ComponentType<{ className?: string }>;
 
@@ -51,6 +52,7 @@ const COMPANY_LOGOS: Record<string, LogoComponent> = {
   dltHub: DlthubLogo,
   "distil labs": DistilLabsLogo,
   Miro: MiroLogo,
+  Arize: ArizeLogo,
 };
 
 interface ImageConfig {
@@ -162,8 +164,11 @@ export function SpeakerCard({
       {/* Bottom left - Speaker name stacked with role below */}
       <div className="absolute bottom-10 left-10 z-20 flex flex-col">
         <h1
-          className="text-[140px] font-bold text-white tracking-tight leading-[0.85]"
-          style={{ fontFamily: "'Kode Mono', monospace" }}
+          className="font-bold text-white tracking-tight leading-[0.85]"
+          style={{
+            fontFamily: "'Kode Mono', monospace",
+            fontSize: `${speaker.nameFontSize ?? 140}px`,
+          }}
         >
           {speaker.name.split(" ").map((word, i) => (
             <span key={i} className="block">
@@ -171,14 +176,17 @@ export function SpeakerCard({
             </span>
           ))}
         </h1>
-        <div className="flex items-center gap-5 mt-10">
+        <div
+          className="flex items-center gap-5 mt-10"
+          style={{ fontSize: `${speaker.titleFontSize ?? 48}px` }}
+        >
           <span
-            className="text-neutral-300 text-5xl"
+            className="text-neutral-300"
             style={{ fontFamily: "'Inter', sans-serif" }}
           >
             {speaker.title}
           </span>
-          <span className="text-neutral-500 text-5xl">at</span>
+          <span className="text-neutral-500">at</span>
           {LogoComponent && (
             <LogoComponent className="h-14 w-auto text-white" />
           )}

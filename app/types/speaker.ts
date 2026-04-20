@@ -16,6 +16,8 @@ export interface Speaker {
   imageTransparent?: string; // Transparent PNG (background removed via remove-background.mjs)
   imageAlt: string; // Alt text for headshot
   logoAlt?: string; // Alt text for company logo
+  nameFontSize?: number; // Override marketing card name size in px (default 140) for long names
+  titleFontSize?: number; // Override marketing card title size in px (default 48) for long titles
   socials?: {
     label: string;
     url: string;
