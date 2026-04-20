@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 const marketingNavItems = [
   { href: "/marketing", label: "Overview" },
   { href: "/marketing/speakers", label: "Speaker Assets" },
+  { href: "/marketing/partners", label: "Partner Assets" },
   { href: "/marketing/twitter-banner", label: "Twitter Banner" },
   { href: "/marketing/logos", label: "Logos" },
   { href: "/marketing/favicon", label: "Favicon" },

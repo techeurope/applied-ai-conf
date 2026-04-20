@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Check, X, Image, Users, Twitter, Palette, Sparkles } from "lucide-react";
+import { Check, X, Image, Users, Twitter, Palette, Sparkles, Handshake } from "lucide-react";
 
 interface AssetCard {
   title: string;
@@ -15,6 +15,13 @@ const assets: AssetCard[] = [
     href: "/marketing/speakers",
     description: "Generate speaker marketing cards with name, title, company logo, and transparent speaker image",
     icon: Users,
+    available: true,
+  },
+  {
+    title: "Partner Assets",
+    href: "/marketing/partners",
+    description: "Generate partner marketing cards with tier-specific radial glow (Premium, Gold, Community) and partner logo",
+    icon: Handshake,
     available: true,
   },
   {
