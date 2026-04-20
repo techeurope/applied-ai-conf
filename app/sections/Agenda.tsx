@@ -240,7 +240,7 @@ function DesktopGrid({ isVisible }: { isVisible: boolean }) {
       const start = toRow(s.startTime);
       const span = rowSpan(s.startTime, s.endTime);
       const isBreakStyle = s.format === "break" ||
-        (s.format === "logistics" && s.title !== "Welcome" && s.title !== "Closing Remarks");
+        (s.format === "logistics" && s.title !== "Welcome");
       const height = isBreakStyle
         ? Math.round(BREAK_TARGET_HEIGHT / span)
         : s.format === "keynote"
