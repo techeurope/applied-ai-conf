@@ -68,20 +68,28 @@ export const AGENDA: AgendaSlot[] = [
   { id: 'break-2', startTime: '14:50', endTime: '15:15', title: 'Coffee Break', stage: 'main', format: 'break' },
   { id: 'break-2-side', startTime: '14:50', endTime: '15:15', title: 'Coffee Break', stage: 'side', format: 'break' },
 
-  // ── Post-coffee2: Main stage (20 min + 5 min changeover) ─────
+  // ── Post-coffee2: Main stage (3 talks) ─────────────────────────
   { id: 'main-10', startTime: '15:15', endTime: '15:35', title: 'From SEO to GEO: How We Track Visibility Across AI Responses', speakerName: 'Oğuz Gültepe', stage: 'main', format: 'talk' },
   { id: 'main-11', startTime: '15:40', endTime: '16:00', title: 'Building a Universal Agent for Legal', speakerNames: ['Zino Kader', 'Jakob Emmerling'], stage: 'main', format: 'talk' },
   { id: 'main-12', startTime: '16:05', endTime: '16:25', title: 'To be announced', speakerName: 'Sabba Keynejad', stage: 'main', format: 'talk' },
-  { id: 'main-13', startTime: '16:30', endTime: '16:50', title: 'To be announced', speakerName: 'Masashi Beheim', stage: 'main', format: 'talk' },
-  { id: 'main-14', startTime: '16:55', endTime: '17:15', title: 'AI-Empowered Engineering Through Collaborative Tooling', speakerName: 'Łukasz Sągol', stage: 'main', format: 'talk' },
-  { id: 'main-15', startTime: '17:20', endTime: '17:40', title: 'Model Routing in Production: What We Learned the Hard Way', speakerName: 'Bruno Show', stage: 'main', format: 'talk' },
 
-  // ── Post-coffee2: Demo stage (mix 20/30 min + 5 min changeover)
+  // ── Post-coffee2: Demo stage (2 talks) ────────────────────────
   { id: 'side-10', startTime: '15:15', endTime: '15:45', title: 'To be announced', speakerName: 'Nebius', stage: 'side', format: 'talk' },
   { id: 'side-11', startTime: '15:50', endTime: '16:10', title: 'To be announced', speakerName: 'Modal', stage: 'side', format: 'talk' },
-  { id: 'side-12', startTime: '16:15', endTime: '16:35', title: 'To be announced', speakerName: 'Stephan Ewen', stage: 'side', format: 'talk' },
-  { id: 'side-13', startTime: '16:40', endTime: '17:10', title: 'To be announced', speakerName: 'Runpod', stage: 'side', format: 'talk' },
-  { id: 'side-14', startTime: '17:15', endTime: '17:35', title: 'To be announced', speakerName: 'Linkup', stage: 'side', format: 'talk' },
+
+  // ── Coffee Break (16:25–16:45) ────────────────────────────────
+  { id: 'break-3', startTime: '16:25', endTime: '16:45', title: 'Coffee Break', stage: 'main', format: 'break' },
+  { id: 'break-3-side', startTime: '16:25', endTime: '16:45', title: 'Coffee Break', stage: 'side', format: 'break' },
+
+  // ── Post-coffee3: Main stage (3 talks) ────────────────────────
+  { id: 'main-13', startTime: '16:45', endTime: '17:05', title: 'To be announced', speakerName: 'Masashi Beheim', stage: 'main', format: 'talk' },
+  { id: 'main-14', startTime: '17:10', endTime: '17:30', title: 'AI-Empowered Engineering Through Collaborative Tooling', speakerName: 'Łukasz Sągol', stage: 'main', format: 'talk' },
+  { id: 'main-15', startTime: '17:35', endTime: '17:55', title: 'Model Routing in Production: What We Learned the Hard Way', speakerName: 'Bruno Show', stage: 'main', format: 'talk' },
+
+  // ── Post-coffee3: Demo stage (3 talks) ────────────────────────
+  { id: 'side-12', startTime: '16:45', endTime: '17:05', title: 'To be announced', speakerName: 'Stephan Ewen', stage: 'side', format: 'talk' },
+  { id: 'side-13', startTime: '17:10', endTime: '17:40', title: 'To be announced', speakerName: 'Runpod', stage: 'side', format: 'talk' },
+  { id: 'side-14', startTime: '17:45', endTime: '18:05', title: 'To be announced', speakerName: 'Linkup', stage: 'side', format: 'talk' },
 
   // ── Closing (18:00–18:40) ─────────────────────────────────────
   { id: 'keynote-close', startTime: '18:00', endTime: '18:30', title: 'Shipping Fin to Production: What Worked, What Broke, What Changed', speakerName: 'Des Traynor', stage: 'main', format: 'keynote' },

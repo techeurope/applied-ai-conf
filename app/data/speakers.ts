@@ -449,11 +449,11 @@ export const SPEAKERS = [
     logoAlt: 'Miro logo',
   },
   {
-    name: 'Simon Edwardsen',
-    title: '',
+    name: 'Simon Edwardsson',
+    title: 'Co-Founder & CTO',
     company: 'V7',
     companyUrl: 'https://www.v7labs.com/',
-    linkedinUrl: '',
+    linkedinUrl: 'https://uk.linkedin.com/in/simonedwardsson',
     bio: '',
     vertical: '',
     building: '',
@@ -461,7 +461,7 @@ export const SPEAKERS = [
     initial: 'SE',
     accent: 'from-sky-400/40 via-blue-400/30 to-indigo-500/40',
     image: '',
-    imageAlt: 'Simon Edwardsen headshot',
+    imageAlt: 'Simon Edwardsson headshot',
   },
   {
     name: 'Lucia Loher',
