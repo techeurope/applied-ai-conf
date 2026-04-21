@@ -57,7 +57,7 @@ export const AGENDA: AgendaSlot[] = [
   // ── Post-lunch: Main stage (4 × 20 min) ────────────────────────
   { id: 'main-7', startTime: '13:30', endTime: '13:50', title: 'To be announced', speakerName: 'Simon Edwardsson', stage: 'main', format: 'talk' },
   { id: 'main-8', startTime: '13:55', endTime: '14:15', title: 'Cache Money: How Prompt Caching Cut Our LLM Bills in Half', speakerName: 'Balázs Csomor', stage: 'main', format: 'talk' },
-  { id: 'main-9', startTime: '14:20', endTime: '14:40', title: 'Making AI Understand ERPs', speakerName: 'Henry Thompson', stage: 'main', format: 'talk' },
+  { id: 'main-9', startTime: '14:20', endTime: '14:40', title: "Deploying Intelligence into the World's Largest Enterprises", speakerName: 'Henry Thompson', stage: 'main', format: 'talk' },
   { id: 'main-10', startTime: '14:45', endTime: '15:05', title: 'From SEO to GEO: How We Track Visibility Across AI Responses', speakerName: 'Oğuz Gültepe', stage: 'main', format: 'talk' },
 
   // ── Post-lunch: Demo stage (3 × 30 min) ───────────────────────

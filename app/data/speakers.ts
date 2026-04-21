@@ -351,6 +351,7 @@ export const SPEAKERS = [
     bio: '',
     vertical: 'Enterprise',
     building: 'AI that understands ERPs',
+    talkTitle: "Deploying Intelligence into the World's Largest Enterprises",
     initial: 'HT',
     accent: 'from-slate-400/40 via-zinc-400/30 to-gray-500/40',
     image: '/speakers/henry_thompson_fullbody_square.png',
