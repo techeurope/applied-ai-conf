@@ -36,6 +36,15 @@ const TIER_STYLES: Record<PartnerTier, TierStyle> = {
   },
 };
 
+// Per-partner overrides for the logo bounding box. Width is capped to 918px
+// (the separator/safe-zone); height is tuned so each logo reads as the hero
+// element without the icon or mark looking stunted or oversized.
+const LOGO_OVERRIDES: Record<string, { width?: number; height?: number }> = {
+  // Squat ~2:1 wordmarks max out the default height and visually dominate.
+  Dust: { height: 280 },
+  dltHub: { height: 300 },
+};
+
 interface Props {
   partner: Partner;
   tier: PartnerTier;
@@ -50,12 +59,12 @@ export function PartnerCard({
   hideLogo = false,
 }: Props) {
   const style = TIER_STYLES[tier];
-  const logoScale = partner.logoScale ?? 1;
-  // Baseline logo bounding box, scaled per-partner for visual consistency.
-  // Capped to the 918px separator width (Figma safe zone) so wide logos at
-  // high logoScale don't bleed past the card margins.
-  const logoHeight = Math.min(420 * logoScale, 460);
-  const logoWidth = Math.min(900 * logoScale, 918);
+  // Per-partner logo bounds. Defaults to the 918px separator width with a
+  // generous height; per-partner overrides tune icons/marks that look off at
+  // the default box. Ignores the homepage `logoScale` (tuned for the marquee).
+  const override = LOGO_OVERRIDES[partner.name];
+  const logoWidth = override?.width ?? 918;
+  const logoHeight = override?.height ?? 380;
 
   return (
     <div className="relative w-[1080px] h-[1080px] bg-[#0a0a0a] overflow-hidden border border-neutral-800">
