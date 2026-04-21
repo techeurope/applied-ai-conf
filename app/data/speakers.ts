@@ -119,7 +119,7 @@ export const SPEAKERS = [
     bio: '',
     vertical: 'Contact Center AI',
     building: 'AI-driven development with agents at scale',
-    talkTitle: '',
+    talkTitle: 'Leading through AI change',
     initial: 'MB',
     accent: 'from-lime-400/40 via-green-400/30 to-emerald-500/40',
     image: '/speakers/masashi_beheim_fullbody_square.png',
