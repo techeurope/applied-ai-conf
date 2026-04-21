@@ -157,14 +157,10 @@ export function PartnerCard({
 
       {/* Tier label */}
       <div
-        className="absolute left-0 right-0 z-20 text-center"
+        className="absolute left-0 right-0 z-20 text-center text-[#d4d4d4] text-[68px] font-medium tracking-[0.15em]"
         style={{
           top: "82%",
           fontFamily: "'Kode Mono', monospace",
-          fontSize: "68px",
-          fontWeight: 500,
-          letterSpacing: "0.15em",
-          color: "#d4d4d4",
         }}
       >
         {style.label}
