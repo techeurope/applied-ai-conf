@@ -26,6 +26,7 @@ import { DlthubLogo } from "@/components/ui/dlthub-logo";
 import { DistilLabsLogo } from "@/components/ui/distil-labs-logo";
 import { MiroLogo } from "@/components/ui/miro-logo";
 import { ArizeLogo } from "@/components/ui/arize-logo";
+import { ModalLogo } from "@/components/ui/modal-logo";
 
 type LogoComponent = React.ComponentType<{ className?: string }>;
 
@@ -53,6 +54,7 @@ const COMPANY_LOGOS: Record<string, LogoComponent> = {
   "distil labs": DistilLabsLogo,
   Miro: MiroLogo,
   Arize: ArizeLogo,
+  Modal: ModalLogo,
 };
 
 interface ImageConfig {

@@ -85,7 +85,7 @@ export const AGENDA: AgendaSlot[] = [
 
   // ── Post-coffee3: Both stages aligned (2 × 20 min) ───────────
   { id: 'main-14', startTime: '17:00', endTime: '17:20', title: 'AI-Empowered Engineering Through Collaborative Tooling', speakerName: 'Łukasz Sągol', stage: 'main', format: 'talk' },
-  { id: 'side-13', startTime: '17:00', endTime: '17:20', title: 'To be announced', speakerName: 'Modal', stage: 'side', format: 'talk' },
+  { id: 'side-13', startTime: '17:00', endTime: '17:20', title: 'To be announced', speakerName: 'Lucy Zhang', stage: 'side', format: 'talk' },
 
   { id: 'main-15', startTime: '17:25', endTime: '17:45', title: 'Model Routing in Production: What We Learned the Hard Way', speakerName: 'Bruno Show', stage: 'main', format: 'talk' },
   { id: 'side-14', startTime: '17:25', endTime: '17:45', title: 'To be announced', speakerName: 'Linkup', stage: 'side', format: 'talk' },

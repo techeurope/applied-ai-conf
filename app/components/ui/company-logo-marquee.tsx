@@ -34,6 +34,7 @@ import { OpenAiLogo } from "@/components/ui/openai-logo";
 import { DlthubLogo } from "@/components/ui/dlthub-logo";
 import { DistilLabsLogo } from "@/components/ui/distil-labs-logo";
 import { ArizeLogo } from "@/components/ui/arize-logo";
+import { ModalLogo } from "@/components/ui/modal-logo";
 
 type LogoComponent = React.ComponentType<{ className?: string }>;
 
@@ -70,6 +71,7 @@ const COMPANY_LOGOS: Record<string, LogoComponent> = {
   dltHub: DlthubLogo,
   "distil labs": DistilLabsLogo,
   Arize: ArizeLogo,
+  Modal: ModalLogo,
 };
 
 // Square/compact logos need a larger height to match the visual weight of wide wordmarks
@@ -110,6 +112,7 @@ const COMPANY_ITEMS = [
   { name: "Sword Health", url: "https://swordhealth.com" },
   { name: "dltHub", url: "https://dlthub.com" },
   { name: "distil labs", url: "https://www.distillabs.ai" },
+  { name: "Modal", url: "https://modal.com" },
 ];
 
 const NORMAL_SPEED = 100; // pixels per second
