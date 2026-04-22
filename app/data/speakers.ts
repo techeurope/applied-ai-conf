@@ -351,7 +351,7 @@ export const SPEAKERS = [
     linkedinUrl: 'https://www.linkedin.com/in/henryithompson/',
     bio: '',
     vertical: 'Enterprise',
-    building: 'AI that understands ERPs',
+    building: 'Accelerating enterprise IT teams with AI agents',
     talkTitle: "Deploying Intelligence into the World's Largest Enterprises",
     initial: 'HT',
     accent: 'from-slate-400/40 via-zinc-400/30 to-gray-500/40',
