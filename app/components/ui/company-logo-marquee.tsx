@@ -35,6 +35,9 @@ import { DlthubLogo } from "@/components/ui/dlthub-logo";
 import { DistilLabsLogo } from "@/components/ui/distil-labs-logo";
 import { ArizeLogo } from "@/components/ui/arize-logo";
 import { ModalLogo } from "@/components/ui/modal-logo";
+import { NebiusLogo } from "@/components/ui/nebius-logo";
+import { GoogleDeepMindLogo } from "@/components/ui/google-deepmind-logo";
+import { RestateLogo } from "@/components/ui/restate-logo";
 
 type LogoComponent = React.ComponentType<{ className?: string }>;
 
@@ -72,6 +75,9 @@ const COMPANY_LOGOS: Record<string, LogoComponent> = {
   "distil labs": DistilLabsLogo,
   Arize: ArizeLogo,
   Modal: ModalLogo,
+  Nebius: NebiusLogo,
+  "Google DeepMind": GoogleDeepMindLogo,
+  Restate: RestateLogo,
 };
 
 // Square/compact logos need a larger height to match the visual weight of wide wordmarks
@@ -87,6 +93,8 @@ const COMPANY_ITEMS = [
   { name: "Siemens", url: "https://www.siemens.com" },
   { name: "Langdock", url: "https://langdock.com" },
   { name: "Bloomberg", url: "https://www.bloomberg.com" },
+  { name: "Nebius", url: "https://nebius.com" },
+  { name: "Google DeepMind", url: "https://deepmind.google" },
   { name: "Choco", url: "https://choco.com" },
   { name: "SAP", url: "https://www.sap.com" },
   { name: "Tacto", url: "https://tacto.ai" },
@@ -113,6 +121,7 @@ const COMPANY_ITEMS = [
   { name: "dltHub", url: "https://dlthub.com" },
   { name: "distil labs", url: "https://www.distillabs.ai" },
   { name: "Modal", url: "https://modal.com" },
+  { name: "Restate", url: "https://restate.dev" },
 ];
 
 const NORMAL_SPEED = 100; // pixels per second

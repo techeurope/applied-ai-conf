@@ -35,5 +35,8 @@ export { DlthubLogo } from './ui/dlthub-logo';
 export { DistilLabsLogo } from './ui/distil-labs-logo';
 export { ArizeLogo } from './ui/arize-logo';
 export { ModalLogo } from './ui/modal-logo';
+export { NebiusLogo } from './ui/nebius-logo';
+export { GoogleDeepMindLogo } from './ui/google-deepmind-logo';
+export { RestateLogo } from './ui/restate-logo';
 export { default as CookieConsent } from './CookieConsent';
 export { default as PostHogProvider } from './PostHogProvider';

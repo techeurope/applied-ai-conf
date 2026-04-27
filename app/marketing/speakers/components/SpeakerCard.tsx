@@ -27,6 +27,9 @@ import { DistilLabsLogo } from "@/components/ui/distil-labs-logo";
 import { MiroLogo } from "@/components/ui/miro-logo";
 import { ArizeLogo } from "@/components/ui/arize-logo";
 import { ModalLogo } from "@/components/ui/modal-logo";
+import { NebiusLogo } from "@/components/ui/nebius-logo";
+import { GoogleDeepMindLogo } from "@/components/ui/google-deepmind-logo";
+import { RestateLogo } from "@/components/ui/restate-logo";
 
 type LogoComponent = React.ComponentType<{ className?: string }>;
 
@@ -55,6 +58,9 @@ const COMPANY_LOGOS: Record<string, LogoComponent> = {
   Miro: MiroLogo,
   Arize: ArizeLogo,
   Modal: ModalLogo,
+  Nebius: NebiusLogo,
+  "Google DeepMind": GoogleDeepMindLogo,
+  Restate: RestateLogo,
 };
 
 interface ImageConfig {
