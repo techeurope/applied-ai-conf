@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { PARTNERS } from "@/data/partners";
@@ -67,30 +68,45 @@ export default function PartnershipTiers() {
             >
               Gold
             </span>
-            {(() => {
-              const GOLD_COLS = 4;
-              const totalSlots = Math.ceil(PARTNERS.gold.length / GOLD_COLS) * GOLD_COLS;
-              return (
-                <div
-                  className="grid w-full"
-                  style={{
-                    gridTemplateColumns: `repeat(${GOLD_COLS}, 1fr)`,
-                    borderBottom: `1px solid ${borderColor}`,
-                    borderLeft: `1px solid ${borderColor}`,
-                  }}
-                >
-                  {PARTNERS.gold.map((partner) => (
+            <div
+              className="flex flex-wrap w-full justify-center"
+              style={{
+                borderBottom: `1px solid ${borderColor}`,
+                borderLeft: `1px solid ${borderColor}`,
+                borderRight: `1px solid ${borderColor}`,
+              }}
+            >
+              {(() => {
+                const COLS = 4;
+                const total = PARTNERS.gold.length;
+                return PARTNERS.gold.map((partner, i) => {
+                  const rowIndex = Math.floor(i / COLS);
+                  const rowStart = rowIndex * COLS;
+                  const rowItems = Math.min(COLS, total - rowStart);
+                  const indexInRow = i - rowStart;
+                  const isLastInRow = indexInRow === rowItems - 1;
+                  const isFirstRow = rowIndex === 0;
+
+                  const cellStyle: CSSProperties = {
+                    width: "25%",
+                    padding: "48px 32px",
+                  };
+                  if (isFirstRow) {
+                    cellStyle.borderTop = `1px solid ${borderColor}`;
+                    cellStyle.borderBottom = `1px solid ${borderColor}`;
+                  }
+                  if (!isLastInRow) {
+                    cellStyle.borderRight = `1px solid ${borderColor}`;
+                  }
+
+                  return (
                     <Link
                       key={partner.name}
                       href={partner.url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="relative flex items-center justify-center opacity-70 hover:opacity-100 transition-opacity"
-                      style={{
-                        padding: "48px 32px",
-                        borderRight: `1px solid ${borderColor}`,
-                        borderTop: `1px solid ${borderColor}`,
-                      }}
+                      style={cellStyle}
                     >
                       <div
                         className="relative h-16 w-full"
@@ -104,21 +120,10 @@ export default function PartnershipTiers() {
                         />
                       </div>
                     </Link>
-                  ))}
-                  {Array.from({ length: totalSlots - PARTNERS.gold.length }).map((_, i) => (
-                    <div
-                      key={`gold-empty-${i}`}
-                      aria-hidden="true"
-                      style={{
-                        padding: "48px 32px",
-                        borderRight: `1px solid ${borderColor}`,
-                        borderTop: `1px solid ${borderColor}`,
-                      }}
-                    />
-                  ))}
-                </div>
-              );
-            })()}
+                  );
+                });
+              })()}
+            </div>
           </div>
 
           {/* Community */}
@@ -136,49 +141,33 @@ export default function PartnershipTiers() {
               }}
             >
               {(() => {
-                const COMMUNITY_SLOTS = PARTNERS.community.length + 3;
-                const slotWidth = `${100 / COMMUNITY_SLOTS}%`;
-                return (
-                  <>
-                    {PARTNERS.community.map((partner) => (
-                      <Link
-                        key={partner.name}
-                        href={partner.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="relative flex items-center justify-center opacity-50 hover:opacity-100 transition-opacity"
-                        style={{
-                          width: slotWidth,
-                          padding: "36px 24px",
-                          borderRight: `1px solid ${borderColor}`,
-                        }}
-                      >
-                        <div
-                          className="relative h-6 w-[152px]"
-                          style={partner.logoScale ? { transform: `scale(${partner.logoScale})` } : undefined}
-                        >
-                          <Image
-                            src={partner.logo}
-                            alt={partner.logoAlt}
-                            fill
-                            className="object-contain"
-                          />
-                        </div>
-                      </Link>
-                    ))}
-                    {Array.from({ length: COMMUNITY_SLOTS - PARTNERS.community.length }).map((_, i) => (
-                      <div
-                        key={`community-empty-${i}`}
-                        aria-hidden="true"
-                        style={{
-                          width: slotWidth,
-                          padding: "36px 24px",
-                          borderRight: `1px solid ${borderColor}`,
-                        }}
+                const slotWidth = `${100 / PARTNERS.community.length}%`;
+                return PARTNERS.community.map((partner) => (
+                  <Link
+                    key={partner.name}
+                    href={partner.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="relative flex items-center justify-center opacity-50 hover:opacity-100 transition-opacity"
+                    style={{
+                      width: slotWidth,
+                      padding: "36px 24px",
+                      borderRight: `1px solid ${borderColor}`,
+                    }}
+                  >
+                    <div
+                      className="relative h-6 w-[152px]"
+                      style={partner.logoScale ? { transform: `scale(${partner.logoScale})` } : undefined}
+                    >
+                      <Image
+                        src={partner.logo}
+                        alt={partner.logoAlt}
+                        fill
+                        className="object-contain"
                       />
-                    ))}
-                  </>
-                );
+                    </div>
+                  </Link>
+                ));
               })()}
             </div>
           </div>
