@@ -62,7 +62,7 @@ export const AGENDA: AgendaSlot[] = [
 
   // ── Post-lunch: Demo stage (3 × 30 min) ───────────────────────
   { id: 'side-7', startTime: '13:30', endTime: '14:00', title: 'Teaching Agents to Pay: What Devs Need to Know', speakerName: 'Ben Smith', stage: 'side', format: 'talk' },
-  { id: 'side-8', startTime: '14:05', endTime: '14:35', title: 'To be announced', speakerName: 'Nebius', stage: 'side', format: 'talk' },
+  { id: 'side-8', startTime: '14:05', endTime: '14:35', title: 'Batch AI Pipelines: How to Go Fast Without Losing Work or Money', speakerNames: ['Marouane Khoukh', 'Mikhail Rozhkov'], stage: 'side', format: 'talk' },
   { id: 'side-9', startTime: '14:40', endTime: '15:10', title: 'To be announced', speakerName: 'Runpod', stage: 'side', format: 'talk' },
 
   // ── Coffee Break (15:10–15:30) ────────────────────────────────
