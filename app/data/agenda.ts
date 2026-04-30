@@ -36,7 +36,7 @@ export const AGENDA: AgendaSlot[] = [
 
   // ── 11:15–11:35 ──────────────────────────────────────────────
   { id: 'main-4', startTime: '11:15', endTime: '11:35', title: 'Procurement Intelligence: When AI Meets Atoms & Bits', speakerName: 'Nico Bentenrieder', stage: 'main', format: 'talk' },
-  { id: 'side-4', startTime: '11:15', endTime: '11:35', title: 'To be announced', speakerName: 'Alena Astrakhantseva', stage: 'side', format: 'talk' },
+  { id: 'side-4', startTime: '11:15', endTime: '11:35', title: 'Agents now build 10x more data pipelines than developers. Now what?', speakerName: 'Alena Astrakhantseva', stage: 'side', format: 'talk' },
 
   // 5 min changeover (11:35–11:40)
 
@@ -47,7 +47,7 @@ export const AGENDA: AgendaSlot[] = [
   // 5 min changeover (12:00–12:05)
 
   // ── 12:05–12:25 ──────────────────────────────────────────────
-  { id: 'main-6', startTime: '12:05', endTime: '12:25', title: 'Building Voice AI Infrastructure: Ultra-Low Latency Model Serving at Scale', speakerName: 'Neil Zeghidour', stage: 'main', format: 'talk' },
+  { id: 'main-6', startTime: '12:05', endTime: '12:25', title: 'Giving a Voice to LLMs: Scaling Real-Time Voice Interaction', speakerName: 'Neil Zeghidour', stage: 'main', format: 'talk' },
   { id: 'side-6', startTime: '12:05', endTime: '12:25', title: 'Your Agent Is an Infinite Canvas', speakerName: 'Rachel Nabors', stage: 'side', format: 'talk' },
 
   // ── Lunch Break (12:30–13:30) ─────────────────────────────────
@@ -58,7 +58,7 @@ export const AGENDA: AgendaSlot[] = [
   { id: 'main-7', startTime: '13:30', endTime: '13:50', title: 'To be announced', speakerName: 'Simon Edwardsson', stage: 'main', format: 'talk' },
   { id: 'main-8', startTime: '13:55', endTime: '14:15', title: 'Cache Money: How Prompt Caching Cut Our LLM Bills in Half', speakerName: 'Balázs Csomor', stage: 'main', format: 'talk' },
   { id: 'main-9', startTime: '14:20', endTime: '14:40', title: "Deploying Intelligence into the World's Largest Enterprises", speakerName: 'Henry Thompson', stage: 'main', format: 'talk' },
-  { id: 'main-10', startTime: '14:45', endTime: '15:05', title: 'From SEO to GEO: How We Track Visibility Across AI Responses', speakerName: 'Oğuz Gültepe', stage: 'main', format: 'talk' },
+  { id: 'main-10', startTime: '14:45', endTime: '15:05', title: 'Prompt Learning: Distilling Expensive Reasoning Into Fast Production Prompts', speakerName: 'Oğuz Gültepe', stage: 'main', format: 'talk' },
 
   // ── Post-lunch: Demo stage (3 × 30 min) ───────────────────────
   { id: 'side-7', startTime: '13:30', endTime: '14:00', title: 'Teaching Agents to Pay: What Devs Need to Know', speakerName: 'Ben Smith', stage: 'side', format: 'talk' },
