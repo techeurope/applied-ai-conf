@@ -29,7 +29,7 @@ export const AGENDA: AgendaSlot[] = [
   { id: 'break-1-side', startTime: '10:30', endTime: '10:50', title: 'Coffee Break', stage: 'side', format: 'break' },
 
   // ── 10:50–11:10 ──────────────────────────────────────────────
-  { id: 'main-3', startTime: '10:50', endTime: '11:10', title: 'Serving AI to 23M Students: Latency, Cost, and Quality at Scale', speakerName: 'Lucas Hild', stage: 'main', format: 'talk' },
+  { id: 'main-3', startTime: '10:50', endTime: '11:10', title: 'To be announced', speakerName: 'Lucas Hild', stage: 'main', format: 'talk' },
   { id: 'side-3', startTime: '10:50', endTime: '11:10', title: 'The Anatomy of LobsterX, a Document Processing Agent', speakerName: 'Clelia Astra Bertelli', stage: 'side', format: 'talk' },
 
   // 5 min changeover (11:10–11:15)
@@ -41,7 +41,7 @@ export const AGENDA: AgendaSlot[] = [
   // 5 min changeover (11:35–11:40)
 
   // ── 11:40–12:00 ──────────────────────────────────────────────
-  { id: 'main-5', startTime: '11:40', endTime: '12:00', title: 'From Batch to Streaming: Architecture Decisions for AI-Ready Data Pipelines', speakerName: 'Steffen Hoellinger', stage: 'main', format: 'talk' },
+  { id: 'main-5', startTime: '11:40', endTime: '12:00', title: 'To be announced', speakerName: 'Steffen Hoellinger', stage: 'main', format: 'talk' },
   { id: 'side-5', startTime: '11:40', endTime: '12:00', title: 'To be announced', speakerName: 'Katia Gil Guzman', stage: 'side', format: 'talk' },
 
   // 5 min changeover (12:00–12:05)
