@@ -16,7 +16,7 @@ export const AGENDA: AgendaSlot[] = [
 
   // ── 09:45–10:05 ──────────────────────────────────────────────
   { id: 'main-1', startTime: '09:45', endTime: '10:05', title: 'Building Dust: The Architecture Behind Deploying and Governing Fleets of AI Agents', speakerName: 'Stanislas Polu', stage: 'main', format: 'talk' },
-  { id: 'side-1', startTime: '09:45', endTime: '10:05', title: 'From Chat to Automation: Building AI-Native Workflows That Replace UIs', speakerName: 'Osman Ramadan', stage: 'side', format: 'talk' },
+  { id: 'side-1', startTime: '09:45', endTime: '10:05', title: 'To be announced', speakerName: 'Osman Ramadan', stage: 'side', format: 'talk' },
 
   // 5 min changeover (10:05–10:10)
 
