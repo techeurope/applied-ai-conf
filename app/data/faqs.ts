@@ -6,10 +6,6 @@ export const FAQS = [
     answer: "This year, Applied AI Conf brings together developers and AI innovators building the next generation of web experiences with cutting-edge AI technologies.",
   },
   {
-    question: "What's the difference between the in-person and virtual experience?",
-    answer: 'In-person attendees get full access to all sessions, networking opportunities, and exclusive workshops. Virtual attendees can watch all sessions live and on-demand.',
-  },
-  {
     question: 'When will the full agenda be announced?',
     answer: 'The full agenda will be announced in the coming weeks. Stay tuned for updates!',
   },
@@ -19,7 +15,7 @@ export const FAQS = [
   },
   {
     question: "What's the refund and cancellation policy?",
-    answer: 'Tickets are refundable up to 30 days before the event. Virtual tickets are free and can be cancelled at any time.',
+    answer: 'Tickets are refundable up to 30 days before the event.',
   },
   {
     question: 'Can I request an accommodation to attend the event?',

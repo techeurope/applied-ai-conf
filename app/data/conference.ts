@@ -10,5 +10,4 @@ export const CONFERENCE_INFO = {
 
 export const TICKET_PRICES = {
   inPerson: "Partners packages available",
-  virtual: "Contact the team",
 } satisfies TicketPricing;

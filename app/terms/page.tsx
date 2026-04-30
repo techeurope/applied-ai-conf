@@ -52,10 +52,6 @@ export default function TermsPage() {
           available up to 30 days before the event date. After this deadline, no
           refunds will be issued.
         </p>
-        <p className="mb-4">
-          <strong className="text-white">Virtual tickets:</strong> Virtual
-          tickets are free and can be cancelled at any time.
-        </p>
         <p className="mb-8">
           To request a refund, please contact us at{" "}
           <a

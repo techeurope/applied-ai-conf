@@ -26,7 +26,7 @@ const FAQ_ITEMS = [
   {
     question: "What's the refund and cancellation policy?",
     answer:
-      "Tickets are refundable up to 30 days before the event. Virtual tickets are free and can be cancelled at any time. See full Terms of Service.",
+      "Tickets are refundable up to 30 days before the event. See full Terms of Service.",
     href: "/terms",
   },
   {

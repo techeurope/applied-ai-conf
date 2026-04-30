@@ -8,5 +8,4 @@ export interface ConferenceInfo {
 
 export interface TicketPricing {
   inPerson: string;
-  virtual: string;
 }
