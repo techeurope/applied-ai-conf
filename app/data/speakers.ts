@@ -453,7 +453,7 @@ export const SPEAKERS = [
   },
   {
     name: 'Osman Ramadan',
-    title: 'Co-Founder & CTO',
+    title: 'Co-Founder',
     company: 'CodeWords',
     companyLogo: '/logos/codewords.svg',
     companyUrl: 'https://codewords.ai/',
