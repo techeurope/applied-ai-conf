@@ -137,7 +137,7 @@ export const SPEAKERS = [
     bio: '',
     vertical: 'Data Engineering',
     building: 'Open-source Python library and AI Workbench for LLM-ready data pipelines',
-    talkTitle: '',
+    talkTitle: 'Agents now build 10x more data pipelines than developers. Now what?',
     initial: 'AA',
     accent: 'from-lime-400/40 via-cyan-400/30 to-teal-500/40',
     image: '/speakers/alena_astrakhantseva_fullbody_square.png',
