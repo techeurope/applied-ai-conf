@@ -6,15 +6,15 @@ import { TicketButton } from "@/components/ui/ticket-button";
 
 export default function Hero() {
   return (
-    <section className="relative flex h-screen w-full flex-col items-center justify-center overflow-hidden py-8 sm:py-12 lg:py-16 text-center">
+    <section className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden pt-20 pb-4 sm:pt-12 sm:pb-12 lg:pt-16 lg:pb-16 text-center">
       {/* Background - Lidar Scape */}
       <LidarScapeBackground />
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black pointer-events-none" />
 
       {/* Main Content */}
-      <div className="relative z-10 mx-auto flex w-full max-w-[90rem] flex-col items-center px-4 sm:px-6 lg:px-8 space-y-3 sm:space-y-5">
+      <div className="relative z-10 mx-auto flex w-full max-w-[90rem] flex-col items-center px-4 sm:px-6 lg:px-8 space-y-2 sm:space-y-5">
         {/* 1. Tech Europe */}
-        <div className="font-mono text-xl sm:text-2xl md:text-3xl tracking-widest">
+        <div className="font-mono text-lg sm:text-2xl md:text-3xl tracking-widest">
           <a
             href="https://techeurope.io"
             target="_blank"
@@ -26,10 +26,10 @@ export default function Hero() {
         </div>
 
         {/* 2. Main Title (H1) */}
-        <h1 className="w-full text-6xl font-bold tracking-tighter sm:text-7xl md:text-8xl lg:text-[7rem] xl:text-[9rem] leading-[0.9] font-mono select-none">
+        <h1 className="w-full text-5xl font-bold tracking-tighter sm:text-7xl md:text-8xl lg:text-[7rem] xl:text-[9rem] leading-[0.9] font-mono select-none">
           <span className="text-glow">Applied</span>
           <br />
-          <span className="text-glow block mt-2 sm:mt-4">AI Conf</span>
+          <span className="text-glow block mt-1 sm:mt-4">AI Conf</span>
         </h1>
 
         {/* 3. Date + Location */}
@@ -46,7 +46,7 @@ export default function Hero() {
         </div>
 
         {/* 4. Tagline - Large, breathing typography */}
-        <p className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl font-mono font-medium text-white/90 tracking-tight max-w-4xl leading-tight">
+        <p className="text-xl sm:text-3xl md:text-4xl lg:text-4xl font-mono font-medium text-white/90 tracking-tight max-w-4xl leading-tight">
           For teams building &amp; running<br />AI systems in production
         </p>
 

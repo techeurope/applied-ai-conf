@@ -68,7 +68,7 @@ export default function FeaturedSpeakers() {
 
               const inner = (
                 <div
-                  className={`group relative flex items-start gap-4 bg-white/[0.03] border border-white/[0.06] rounded-xl px-5 py-4 transition-all duration-300 hover:bg-white/[0.07] hover:border-white/15 ${
+                  className={`group relative flex items-start gap-3 sm:gap-4 bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 sm:px-5 py-4 transition-all duration-300 hover:bg-white/[0.07] hover:border-white/15 ${
                     isVisible
                       ? "opacity-100 translate-y-0"
                       : "opacity-0 translate-y-3"
@@ -76,14 +76,14 @@ export default function FeaturedSpeakers() {
                   style={{ transitionDelay: `${100 + i * 40}ms` }}
                 >
                   {/* Photo */}
-                  <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-xl bg-white/[0.04] ring-1 ring-white/[0.08]">
+                  <div className="relative h-20 w-20 sm:h-28 sm:w-28 shrink-0 overflow-hidden rounded-xl bg-white/[0.04] ring-1 ring-white/[0.08]">
                     {photoSrc ? (
                       <Image
                         src={photoSrc}
                         alt={speaker.imageAlt}
                         fill
                         className="object-cover object-top"
-                        sizes="112px"
+                        sizes="(max-width: 640px) 80px, 112px"
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center">
@@ -97,7 +97,7 @@ export default function FeaturedSpeakers() {
                   {/* Info */}
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
-                      <h3 className="truncate text-base font-mono font-semibold text-white leading-tight">
+                      <h3 className="text-sm sm:text-base font-mono font-semibold text-white leading-tight line-clamp-2 sm:truncate">
                         {speaker.name}
                       </h3>
                       {speaker.linkedinUrl && (
@@ -114,7 +114,7 @@ export default function FeaturedSpeakers() {
                         </svg>
                       )}
                     </div>
-                    <p className="truncate text-sm text-gray-500 mt-0.5">
+                    <p className="text-xs sm:text-sm text-gray-500 mt-0.5 line-clamp-2 sm:truncate">
                       {speaker.title}
                       {speaker.company && (
                         <span className="text-gray-600">
@@ -123,8 +123,8 @@ export default function FeaturedSpeakers() {
                         </span>
                       )}
                     </p>
-                    <div className="min-h-[3.75rem] mt-1.5">
-                      <p className="text-sm text-gray-300 leading-relaxed line-clamp-3">
+                    <div className="min-h-[3rem] sm:min-h-[3.75rem] mt-1.5">
+                      <p className="text-xs sm:text-sm text-gray-300 leading-relaxed line-clamp-3">
                         {speaker.talkTitle || speaker.building}
                       </p>
                     </div>

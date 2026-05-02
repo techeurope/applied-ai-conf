@@ -36,21 +36,21 @@ export default function CookieConsent({
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-0 inset-x-0 z-50 p-4">
-      <div className="mx-auto max-w-2xl glass border border-white/10 rounded-lg p-4 flex flex-col sm:flex-row items-center gap-4">
-        <p className="text-sm text-gray-400 flex-1">
+    <div className="fixed bottom-0 inset-x-0 z-50 p-2 sm:p-4">
+      <div className="mx-auto max-w-2xl glass border border-white/10 rounded-lg p-3 sm:p-4 flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
+        <p className="text-xs sm:text-sm text-gray-400 flex-1 text-center sm:text-left">
           We use cookies to analyze site usage and improve your experience. You can decline and we will still collect anonymous analytics without cookies.
         </p>
-        <div className="flex gap-3 shrink-0">
+        <div className="flex gap-2 sm:gap-3 shrink-0">
           <button
             onClick={decline}
-            className="px-4 py-2 text-sm text-gray-400 hover:text-white border border-white/10 rounded-md transition-colors cursor-pointer"
+            className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-400 hover:text-white border border-white/10 rounded-md transition-colors cursor-pointer"
           >
             Decline
           </button>
           <button
             onClick={accept}
-            className="px-4 py-2 text-sm text-white bg-white/10 hover:bg-white/20 border border-white/10 rounded-md transition-colors cursor-pointer"
+            className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-white bg-white/10 hover:bg-white/20 border border-white/10 rounded-md transition-colors cursor-pointer"
           >
             Accept
           </button>

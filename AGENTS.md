@@ -52,7 +52,7 @@ When adding a new speaker, ALL of the following must be completed. Do not consid
 
 ### 6. Task Tracking (Notion)
 
-- [ ] Create a task in Tim's To-Do List in Notion (`3286dbf0-dcd7-81a0-b37a-dbceaeb93467`) for the speaker addition (or update existing one)
+- [ ] Create a task in the global To Do Board in Notion (`2846dbf0-dcd7-8097-b673-fbad96d67417`) for the speaker addition (or update existing one)
 - [ ] Close the task when all steps are complete
 
 **IMPORTANT:** Never consider a speaker "added" if any of these steps are missing. The most commonly missed steps are the Content Plan sheet update and the company logo pipeline.
@@ -227,7 +227,7 @@ The agenda is managed in the Notion Speakers/Agenda DB (`31a6dbf0-dcd7-806b-92bc
 
 ## Task Management (Notion)
 
-Tasks are tracked in Tim's To-Do List in Notion (database ID: `3286dbf0-dcd7-81a0-b37a-dbceaeb93467`). This is the single source of truth for task tracking.
+Tasks are tracked in the global To Do Board in Notion (database ID: `2846dbf0-dcd7-8097-b673-fbad96d67417`). This is the single source of truth for task tracking. Tim's personal To-Do List (`3286dbf0-dcd7-81a0-b37a-dbceaeb93467`) is deprecated — use the global board for visibility across the team.
 
 When creating tasks from Slack messages, always include the Slack message URL in the task description for traceability.
 
@@ -280,7 +280,7 @@ Speaker-topic mapping lives in the Notion Speakers/Agenda DB (`31a6dbf0-dcd7-806
 
 When reaching out to a speaker about their talk topic, follow this process:
 
-1. **Check Notion** — Look for an existing outreach task in Tim's To-Do List (`3286dbf0-dcd7-81a0-b37a-dbceaeb93467`).
+1. **Check Notion** — Look for an existing outreach task in the global To Do Board (`2846dbf0-dcd7-8097-b673-fbad96d67417`).
 2. **Read Notion** — Pull the speaker's suggested angles, cluster, lens, and stage from the Speakers/Agenda DB.
 3. **Send personalized message** — Include:
    - Their primary area and suggested engineering lens from Notion

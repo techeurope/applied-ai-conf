@@ -50,6 +50,7 @@ html {
   width: 100%;
   overflow-x: hidden;
   overflow-y: auto;
+  scroll-padding-top: 5rem;
 }
 
 body {
