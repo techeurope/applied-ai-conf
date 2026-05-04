@@ -77,7 +77,7 @@ export const AGENDA: AgendaSlot[] = [
   { id: 'side-11', startTime: '15:55', endTime: '16:15', title: 'The 100x Inference Tax You Don\'t Have to Pay', speakerName: 'Jacek Golebiowski', stage: 'side', format: 'talk' },
 
   { id: 'main-13', startTime: '16:20', endTime: '16:40', title: 'Leading through AI change', speakerName: 'Masashi Beheim', stage: 'main', format: 'talk' },
-  { id: 'side-12', startTime: '16:20', endTime: '16:40', title: 'To be announced', speakerName: 'Stephan Ewen', stage: 'side', format: 'talk' },
+  { id: 'side-12', startTime: '16:20', endTime: '16:40', title: 'Building the Missing Infrastructure Layer for Agents and Distributed Applications', speakerName: 'Stephan Ewen', stage: 'side', format: 'talk' },
 
   // ── Coffee Break (16:40–17:00) ────────────────────────────────
   { id: 'break-3', startTime: '16:40', endTime: '17:00', title: 'Coffee Break', stage: 'main', format: 'break' },
