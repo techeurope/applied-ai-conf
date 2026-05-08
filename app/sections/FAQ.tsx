@@ -34,6 +34,11 @@ const FAQ_ITEMS = [
     answer: "Check out our partnership options below and get in touch.",
     href: "#partner",
   },
+  {
+    question: "Where should I stay and how do I get to the venue?",
+    answer: "See our travel guide for hotel recommendations and transport options.",
+    href: "/travel",
+  },
 ];
 
 export default function FAQ() {
