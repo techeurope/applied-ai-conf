@@ -86,9 +86,7 @@ export default function TermsPage() {
         <p className="mb-4">
           Partners are required to process your data in compliance with the
           General Data Protection Regulation (GDPR) and to implement
-          appropriate technical and organisational safeguards. Where partners
-          are based outside the EU/EEA, appropriate transfer mechanisms (such
-          as Standard Contractual Clauses) will be in place.
+          appropriate technical and organisational safeguards.
         </p>
         <p className="mb-8">
           You may withdraw consent at any time, either via the unsubscribe link
