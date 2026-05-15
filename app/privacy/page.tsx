@@ -60,6 +60,7 @@ export default function PrivacyPage() {
               <li><strong className="text-white">Event registration:</strong> To process your registration for hackathons and other events (legal basis: contract performance, Art. 6(1)(b) GDPR)</li>
               <li><strong className="text-white">Communication:</strong> To respond to your inquiries and provide customer support (legal basis: legitimate interest, Art. 6(1)(f) GDPR)</li>
               <li><strong className="text-white">Analytics:</strong> To analyze website usage and improve our services (legal basis: consent, Art. 6(1)(a) GDPR, where required)</li>
+              <li><strong className="text-white">Partner communications and event-related follow-up:</strong> Where you have consented (during registration or via opt-in confirmation), we share your registration data (name, email, role, company) with the event&apos;s premium, gold, and selected community partners (current list at <a href="https://conference.techeurope.io" target="_blank" rel="noopener noreferrer" className="text-white hover:text-gray-300 transition-colors">conference.techeurope.io</a>) so they can contact you with relevant updates, follow-ups, or information of interest in connection with the event (legal basis: consent, Art. 6(1)(a) GDPR). You may withdraw consent at any time at <a href="mailto:info@techeurope.io" className="text-white hover:text-gray-300 transition-colors">info@techeurope.io</a> or via the unsubscribe link in partner emails.</li>
             </ul>
             
             <h2 className="text-2xl font-mono font-bold text-white mt-12 mb-6">4. Cookies and Similar Technologies</h2>
@@ -88,7 +89,12 @@ export default function PrivacyPage() {
             <p className="mb-8">
               These service providers are contractually bound to process your data only in accordance with our instructions and applicable data protection laws.
             </p>
-            
+
+            <h3 className="text-xl font-mono font-bold text-white mt-8 mb-4">5.1 Event Partners</h3>
+            <p className="mb-8">
+              Event partners (premium, gold, community partners). With your explicit consent obtained at registration or via the opt-in confirmation step, we share registration data (name, email, role, company) with the event&apos;s partners listed at <a href="https://conference.techeurope.io" target="_blank" rel="noopener noreferrer" className="text-white hover:text-gray-300 transition-colors">conference.techeurope.io</a>. Partners act as independent controllers for their own outreach to you and must process your data in compliance with the GDPR. Where a partner is established outside the EU/EEA, appropriate transfer mechanisms (such as EU Standard Contractual Clauses) will be in place. Withdrawal of consent is available at any time via the unsubscribe link in any partner email or by contacting <a href="mailto:info@techeurope.io" className="text-white hover:text-gray-300 transition-colors">info@techeurope.io</a>.
+            </p>
+
             <h2 className="text-2xl font-mono font-bold text-white mt-12 mb-6">6. Data Retention</h2>
             <p className="mb-6">We retain your personal data only for as long as necessary to fulfill the purposes for which it was collected, or as required by law. Specifically:</p>
             <ul className="list-disc list-inside mb-8 space-y-2">
@@ -156,7 +162,7 @@ export default function PrivacyPage() {
               You can also find more information in our <a href="/imprint" className="text-white hover:text-gray-300 transition-colors">Imprint</a>.
             </p>
             
-            <p className="text-sm text-gray-500 mt-12">Last updated: November 19, 2025</p>
+            <p className="text-sm text-gray-500 mt-12">Last updated: May 14, 2026</p>
           </div>
     </SubpageLayout>
   );

@@ -64,6 +64,50 @@ export default function TermsPage() {
         </p>
 
         <h2 className="text-2xl font-mono font-bold text-white mt-12 mb-6">
+          3a. Partner Communications &amp; Data Sharing
+        </h2>
+        <p className="mb-4">
+          By registering for Applied AI Conf, you acknowledge that the event is
+          supported by premium, gold, and selected community partners listed at{" "}
+          <a
+            href="https://conference.techeurope.io"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white hover:text-gray-300 transition-colors"
+          >
+            conference.techeurope.io
+          </a>
+          . You consent that the personal data you provide during registration
+          (such as your name, email address, role, and company) may be shared
+          with these partners so that they may contact you with relevant
+          updates, follow-ups, or information of interest in connection with
+          the event.
+        </p>
+        <p className="mb-4">
+          Partners are required to process your data in compliance with the
+          General Data Protection Regulation (GDPR) and to implement
+          appropriate technical and organisational safeguards.
+        </p>
+        <p className="mb-8">
+          You may withdraw consent at any time, either via the unsubscribe link
+          in any partner email, or by contacting us at{" "}
+          <a
+            href="mailto:info@techeurope.io"
+            className="text-white hover:text-gray-300 transition-colors"
+          >
+            info@techeurope.io
+          </a>
+          . Full details of how we process your data are set out in our{" "}
+          <a
+            href="/privacy"
+            className="text-white hover:text-gray-300 transition-colors"
+          >
+            Privacy Policy
+          </a>
+          .
+        </p>
+
+        <h2 className="text-2xl font-mono font-bold text-white mt-12 mb-6">
           4. Event Changes
         </h2>
         <p className="mb-4">
@@ -80,8 +124,14 @@ export default function TermsPage() {
           5. Liability
         </h2>
         <p className="mb-4">
-          Attendance at Applied AI Conf is at the attendee&apos;s own risk. The
-          organizer&apos;s liability is limited to the ticket price paid.
+          Attendance is at the attendee&apos;s own risk. The organizer is not
+          liable for loss, theft, or damage to personal property at the venue,
+          nor for personal injury, except where caused by gross negligence or
+          wilful misconduct of the organizer.
+        </p>
+        <p className="mb-4">
+          The organizer&apos;s liability is otherwise limited to the ticket
+          price paid.
         </p>
         <p className="mb-8">
           The organizer is not liable for any indirect, incidental, or
@@ -100,6 +150,30 @@ export default function TermsPage() {
             Code of Conduct
           </a>
           . Violations may result in removal from the event without refund.
+        </p>
+
+        <h2 className="text-2xl font-mono font-bold text-white mt-12 mb-6">
+          6a. Photography, Recording &amp; Speaker Content
+        </h2>
+        <p className="mb-4">
+          Photos and video may be taken throughout the event. By attending, you
+          consent to your image and likeness being used by the organizer and
+          event partners for promotional, communication, and documentation
+          purposes, in both digital and print formats. If you would prefer not
+          to be photographed, please notify the on-site team at check-in.
+        </p>
+        <p className="mb-4">
+          Attendees may take personal photos and short clips for social media
+          use. Full recording or live-streaming of talks, sessions, or
+          workshops is not permitted without prior written consent from the
+          organizer and the relevant speaker, in order to respect speaker
+          intellectual property and any embargoed content.
+        </p>
+        <p className="mb-8">
+          Opinions expressed by speakers, partners, and sponsors are their own
+          and do not necessarily reflect those of the organizer. The organizer
+          does not endorse or guarantee the accuracy of information, products,
+          or services presented at the event.
         </p>
 
         <h2 className="text-2xl font-mono font-bold text-white mt-12 mb-6">
@@ -150,7 +224,7 @@ export default function TermsPage() {
         </p>
 
         <p className="text-sm text-gray-500 mt-12">
-          Last updated: March 24, 2026
+          Last updated: May 14, 2026
         </p>
       </div>
     </SubpageLayout>
