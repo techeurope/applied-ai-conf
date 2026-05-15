@@ -16,7 +16,7 @@ export const AGENDA: AgendaSlot[] = [
 
   // ── 09:45–10:05 ──────────────────────────────────────────────
   { id: 'main-1', startTime: '09:45', endTime: '10:05', title: 'Building Dust: The Architecture Behind Deploying and Governing Fleets of AI Agents', speakerName: 'Stanislas Polu', stage: 'main', format: 'talk' },
-  { id: 'side-1', startTime: '09:45', endTime: '10:05', title: 'To be announced', speakerName: 'Osman Ramadan', stage: 'side', format: 'talk' },
+  { id: 'side-1', startTime: '09:45', endTime: '10:05', title: 'From Writing Code to Trusting Code: How AI Flipped the Engineering Bottleneck', speakerName: 'Osman Ramadan', stage: 'side', format: 'talk' },
 
   // 5 min changeover (10:05–10:10)
 
@@ -41,7 +41,7 @@ export const AGENDA: AgendaSlot[] = [
   // 5 min changeover (11:35–11:40)
 
   // ── 11:40–12:00 ──────────────────────────────────────────────
-  { id: 'main-5', startTime: '11:40', endTime: '12:00', title: 'To be announced', speakerName: 'Steffen Hoellinger', stage: 'main', format: 'talk' },
+  { id: 'main-5', startTime: '11:40', endTime: '12:00', title: 'Context Engineering and Anomaly Detection for event-driven AI Agents with Apache Flink and Kafka', speakerName: 'Steffen Hoellinger', stage: 'main', format: 'talk' },
   { id: 'side-5', startTime: '11:40', endTime: '12:00', title: 'To be announced', speakerName: 'Katia Gil Guzman', stage: 'side', format: 'talk' },
 
   // 5 min changeover (12:00–12:05)
@@ -88,7 +88,7 @@ export const AGENDA: AgendaSlot[] = [
   { id: 'side-13', startTime: '17:00', endTime: '17:20', title: 'To be announced', speakerName: 'Lucy Zhang', stage: 'side', format: 'talk' },
 
   { id: 'main-15', startTime: '17:25', endTime: '17:45', title: 'Model Routing in Production: What We Learned the Hard Way', speakerName: 'Bruno Show', stage: 'main', format: 'talk' },
-  { id: 'side-14', startTime: '17:25', endTime: '17:45', title: 'To be announced', speakerName: 'Linkup', stage: 'side', format: 'talk' },
+  { id: 'side-14', startTime: '17:25', endTime: '17:45', title: 'To be announced', speakerName: 'Sacha Uzan', stage: 'side', format: 'talk' },
 
   // ── Closing (17:50–18:30) ─────────────────────────────────────
   { id: 'keynote-close', startTime: '17:50', endTime: '18:20', title: 'Shipping Fin to Production: What Worked, What Broke, What Changed', speakerName: 'Des Traynor', stage: 'main', format: 'keynote' },
