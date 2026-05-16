@@ -1,9 +1,31 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { MapPin } from "lucide-react";
 import { SectionHeading } from "@/components";
 import { LidarScapeBackground } from "@/components/ui/lidar-scape-background";
-import { SIDE_EVENTS } from "@/data/side-events";
+import { SIDE_EVENTS, type SideEvent } from "@/data/side-events";
+
+function TagPills({
+  tags,
+  className = "",
+}: {
+  tags: string[];
+  className?: string;
+}) {
+  return (
+    <div className={`flex flex-wrap items-center gap-1.5 ${className}`}>
+      {tags.map((tag) => (
+        <span
+          key={tag}
+          className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-white"
+        >
+          {tag}
+        </span>
+      ))}
+    </div>
+  );
+}
 
 export default function SideEvents() {
   const ref = useRef<HTMLElement>(null);
@@ -69,22 +91,27 @@ export default function SideEvents() {
 
             {/* Conference centerpiece - sits above Thursday's after-conf events */}
             {gi === 1 && (
-              <div className="relative w-full overflow-hidden rounded-xl bg-black">
+              <div className="relative w-full overflow-hidden rounded-xl border border-white/15 bg-black">
                 {/* Extend lidar vertically beyond card so the animation fills full width */}
                 <div className="absolute inset-x-0 -inset-y-48">
                   <LidarScapeBackground />
                 </div>
                 <div className="absolute inset-0 bg-black/40 pointer-events-none" />
 
-                <div className="relative z-10 flex items-center justify-between gap-4 px-5 sm:px-6 py-4 sm:py-5">
-                  <h4 className="font-mono font-bold tracking-tight text-sm sm:text-lg md:text-xl lg:text-2xl text-white">
+                <div className="relative z-10 flex flex-col items-center gap-4 px-5 sm:px-6 py-8 sm:py-10">
+                  <h4 className="font-mono font-bold tracking-tight text-sm sm:text-lg md:text-xl lg:text-2xl text-white text-center">
                     <span className="hidden sm:inline text-white/70">{"{"}Tech: Europe{"}"} </span>
                     <span className="text-glow">Applied AI Conf</span>
                   </h4>
 
-                  <div className="shrink-0 inline-flex items-center rounded-md border border-white/20 bg-black/70 backdrop-blur-sm px-3 py-1.5">
-                    <span className="text-xs sm:text-sm font-mono tabular-nums text-white font-semibold whitespace-nowrap">
+                  <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs">
+                    <span className="font-mono tabular-nums font-semibold text-white">
                       08:00 – 18:30
+                    </span>
+                    <span className="text-white/30">·</span>
+                    <span className="flex items-center gap-1.5 text-white/70">
+                      <MapPin className="h-3 w-3 shrink-0" />
+                      <span>Delta Campus, Berlin</span>
                     </span>
                   </div>
                 </div>
@@ -103,13 +130,13 @@ export default function SideEvents() {
                   href={event.rsvpUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`group relative flex items-start bg-black border border-white/15 rounded-xl overflow-hidden transition-all duration-500 hover:border-white/30 ${
+                  className={`group relative flex min-h-[220px] bg-black border border-white/15 rounded-xl overflow-hidden transition-all duration-500 hover:border-white/30 ${
                     isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
                   }`}
                   style={{ transitionDelay: `${200 + gi * 100 + i * 60}ms` }}
                 >
                   {event.image && (
-                    <div className="relative shrink-0 w-32 sm:w-40 aspect-square">
+                    <div className="relative shrink-0 self-stretch aspect-square">
                       <img
                         src={event.image}
                         alt={event.title}
@@ -122,25 +149,22 @@ export default function SideEvents() {
                     </div>
                   )}
 
-                  <div className="relative flex-1 min-w-0 bg-black p-4 sm:p-5 flex flex-col gap-2 self-stretch">
-                    {/* Time badge - top right */}
-                    <div className="absolute top-3 right-3 inline-flex items-center rounded-md border border-white/15 bg-white/[0.05] px-2 py-1">
-                      <span className="text-[11px] font-mono tabular-nums text-white font-semibold whitespace-nowrap">
-                        {event.time}
-                      </span>
-                    </div>
+                  <div className="relative flex-1 min-w-0 bg-black px-4 sm:px-5 py-3 sm:py-4 flex flex-col gap-3">
+                    <span className="text-xs font-mono tabular-nums font-semibold text-white">
+                      {event.time}
+                    </span>
 
-                    <h4 className="text-sm sm:text-base font-mono font-semibold text-white leading-tight pr-28">
+                    <h4 className="text-base sm:text-lg md:text-xl font-mono font-semibold text-white leading-tight">
                       {event.title}
                     </h4>
 
-                    <p className="text-xs text-gray-500">
-                      {event.location}
-                    </p>
-
-                    <p className="text-xs text-gray-400 leading-relaxed">
-                      {event.description}
-                    </p>
+                    <div className="mt-auto flex flex-col gap-5">
+                      <TagPills tags={event.tags} />
+                      <span className="flex min-w-0 items-center gap-1.5 text-xs text-white/70">
+                        <MapPin className="h-3 w-3 shrink-0" />
+                        <span className="truncate">{event.location}</span>
+                      </span>
+                    </div>
                   </div>
                 </a>
               ))}
