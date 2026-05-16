@@ -5,7 +5,7 @@ import {
   Venue,
   FeaturedSpeakers,
   PartnershipTiers,
-  // SideEvents,
+  SideEvents,
   CallToAction,
   FAQ,
 } from "@/sections";
@@ -18,7 +18,7 @@ export default function Home() {
         <Hero />
         <FeaturedSpeakers />
         <Agenda />
-        {/* <SideEvents /> */}
+        <SideEvents />
         <PartnershipTiers />
         <Venue />
         <FAQ />

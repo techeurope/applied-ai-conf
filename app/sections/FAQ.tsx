@@ -39,17 +39,41 @@ const FAQ_ITEMS = [
     answer: "See our travel guide for hotel recommendations and transport options.",
     href: "/travel",
   },
+  {
+    question: "When and where can I pick up my badge?",
+    answer: "Badges can be collected at the venue on May 27, the day before the conference. More detailed information will follow soon.",
+  },
 ];
 
 export default function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
+
+  const handleCopyAnchor = () => {
+    if (typeof window === "undefined") return;
+    const url = `${window.location.origin}${window.location.pathname}#faq`;
+    navigator.clipboard.writeText(url).catch(() => {});
+    window.history.replaceState(null, "", "#faq");
+  };
 
   return (
     <section id="faq" className="relative py-16 lg:py-20">
       <div className="relative mx-auto max-w-4xl px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-mono font-bold tracking-tighter text-white sm:text-5xl lg:text-6xl text-glow">
-            FAQ
+            <button
+              type="button"
+              onClick={handleCopyAnchor}
+              aria-label="Copy link to FAQ section"
+              className="group inline-flex items-baseline gap-3 cursor-pointer"
+            >
+              <span>FAQ</span>
+              <span
+                aria-hidden="true"
+                className="font-mono text-xl sm:text-2xl md:text-3xl text-gray-400 opacity-0 group-hover:opacity-40 transition-opacity"
+              >
+                #
+              </span>
+            </button>
           </h2>
         </div>
 

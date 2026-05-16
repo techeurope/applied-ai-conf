@@ -126,6 +126,14 @@ export default function TravelPage() {
         Doors open at 08:00.
       </p>
 
+      <div className="glass-card rounded-2xl bg-white/5 border border-white/10 px-5 py-4 mb-4 text-sm text-gray-300 leading-relaxed">
+        <span className="text-white font-medium">
+          Pick up your badge on May 27.
+        </span>{" "}
+        Badges can be collected at the venue the day before the conference.
+        More detailed information will follow soon.
+      </div>
+
       <div className="glass-card rounded-2xl bg-white/5 border border-white/10 px-5 py-4 mb-12 text-sm text-gray-300 leading-relaxed">
         <span className="text-white font-medium">
           We recommend arriving on May 27.

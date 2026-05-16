@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import Link from "next/link";
+import { SectionHeading } from "@/components";
 import { AGENDA } from "@/data/agenda";
 import { SPEAKERS } from "@/data/speakers";
 import type { AgendaSlot, SessionFormat } from "@/types";
@@ -399,14 +400,14 @@ export default function Agenda() {
   }, []);
 
   return (
-    <section ref={ref} id="schedule" className="relative w-full bg-black py-16 lg:py-20">
+    <section ref={ref} id="agenda" className="relative w-full bg-black py-16 lg:py-20">
       <div className="mx-auto w-full max-w-7xl px-6 lg:px-8">
-        <div className={`mb-8 transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
-          <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-mono font-bold text-white tracking-tighter leading-[1.05] text-center">
-            Agenda
-          </h2>
-          <p className="text-lg sm:text-xl text-gray-400 mt-2 text-center">One day. Two stages.</p>
-        </div>
+        <SectionHeading
+          title="Agenda"
+          description="One day. Two stages."
+          sectionId="agenda"
+          className={`mb-8 transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
+        />
 
         {/* Mobile tabs */}
         <div className={`flex lg:hidden mb-6 transition-all duration-700 ${isVisible ? "opacity-100" : "opacity-0 translate-y-4"}`} style={{ transitionDelay: "80ms" }}>

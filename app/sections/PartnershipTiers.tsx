@@ -9,11 +9,31 @@ import type { Partner } from "@/types";
 export default function PartnershipTiers() {
   const borderColor = "rgba(255,255,255,0.10)";
 
+  const handleCopyAnchor = () => {
+    if (typeof window === "undefined") return;
+    const url = `${window.location.origin}${window.location.pathname}#partner`;
+    navigator.clipboard.writeText(url).catch(() => {});
+    window.history.replaceState(null, "", "#partner");
+  };
+
   return (
     <section id="partner" className="relative overflow-hidden py-16 lg:py-20 min-h-screen flex items-center">
       <div className="mx-auto w-[90vw] max-w-[90vw] px-6 lg:px-8">
         <h2 className="text-4xl font-mono font-bold tracking-tight text-center sm:text-5xl md:text-6xl mb-16">
-          Partners
+          <button
+            type="button"
+            onClick={handleCopyAnchor}
+            aria-label="Copy link to Partners section"
+            className="group inline-flex items-baseline gap-3 cursor-pointer"
+          >
+            <span>Partners</span>
+            <span
+              aria-hidden="true"
+              className="font-mono text-xl sm:text-2xl md:text-3xl text-gray-400 opacity-0 group-hover:opacity-40 transition-opacity"
+            >
+              #
+            </span>
+          </button>
         </h2>
 
         {/* Partner Grid */}

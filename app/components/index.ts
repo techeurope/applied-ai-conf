@@ -2,6 +2,7 @@ export { default as Navigation } from './Navigation';
 export { default as Footer } from './Footer';
 export { default as SubpageLayout } from './SubpageLayout';
 export { NewsletterForm } from './ui/newsletter-form';
+export { SectionHeading } from './ui/section-heading';
 export { LegoraLogo } from './ui/legora-logo';
 export { LangdockLogo } from './ui/langdock-logo';
 export { ChocoLogo } from './ui/choco-logo';

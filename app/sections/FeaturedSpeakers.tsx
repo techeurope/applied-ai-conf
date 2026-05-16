@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { SectionHeading } from "@/components";
 import { SPEAKERS } from "@/data/speakers";
 import type { Speaker } from "@/types";
 
@@ -39,19 +40,14 @@ export default function FeaturedSpeakers() {
       className="relative w-full bg-black py-16 lg:py-20"
     >
       <div className="w-full px-6 lg:px-12">
-        {/* Header */}
-        <div
+        <SectionHeading
+          title="Speakers"
+          description="Building the future of AI"
+          sectionId="speakers"
           className={`mb-8 max-w-7xl mx-auto transition-all duration-700 ${
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
           }`}
-        >
-          <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-mono font-bold text-white tracking-tighter leading-[1.05] text-center">
-            Speakers
-          </h2>
-          <p className="text-lg sm:text-xl text-gray-400 mt-4 text-center">
-            Building the future of AI
-          </p>
-        </div>
+        />
 
         {/* Speaker Grid with collapse */}
         <div className="relative">

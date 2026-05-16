@@ -98,7 +98,10 @@ export default function RootLayout({
         />
         <script id="luma-checkout" src="https://embed.lu.ma/checkout-button.js" async />
       </head>
-      <body className={`${kodeMono.variable} ${inter.variable} antialiased`}>
+      <body
+        className={`${kodeMono.variable} ${inter.variable} antialiased`}
+        suppressHydrationWarning
+      >
         <PostHogProvider>{children}</PostHogProvider>
         <XPixel />
         <LemlistTracking />

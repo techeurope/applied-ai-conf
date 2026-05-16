@@ -6,57 +6,75 @@ export interface SideEvent {
   location: string;
   description: string;
   rsvpUrl?: string;
+  image?: string;
   tags: string[];
   timing: "evening-before" | "after-conference";
 }
 
 export const SIDE_EVENTS: SideEvent[] = [
   {
-    id: "pre-conference-dinner",
-    title: "Speaker & Community Dinner",
-    date: "2026-06-24",
-    time: "19:00 – 22:00",
-    location: "TBA, Berlin",
+    id: "build-with-agents",
+    title: "Build with Agents — Berlin night w/ Modal, dltHub",
+    date: "2026-05-27",
+    time: "18:00 – 20:00",
+    location: "Techspace Kreuzberg, Berlin",
     description:
-      "An intimate dinner for speakers, partners, and community members. Meet the people behind the talks before the conference kicks off.",
-    rsvpUrl: undefined,
-    tags: ["Networking", "Invite Only"],
+      "Modal and dltHub host an evening for founders and engineers shipping agents in production. Two technical demos, then drinks with builders doing the same.",
+    rsvpUrl: "https://luma.com/ac6rt5od",
+    image: "/side-events/build-with-agents.png",
+    tags: ["Talks", "Networking"],
     timing: "evening-before",
   },
   {
-    id: "pre-conference-drinks",
-    title: "Pre-Conference Drinks",
-    date: "2026-06-24",
-    time: "20:00 – 23:00",
-    location: "TBA, Berlin",
+    id: "mcp-connect-berlin",
+    title: "MCP Connect Berlin with N26 & Alpic",
+    date: "2026-05-27",
+    time: "18:00 – 21:30",
+    location: "Berlin",
     description:
-      "Casual drinks for all attendees arriving the evening before. No agenda, just good conversations with fellow builders.",
-    rsvpUrl: undefined,
-    tags: ["Open", "Networking"],
+      "For developers and practitioners working with the Model Context Protocol and AI agents. Best practices, new tools, and real-world MCP server use cases.",
+    rsvpUrl: "https://luma.com/o5gpj57z",
+    image: "/side-events/mcp-connect-berlin.png",
+    tags: ["Talks", "MCP", "Networking"],
     timing: "evening-before",
   },
   {
-    id: "afterparty",
-    title: "Official Afterparty",
-    date: "2026-06-25",
-    time: "18:30 – 22:00",
-    location: "TBA, Berlin",
+    id: "builders-happy-hour",
+    title: "Builders Happy Hour",
+    date: "2026-05-27",
+    time: "18:00 – 22:00",
+    location: "Rooftop, Berlin",
     description:
-      "Wind down after a full day of talks. Music, drinks, and the conversations that didn't fit into the hallway track.",
-    rsvpUrl: undefined,
-    tags: ["Open", "Party"],
+      "Rooftop aperitivo the night before the conference. No panels, no pitches, just the builders and founders worth meeting one evening earlier.",
+    rsvpUrl: "https://luma.com/kprpantf",
+    image: "/side-events/builders-happy-hour.png",
+    tags: ["Networking", "Drinks"],
+    timing: "evening-before",
+  },
+  {
+    id: "ship-first-mcp-app",
+    title: "Ship Your First MCP App in One Evening",
+    date: "2026-05-28",
+    time: "18:00 – 21:00",
+    location: "Mindspace Krausenstraße, Berlin",
+    description:
+      "Hands-on hack night to build a working MCP App in 90 minutes using Alpic's open-source Skybridge framework. Pizza, prizes, and lightning pitches.",
+    rsvpUrl: "https://luma.com/handpicked-hackathon-1",
+    image: "/side-events/ship-first-mcp-app.jpg",
+    tags: ["Hackathon", "MCP"],
     timing: "after-conference",
   },
   {
-    id: "ai-founders-meetup",
-    title: "AI Founders Meetup",
-    date: "2026-06-25",
-    time: "19:00 – 21:00",
-    location: "TBA, Berlin",
+    id: "happy-hour-zero-peec-linkup",
+    title: "Happy Hour (づ ◕‿◕ )づ",
+    date: "2026-05-28",
+    time: "19:30 – 22:30",
+    location: "Berlin",
     description:
-      "A focused meetup for founders building AI-first companies. Share war stories, compare stacks, and connect with potential collaborators.",
-    rsvpUrl: undefined,
-    tags: ["Founders", "Networking"],
+      "Zero, Peec AI, and Linkup want to buy Berlin's AI people drinks. Builders, founders, engineers, GTM, designers, operators, all welcome.",
+    rsvpUrl: "https://luma.com/mstsjx9s",
+    image: "/side-events/happy-hour-zero-peec-linkup.png",
+    tags: ["Networking", "Drinks"],
     timing: "after-conference",
   },
 ];
