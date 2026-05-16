@@ -32,7 +32,7 @@ const FAQ_ITEMS = [
   {
     question: "How can my company partner with us?",
     answer: "Check out our partnership options below and get in touch.",
-    href: "#partner",
+    href: "#partners",
   },
   {
     question: "Where should I stay and how do I get to the venue?",

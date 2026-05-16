@@ -39,14 +39,14 @@ export default function SideEvents() {
   return (
     <section
       ref={ref}
-      id="side-events"
+      id="applied-ai-week"
       className="relative w-full bg-black pt-24 pb-16 lg:pt-32 lg:pb-20"
     >
       <div className="w-full px-6 lg:px-12">
         <SectionHeading
           title="Applied AI Week"
           description="Meetups, hack nights, and everything else the AI community is up to in Berlin."
-          sectionId="side-events"
+          sectionId="applied-ai-week"
           className={`mb-12 transition-all duration-700 ${
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
           }`}

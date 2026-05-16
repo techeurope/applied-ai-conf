@@ -11,13 +11,13 @@ export default function PartnershipTiers() {
 
   const handleCopyAnchor = () => {
     if (typeof window === "undefined") return;
-    const url = `${window.location.origin}${window.location.pathname}#partner`;
+    const url = `${window.location.origin}${window.location.pathname}#partners`;
     navigator.clipboard.writeText(url).catch(() => {});
-    window.history.replaceState(null, "", "#partner");
+    window.history.replaceState(null, "", "#partners");
   };
 
   return (
-    <section id="partner" className="relative overflow-hidden py-16 lg:py-20 min-h-screen flex items-center">
+    <section id="partners" className="relative overflow-hidden py-16 lg:py-20 min-h-screen flex items-center">
       <div className="mx-auto w-[90vw] max-w-[90vw] px-6 lg:px-8">
         <h2 className="text-4xl font-mono font-bold tracking-tight text-center sm:text-5xl md:text-6xl mb-16">
           <button
