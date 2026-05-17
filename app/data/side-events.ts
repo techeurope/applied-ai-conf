@@ -13,6 +13,19 @@ export interface SideEvent {
 
 export const SIDE_EVENTS: SideEvent[] = [
   {
+    id: "ticket-pickup-builders-brews",
+    title: "Builders & Brews Berlin — Pre-Event & Ticket Pickup",
+    date: "2026-05-27",
+    time: "09:00 – 18:00",
+    location: "St. Oberholz",
+    description:
+      "A laid-back day of agents, coffee, and good company with Tavily, Nebius, and n8n. Swing by anytime to pick up your conference badge a day early.",
+    rsvpUrl: "https://luma.com/fpxsdfhl",
+    image: "/side-events/builders-and-brews.jpg",
+    tags: ["Pickup", "Coffee"],
+    timing: "evening-before",
+  },
+  {
     id: "build-with-agents",
     title: "Build with Agents — Berlin night w/ Modal, dltHub",
     date: "2026-05-27",
