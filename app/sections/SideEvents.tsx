@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { MapPin } from "lucide-react";
 import { SectionHeading } from "@/components";
 import { LidarScapeBackground } from "@/components/ui/lidar-scape-background";
-import { SIDE_EVENTS, type SideEvent } from "@/data/side-events";
+import { SIDE_EVENTS } from "@/data/side-events";
 
 function TagPills({
   tags,
@@ -89,54 +89,64 @@ export default function SideEvents() {
             {/* Divider between date headline and the first row */}
             <div className="mx-auto my-6 h-px w-80 sm:w-[32rem] md:w-[48rem] lg:w-[56rem] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
-            {/* Conference centerpiece - sits above Thursday's after-conf events */}
-            {gi === 1 && (
-              <div className="relative w-full overflow-hidden rounded-xl border border-white/15 bg-black">
-                {/* Extend lidar vertically beyond card so the animation fills full width */}
-                <div className="absolute inset-x-0 -inset-y-48">
-                  <LidarScapeBackground />
-                </div>
-                <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {gi === 1 && (
+                <a
+                  href="https://luma.com/applied-ai-conf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`group relative flex flex-col sm:flex-row sm:min-h-[220px] bg-black border border-white/15 rounded-xl overflow-hidden transition-all duration-500 hover:border-white/30 ${
+                    isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+                  }`}
+                  style={{ transitionDelay: `${200 + gi * 100}ms` }}
+                >
+                  <div className="relative w-full aspect-square shrink-0 overflow-hidden sm:w-[180px] sm:aspect-auto sm:self-stretch md:w-[200px] lg:w-[220px]">
+                    <LidarScapeBackground />
+                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 sm:gap-1 px-3 sm:px-2 text-center pointer-events-none">
+                      <span className="font-mono text-sm sm:text-[10px] md:text-xs tracking-widest text-white">
+                        {"{"}Tech: Europe{"}"}
+                      </span>
+                      <span className="font-mono font-bold text-white text-7xl sm:text-3xl md:text-4xl leading-tight tracking-tight">
+                        Applied
+                        <br />
+                        AI Conf
+                      </span>
+                    </div>
+                  </div>
 
-                <div className="relative z-10 flex flex-col items-center gap-4 px-5 sm:px-6 py-8 sm:py-10">
-                  <h4 className="font-mono font-bold tracking-tight text-sm sm:text-lg md:text-xl lg:text-2xl text-white text-center">
-                    <span className="hidden sm:inline text-white/70">{"{"}Tech: Europe{"}"} </span>
-                    <span className="text-glow">Applied AI Conf</span>
-                  </h4>
-
-                  <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs">
-                    <span className="font-mono tabular-nums font-semibold text-white">
+                  <div className="relative flex-1 min-w-0 bg-black px-4 sm:px-5 py-4 flex flex-col gap-3">
+                    <span className="text-xs font-mono tabular-nums font-semibold text-white">
                       08:00 – 18:30
                     </span>
-                    <span className="text-white/30">·</span>
-                    <span className="flex items-center gap-1.5 text-white/70">
-                      <MapPin className="h-3 w-3 shrink-0" />
-                      <span>Delta Campus, Berlin</span>
-                    </span>
+
+                    <h4 className="text-base sm:text-lg md:text-xl font-mono font-semibold text-white leading-tight">
+                      Applied AI Conf
+                    </h4>
+
+                    <div className="mt-auto flex flex-col gap-5">
+                      <TagPills tags={["Conf"]} />
+                      <span className="flex min-w-0 items-center gap-1.5 text-xs text-white/70">
+                        <MapPin className="h-3 w-3 shrink-0" />
+                        <span className="truncate">Delta Campus</span>
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </div>
-            )}
+                </a>
+              )}
 
-            {/* Divider between conf card and after-conf events */}
-            {gi === 1 && (
-              <div className="mx-auto my-6 h-px w-32 sm:w-40 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {group.events.map((event, i) => (
                 <a
                   key={event.id}
                   href={event.rsvpUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`group relative flex min-h-[220px] bg-black border border-white/15 rounded-xl overflow-hidden transition-all duration-500 hover:border-white/30 ${
+                  className={`group relative flex flex-col sm:flex-row sm:min-h-[220px] bg-black border border-white/15 rounded-xl overflow-hidden transition-all duration-500 hover:border-white/30 ${
                     isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
                   }`}
                   style={{ transitionDelay: `${200 + gi * 100 + i * 60}ms` }}
                 >
                   {event.image && (
-                    <div className="relative shrink-0 self-stretch aspect-square">
+                    <div className="relative w-full aspect-square shrink-0 overflow-hidden sm:w-auto sm:self-stretch">
                       <img
                         src={event.image}
                         alt={event.title}
@@ -149,7 +159,7 @@ export default function SideEvents() {
                     </div>
                   )}
 
-                  <div className="relative flex-1 min-w-0 bg-black px-4 sm:px-5 py-3 sm:py-4 flex flex-col gap-3">
+                  <div className="relative flex-1 min-w-0 bg-black px-4 sm:px-5 py-4 flex flex-col gap-3">
                     <span className="text-xs font-mono tabular-nums font-semibold text-white">
                       {event.time}
                     </span>
