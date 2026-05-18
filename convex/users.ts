@@ -1,0 +1,135 @@
+import { mutation, query } from "./_generated/server";
+import { v } from "convex/values";
+import type { Doc, Id } from "./_generated/dataModel";
+
+async function requireWorkosIdentity(ctx: { auth: { getUserIdentity: () => Promise<{ subject: string; email?: string; name?: string } | null> } }) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) throw new Error("Not authenticated");
+  return identity;
+}
+
+export const me = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_workos_id", (q) => q.eq("workosUserId", identity.subject))
+      .first();
+    return user;
+  },
+});
+
+export const getById = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, { userId }) => {
+    const user = await ctx.db.get(userId);
+    if (!user || user.deletedAt) return null;
+    return user;
+  },
+});
+
+export const ensureFromWorkos = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await requireWorkosIdentity(ctx);
+    const existing = await ctx.db
+      .query("users")
+      .withIndex("by_workos_id", (q) => q.eq("workosUserId", identity.subject))
+      .first();
+    if (existing) return existing._id;
+    const userId = await ctx.db.insert("users", {
+      email: identity.email ?? "",
+      workosUserId: identity.subject,
+      name: identity.name ?? identity.email ?? "Unnamed",
+      isSpeaker: false,
+    });
+    return userId;
+  },
+});
+
+export const updateProfile = mutation({
+  args: {
+    name: v.optional(v.string()),
+    role: v.optional(v.string()),
+    company: v.optional(v.string()),
+    linkedinUrl: v.optional(v.string()),
+    bio: v.optional(v.string()),
+    headline: v.optional(v.string()),
+    imageStorageId: v.optional(v.id("_storage")),
+  },
+  handler: async (ctx, patch) => {
+    const identity = await requireWorkosIdentity(ctx);
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_workos_id", (q) => q.eq("workosUserId", identity.subject))
+      .first();
+    if (!user) throw new Error("User not found");
+    await ctx.db.patch(user._id, patch);
+    return user._id;
+  },
+});
+
+export const deleteAccount = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await requireWorkosIdentity(ctx);
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_workos_id", (q) => q.eq("workosUserId", identity.subject))
+      .first();
+    if (!user) return;
+
+    // Cascade delete: profiles, goals, consents, contacts where user is subject, scan events, notifications, image
+    const profiles = await ctx.db.query("profiles").withIndex("by_user", (q) => q.eq("userId", user._id)).collect();
+    for (const p of profiles) await ctx.db.delete(p._id);
+
+    const goals = await ctx.db.query("goals").withIndex("by_user", (q) => q.eq("userId", user._id)).collect();
+    for (const g of goals) await ctx.db.delete(g._id);
+
+    const consents = await ctx.db.query("consents").withIndex("by_user_key", (q) => q.eq("userId", user._id)).collect();
+    for (const c of consents) await ctx.db.delete(c._id);
+
+    const contactsAsSubject = await ctx.db
+      .query("contacts")
+      .withIndex("by_contacted", (q) => q.eq("contactedUserId", user._id))
+      .collect();
+    for (const c of contactsAsSubject) await ctx.db.delete(c._id);
+
+    const scansAsScanner = await ctx.db.query("scanEvents").withIndex("by_scanner", (q) => q.eq("scannerUserId", user._id)).collect();
+    for (const s of scansAsScanner) await ctx.db.delete(s._id);
+    const scansAsScanned = await ctx.db.query("scanEvents").withIndex("by_scanned", (q) => q.eq("scannedUserId", user._id)).collect();
+    for (const s of scansAsScanned) await ctx.db.delete(s._id);
+
+    if (user.imageStorageId) await ctx.storage.delete(user.imageStorageId);
+    await ctx.db.delete(user._id);
+  },
+});
+
+export const directoryList = query({
+  args: { limit: v.optional(v.number()) },
+  handler: async (ctx, { limit = 200 }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+
+    const speakers = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("isSpeaker"), true))
+      .take(limit);
+
+    const consents = await ctx.db
+      .query("consents")
+      .filter((q) => q.eq(q.field("key"), "directory_listing"))
+      .filter((q) => q.eq(q.field("granted"), true))
+      .take(limit);
+    const optedInIds = new Set(consents.map((c) => c.userId));
+    const others: Doc<"users">[] = [];
+    for (const id of optedInIds) {
+      const u = await ctx.db.get(id as Id<"users">);
+      if (u && !u.deletedAt && !u.isSpeaker) others.push(u);
+    }
+
+    return [...speakers, ...others].filter((u) => !u.deletedAt);
+  },
+});
