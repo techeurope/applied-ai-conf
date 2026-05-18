@@ -89,6 +89,13 @@ body {
   .border-glow {
     @apply border border-white/10 hover:border-white/30 transition-colors duration-300;
   }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
 }
 
 @keyframes logo-marquee {

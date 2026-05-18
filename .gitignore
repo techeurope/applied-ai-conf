@@ -48,3 +48,4 @@ next-env.d.ts
 .claude/
 
 # .beads/ is intentionally tracked for multi-agent task sync
+.env*.local
