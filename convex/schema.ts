@@ -14,6 +14,8 @@ export default defineSchema({
     imageStorageId: v.optional(v.id("_storage")),
     teamId: v.optional(v.id("teams")),
     embeddingVersion: v.optional(v.number()),
+    onboardingRequired: v.optional(v.boolean()),
+    onboardingCompletedAt: v.optional(v.number()),
     isSpeaker: v.boolean(),
     deletedAt: v.optional(v.number()),
   })

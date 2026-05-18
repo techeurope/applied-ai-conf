@@ -43,22 +43,25 @@ export const ensureFromWorkos = mutation({
       email: identity.email ?? "",
       workosUserId: identity.subject,
       name: identity.name ?? identity.email ?? "Unnamed",
+      onboardingRequired: true,
       isSpeaker: false,
     });
     return userId;
   },
 });
 
+const profilePatchArgs = {
+  name: v.optional(v.string()),
+  role: v.optional(v.string()),
+  company: v.optional(v.string()),
+  linkedinUrl: v.optional(v.string()),
+  bio: v.optional(v.string()),
+  headline: v.optional(v.string()),
+  imageStorageId: v.optional(v.id("_storage")),
+};
+
 export const updateProfile = mutation({
-  args: {
-    name: v.optional(v.string()),
-    role: v.optional(v.string()),
-    company: v.optional(v.string()),
-    linkedinUrl: v.optional(v.string()),
-    bio: v.optional(v.string()),
-    headline: v.optional(v.string()),
-    imageStorageId: v.optional(v.id("_storage")),
-  },
+  args: profilePatchArgs,
   handler: async (ctx, patch) => {
     const identity = await requireWorkosIdentity(ctx);
     const user = await ctx.db
@@ -67,6 +70,38 @@ export const updateProfile = mutation({
       .first();
     if (!user) throw new Error("User not found");
     await ctx.db.patch(user._id, patch);
+    return user._id;
+  },
+});
+
+export const completeOnboarding = mutation({
+  args: profilePatchArgs,
+  handler: async (ctx, patch) => {
+    const identity = await requireWorkosIdentity(ctx);
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_workos_id", (q) => q.eq("workosUserId", identity.subject))
+      .first();
+    if (!user) throw new Error("User not found");
+    await ctx.db.patch(user._id, {
+      ...patch,
+      onboardingRequired: false,
+      onboardingCompletedAt: Date.now(),
+    });
+    return user._id;
+  },
+});
+
+export const restartOnboarding = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await requireWorkosIdentity(ctx);
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_workos_id", (q) => q.eq("workosUserId", identity.subject))
+      .first();
+    if (!user) throw new Error("User not found");
+    await ctx.db.patch(user._id, { onboardingRequired: true });
     return user._id;
   },
 });

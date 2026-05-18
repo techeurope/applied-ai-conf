@@ -1,9 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { ScanLine, Users, CalendarDays, Settings, Compass } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@workos-inc/authkit-nextjs/components";
+import { useMutation, useQuery } from "convex/react";
+import { ScanLine, Users, CalendarDays, Settings, Compass, LogOut } from "lucide-react";
+import { useEffect } from "react";
 import type { ReactNode } from "react";
+import { api } from "@convex/_generated/api";
 
 const tabs = [
   { href: "/connect/scan", label: "Scan", icon: ScanLine },
@@ -15,11 +19,25 @@ const tabs = [
 
 export function ConnectShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const auth = useAuth();
+  const me = useQuery(api.users.me);
+  const ensureUser = useMutation(api.users.ensureFromWorkos);
   const hideNav =
     pathname === "/connect" ||
     pathname?.startsWith("/connect/login") ||
     pathname?.startsWith("/connect/onboarding") ||
     pathname?.startsWith("/connect/consent-details");
+
+  useEffect(() => {
+    if (!auth.user || me !== null) return;
+    ensureUser({}).catch(() => undefined);
+  }, [auth.user, ensureUser, me]);
+
+  useEffect(() => {
+    if (!auth.user || !me?.onboardingRequired || hideNav) return;
+    router.replace("/connect/onboarding");
+  }, [auth.user, hideNav, me?.onboardingRequired, router]);
 
   return (
     <div className="min-h-[100dvh] bg-background text-foreground flex flex-col selection:bg-white/20">
@@ -32,12 +50,24 @@ export function ConnectShell({ children }: { children: ReactNode }) {
             >
               Applied AI Conf
             </Link>
-            <Link
-              href="/connect"
-              className="font-mono text-xs uppercase tracking-[0.25em] text-white/40 hover:text-white transition-colors"
-            >
-              connect
-            </Link>
+            <div className="flex items-center gap-4">
+              <Link
+                href="/connect"
+                className="font-mono text-xs uppercase tracking-[0.25em] text-white/40 hover:text-white transition-colors"
+              >
+                connect
+              </Link>
+              {auth.user && (
+                <button
+                  type="button"
+                  onClick={() => auth.signOut({ returnTo: "/connect" })}
+                  className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-white/40 hover:text-white transition-colors"
+                >
+                  <LogOut className="size-3.5" strokeWidth={1.75} />
+                  <span className="hidden sm:inline">Sign out</span>
+                </button>
+              )}
+            </div>
           </div>
 
           {!hideNav && (

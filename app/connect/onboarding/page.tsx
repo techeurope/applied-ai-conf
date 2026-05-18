@@ -33,7 +33,7 @@ export default function OnboardingPage() {
   const router = useRouter();
   const ensure = useMutation(api.users.ensureFromWorkos);
   const setConsent = useMutation(api.consents.set);
-  const updateProfile = useMutation(api.users.updateProfile);
+  const completeOnboarding = useMutation(api.users.completeOnboarding);
   const me = useQuery(api.users.me);
 
   const [step, setStep] = useState<"consent" | "profile">("consent");
@@ -71,6 +71,7 @@ export default function OnboardingPage() {
   async function handleConsentSubmit() {
     setSaving(true);
     try {
+      await ensure({});
       await Promise.all(
         (Object.keys(consents) as ConsentKey[]).map((key) =>
           setConsent({ key, granted: consents[key] }),
@@ -85,7 +86,8 @@ export default function OnboardingPage() {
   async function handleProfileSubmit() {
     setSaving(true);
     try {
-      await updateProfile(form);
+      await ensure({});
+      await completeOnboarding(form);
       router.push("/connect/scan");
     } finally {
       setSaving(false);
