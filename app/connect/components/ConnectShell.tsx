@@ -1,0 +1,75 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { ScanLine, Users, CalendarDays, Settings, Compass } from "lucide-react";
+import type { ReactNode } from "react";
+
+const tabs = [
+  { href: "/connect/scan", label: "Scan", icon: ScanLine },
+  { href: "/connect/contacts", label: "Contacts", icon: Users },
+  { href: "/connect/directory", label: "Directory", icon: Compass },
+  { href: "/connect/agenda", label: "Agenda", icon: CalendarDays },
+  { href: "/connect/settings", label: "Settings", icon: Settings },
+];
+
+export function ConnectShell({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const hideNav =
+    pathname === "/connect" ||
+    pathname?.startsWith("/connect/login") ||
+    pathname?.startsWith("/connect/onboarding") ||
+    pathname?.startsWith("/connect/consent-details");
+
+  return (
+    <div className="min-h-[100dvh] bg-background text-foreground flex flex-col selection:bg-white/20">
+      <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/80 border-b border-white/10">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-[env(safe-area-inset-top)]">
+          <div className="flex items-center justify-between gap-3 py-3">
+            <Link
+              href="/"
+              className="font-mono text-sm sm:text-base font-bold tracking-wide text-white hover:text-white/70 transition-colors"
+            >
+              Applied AI Conf
+            </Link>
+            <Link
+              href="/connect"
+              className="font-mono text-xs uppercase tracking-[0.25em] text-white/40 hover:text-white transition-colors"
+            >
+              connect
+            </Link>
+          </div>
+
+          {!hideNav && (
+            <nav aria-label="Primary" className="-mx-4 sm:-mx-6 border-t border-white/5">
+              <ul className="flex overflow-x-auto no-scrollbar px-4 sm:px-6">
+                {tabs.map(({ href, label, icon: Icon }) => {
+                  const active = pathname === href || pathname?.startsWith(href + "/");
+                  return (
+                    <li key={href} className="shrink-0">
+                      <Link
+                        href={href}
+                        className={`flex items-center gap-2 px-4 py-3 font-mono text-[11px] uppercase tracking-[0.18em] border-b-2 transition-colors ${
+                          active
+                            ? "text-white border-white"
+                            : "text-white/40 border-transparent hover:text-white/80"
+                        }`}
+                      >
+                        <Icon className="size-4" strokeWidth={1.75} />
+                        <span>{label}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
+          )}
+        </div>
+      </header>
+
+      <main className="flex-1 w-full">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 pb-12">{children}</div>
+      </main>
+    </div>
+  );
+}
