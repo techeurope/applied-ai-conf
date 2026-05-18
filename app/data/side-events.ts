@@ -39,6 +39,19 @@ export const SIDE_EVENTS: SideEvent[] = [
     timing: "evening-before",
   },
   {
+    id: "beyond-prompts-elastic",
+    title: "Beyond Prompts: Building Agents that actually work",
+    date: "2026-05-27",
+    time: "18:00 – 21:00",
+    location: "EBCONT, beyond Quartier",
+    description:
+      "Elastic Berlin User Group hosts two talks on production AI agents: context engineering with Elastic's Anderson Queiroz, and autonomous AI in security workflows with Tines' Jenny Pinheiro.",
+    rsvpUrl: "https://www.meetup.com/elasticsearch-berlin/events/314757148/",
+    image: "/side-events/beyond-prompts-elastic.jpg",
+    tags: ["Meetup", "Agents"],
+    timing: "evening-before",
+  },
+  {
     id: "mcp-connect-berlin",
     title: "MCP Connect Berlin with N26 & Alpic",
     date: "2026-05-27",
