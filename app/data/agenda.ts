@@ -29,7 +29,7 @@ export const AGENDA: AgendaSlot[] = [
   { id: 'break-1-side', startTime: '10:30', endTime: '10:50', title: 'Coffee Break', stage: 'side', format: 'break' },
 
   // ── 10:50–11:10 ──────────────────────────────────────────────
-  { id: 'main-3', startTime: '10:50', endTime: '11:10', title: 'To be announced', speakerName: 'Lucas Hild', stage: 'main', format: 'talk' },
+  { id: 'main-3', startTime: '10:50', endTime: '11:10', title: 'Building an AI learning companion: the architecture behind millions of daily interactions', speakerName: 'Lucas Hild', stage: 'main', format: 'talk' },
   { id: 'side-3', startTime: '10:50', endTime: '11:10', title: 'The Anatomy of LobsterX, a Document Processing Agent', speakerName: 'Clelia Astra Bertelli', stage: 'side', format: 'talk' },
 
   // 5 min changeover (11:10–11:15)

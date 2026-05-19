@@ -228,6 +228,7 @@ export const SPEAKERS = [
     bio: '',
     vertical: 'Education',
     building: '>23 million students use their AI learning platform',
+    talkTitle: 'Building an AI learning companion: the architecture behind millions of daily interactions',
     initial: 'LH',
     accent: 'from-green-400/40 via-emerald-400/30 to-teal-500/40',
     image: '/speakers/lucas_hild.jpg',
