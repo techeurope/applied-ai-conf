@@ -8,6 +8,9 @@
  * @module
  */
 
+import type * as _auth from "../_auth.js";
+import type * as admin from "../admin.js";
+import type * as claim from "../claim.js";
 import type * as consents from "../consents.js";
 import type * as contacts from "../contacts.js";
 import type * as goals from "../goals.js";
@@ -23,6 +26,9 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  _auth: typeof _auth;
+  admin: typeof admin;
+  claim: typeof claim;
   consents: typeof consents;
   contacts: typeof contacts;
   goals: typeof goals;

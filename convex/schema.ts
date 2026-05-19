@@ -18,10 +18,16 @@ export default defineSchema({
     onboardingCompletedAt: v.optional(v.number()),
     isSpeaker: v.boolean(),
     deletedAt: v.optional(v.number()),
+    accessLevel: v.optional(v.union(v.literal("admin"), v.literal("member"))),
+    deactivatedAt: v.optional(v.number()),
+    deactivatedBy: v.optional(v.id("users")),
+    deactivatedReason: v.optional(v.string()),
+    claimCodeId: v.optional(v.id("claimCodes")),
   })
     .index("by_email", ["email"])
     .index("by_workos_id", ["workosUserId"])
-    .index("by_team", ["teamId"]),
+    .index("by_team", ["teamId"])
+    .index("by_access_level", ["accessLevel"]),
 
   teams: defineTable({
     name: v.string(),
@@ -103,4 +109,51 @@ export default defineSchema({
     readAt: v.optional(v.number()),
     createdAt: v.number(),
   }).index("by_recipient_unread", ["recipientUserId", "readAt"]),
+
+  pendingAttendees: defineTable({
+    email: v.string(),
+    name: v.optional(v.string()),
+    company: v.optional(v.string()),
+    jobRole: v.optional(v.string()),
+    kind: v.union(
+      v.literal("speaker"),
+      v.literal("walkin"),
+      v.literal("guest"),
+      v.literal("staff"),
+    ),
+    note: v.optional(v.string()),
+    createdByUserId: v.id("users"),
+    createdAt: v.number(),
+    claimedByUserId: v.optional(v.id("users")),
+    claimedAt: v.optional(v.number()),
+  })
+    .index("by_email", ["email"])
+    .index("by_claimed", ["claimedByUserId"]),
+
+  claimCodes: defineTable({
+    code: v.string(),
+    pendingAttendeeId: v.id("pendingAttendees"),
+    createdByUserId: v.id("users"),
+    createdAt: v.number(),
+    expiresAt: v.optional(v.number()),
+    revokedAt: v.optional(v.number()),
+    revokedByUserId: v.optional(v.id("users")),
+    claimedAt: v.optional(v.number()),
+    claimedByUserId: v.optional(v.id("users")),
+  })
+    .index("by_code", ["code"])
+    .index("by_pending_attendee", ["pendingAttendeeId"])
+    .index("by_created", ["createdAt"]),
+
+  auditLog: defineTable({
+    actorUserId: v.id("users"),
+    action: v.string(),
+    targetUserId: v.optional(v.id("users")),
+    targetClaimCodeId: v.optional(v.id("claimCodes")),
+    metadata: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index("by_created", ["createdAt"])
+    .index("by_actor", ["actorUserId", "createdAt"])
+    .index("by_target_user", ["targetUserId", "createdAt"]),
 });

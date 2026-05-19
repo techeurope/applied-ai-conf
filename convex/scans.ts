@@ -9,6 +9,8 @@ async function getMe(ctx: any) {
     .withIndex("by_workos_id", (q: any) => q.eq("workosUserId", identity.subject))
     .first();
   if (!user) throw new Error("User not found");
+  if (user.deactivatedAt) throw new Error("Account deactivated");
+  if (user.deletedAt) throw new Error("Account deleted");
   return user;
 }
 

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@workos-inc/authkit-nextjs/components";
 import { useMutation, useQuery } from "convex/react";
-import { ScanLine, Users, CalendarDays, Settings, Compass, LogOut } from "lucide-react";
+import { ScanLine, Users, CalendarDays, Settings, Compass, LogOut, Shield } from "lucide-react";
 import { useEffect } from "react";
 import type { ReactNode } from "react";
 import { api } from "@convex/_generated/api";
@@ -16,6 +16,8 @@ const tabs = [
   { href: "/connect/agenda", label: "Agenda", icon: CalendarDays },
   { href: "/connect/settings", label: "Settings", icon: Settings },
 ];
+
+const adminTab = { href: "/connect/admin", label: "Admin", icon: Shield } as const;
 
 export function ConnectShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -38,6 +40,15 @@ export function ConnectShell({ children }: { children: ReactNode }) {
     if (!auth.user || !me?.onboardingRequired || hideNav) return;
     router.replace("/connect/onboarding");
   }, [auth.user, hideNav, me?.onboardingRequired, router]);
+
+  useEffect(() => {
+    if (me?.deactivatedAt) {
+      auth.signOut({ returnTo: "/connect?kicked=1" });
+    }
+  }, [auth, me?.deactivatedAt]);
+
+  const visibleTabs =
+    me?.accessLevel === "admin" ? [...tabs, adminTab] : tabs;
 
   return (
     <div className="min-h-[100dvh] bg-background text-foreground flex flex-col selection:bg-white/20">
@@ -73,7 +84,7 @@ export function ConnectShell({ children }: { children: ReactNode }) {
           {!hideNav && (
             <nav aria-label="Primary" className="-mx-4 sm:-mx-6 border-t border-white/5">
               <ul className="flex overflow-x-auto no-scrollbar px-4 sm:px-6">
-                {tabs.map(({ href, label, icon: Icon }) => {
+                {visibleTabs.map(({ href, label, icon: Icon }) => {
                   const active = pathname === href || pathname?.startsWith(href + "/");
                   return (
                     <li key={href} className="shrink-0">

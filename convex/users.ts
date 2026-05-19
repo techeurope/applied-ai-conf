@@ -8,6 +8,19 @@ async function requireWorkosIdentity(ctx: { auth: { getUserIdentity: () => Promi
   return identity;
 }
 
+async function requireActiveUser(ctx: any) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) throw new Error("Not authenticated");
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_workos_id", (q: any) => q.eq("workosUserId", identity.subject))
+    .first();
+  if (!user) throw new Error("User not found");
+  if (user.deactivatedAt) throw new Error("Account deactivated");
+  if (user.deletedAt) throw new Error("Account deleted");
+  return user;
+}
+
 export const me = query({
   args: {},
   handler: async (ctx) => {
@@ -63,12 +76,7 @@ const profilePatchArgs = {
 export const updateProfile = mutation({
   args: profilePatchArgs,
   handler: async (ctx, patch) => {
-    const identity = await requireWorkosIdentity(ctx);
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_workos_id", (q) => q.eq("workosUserId", identity.subject))
-      .first();
-    if (!user) throw new Error("User not found");
+    const user = await requireActiveUser(ctx);
     await ctx.db.patch(user._id, patch);
     return user._id;
   },
@@ -77,12 +85,7 @@ export const updateProfile = mutation({
 export const completeOnboarding = mutation({
   args: profilePatchArgs,
   handler: async (ctx, patch) => {
-    const identity = await requireWorkosIdentity(ctx);
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_workos_id", (q) => q.eq("workosUserId", identity.subject))
-      .first();
-    if (!user) throw new Error("User not found");
+    const user = await requireActiveUser(ctx);
     await ctx.db.patch(user._id, {
       ...patch,
       onboardingRequired: false,
@@ -95,12 +98,7 @@ export const completeOnboarding = mutation({
 export const restartOnboarding = mutation({
   args: {},
   handler: async (ctx) => {
-    const identity = await requireWorkosIdentity(ctx);
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_workos_id", (q) => q.eq("workosUserId", identity.subject))
-      .first();
-    if (!user) throw new Error("User not found");
+    const user = await requireActiveUser(ctx);
     await ctx.db.patch(user._id, { onboardingRequired: true });
     return user._id;
   },

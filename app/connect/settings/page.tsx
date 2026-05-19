@@ -119,6 +119,8 @@ export default function SettingsPage() {
         </ul>
       </section>
 
+      <ClaimCodeSection alreadyClaimed={!!me?.claimCodeId} />
+
       <section className="space-y-3">
         <h2 className="font-mono text-sm text-foreground">Account</h2>
         <div className="flex flex-wrap gap-3">
@@ -157,5 +159,68 @@ export default function SettingsPage() {
         </button>
       </section>
     </div>
+  );
+}
+
+function ClaimCodeSection({ alreadyClaimed }: { alreadyClaimed: boolean }) {
+  const redeem = useMutation(api.claim.redeem);
+  const [code, setCode] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  if (alreadyClaimed) {
+    return (
+      <section className="space-y-2">
+        <h2 className="font-mono text-sm text-foreground">Desk claim code</h2>
+        <p className="text-xs text-zinc-500">
+          Your account is linked to a desk record. Talk to the team if you need to change anything.
+        </p>
+      </section>
+    );
+  }
+
+  async function handleRedeem(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setErr(null);
+    setMsg(null);
+    try {
+      await redeem({ code });
+      setMsg("Linked. Your profile was updated with the desk record.");
+      setCode("");
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Failed to redeem");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="space-y-3">
+      <h2 className="font-mono text-sm text-foreground">Got a desk claim code?</h2>
+      <p className="text-xs text-zinc-500">
+        Speakers and walk-ins: the badge desk hands you a code like <span className="font-mono">XXXX-XXXX</span>.
+        Enter it once to link your account to your desk record.
+      </p>
+      <form className="flex gap-2" onSubmit={handleRedeem}>
+        <input
+          type="text"
+          value={code}
+          onChange={(e) => setCode(e.target.value.toUpperCase())}
+          placeholder="XXXX-XXXX"
+          className="flex-1 px-3 py-2 bg-zinc-900/60 border border-white/10 rounded-md text-sm font-mono uppercase tracking-widest focus:outline-none focus:border-white/30"
+        />
+        <button
+          type="submit"
+          disabled={busy || !code.trim()}
+          className="px-4 py-2 bg-foreground text-background font-mono text-xs rounded-md disabled:opacity-50"
+        >
+          {busy ? "…" : "Link"}
+        </button>
+      </form>
+      {msg && <p className="text-xs text-emerald-300">{msg}</p>}
+      {err && <p className="text-xs text-red-300">{err}</p>}
+    </section>
   );
 }
