@@ -11,22 +11,10 @@ type ConsentKey =
   | "directory_listing"
   | "email_summaries";
 
-const CONSENT_ITEMS: { key: ConsentKey; title: string; body: string }[] = [
-  {
-    key: "visible_when_scanned",
-    title: "Show my profile when someone scans my QR",
-    body: "Without this, your QR can't do anything. You can toggle this off any time.",
-  },
-  {
-    key: "directory_listing",
-    title: "Let others find me in the directory",
-    body: "People can browse and connect with you before and during the event.",
-  },
-  {
-    key: "email_summaries",
-    title: "Email me a summary at end of day",
-    body: "A list of who you connected with and your quick notes.",
-  },
+const CONSENT_ITEMS: { key: ConsentKey; label: string }[] = [
+  { key: "visible_when_scanned", label: "Show my profile when scanned" },
+  { key: "directory_listing", label: "List me in the directory" },
+  { key: "email_summaries", label: "Email me an end-of-day summary" },
 ];
 
 export default function OnboardingPage() {
@@ -36,7 +24,6 @@ export default function OnboardingPage() {
   const completeOnboarding = useMutation(api.users.completeOnboarding);
   const me = useQuery(api.users.me);
 
-  const [step, setStep] = useState<"consent" | "profile">("consent");
   const [consents, setConsents] = useState<Record<ConsentKey, boolean>>({
     visible_when_scanned: true,
     directory_listing: true,
@@ -58,7 +45,6 @@ export default function OnboardingPage() {
   useEffect(() => {
     if (me) {
       setForm((prev) => ({
-        ...prev,
         name: me.name || prev.name,
         role: me.role || prev.role,
         company: me.company || prev.company,
@@ -68,7 +54,7 @@ export default function OnboardingPage() {
     }
   }, [me]);
 
-  async function handleConsentSubmit() {
+  async function handleSubmit() {
     setSaving(true);
     try {
       await ensure({});
@@ -77,16 +63,6 @@ export default function OnboardingPage() {
           setConsent({ key, granted: consents[key] }),
         ),
       );
-      setStep("profile");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function handleProfileSubmit() {
-    setSaving(true);
-    try {
-      await ensure({});
       await completeOnboarding(form);
       router.push("/connect/scan");
     } finally {
@@ -94,75 +70,18 @@ export default function OnboardingPage() {
     }
   }
 
-  if (step === "consent") {
-    return (
-      <div className="space-y-10 pt-6 sm:pt-12">
-        <header className="space-y-4">
-          <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
-            Step 1 of 2
-          </p>
-          <h1 className="font-mono font-bold text-3xl sm:text-5xl tracking-tighter leading-[1.1] pb-1 text-glow">
-            Let&apos;s set you up
-          </h1>
-          <p className="text-base text-white/70 leading-relaxed max-w-prose">
-            All optional. Change any of these any time in Settings.{" "}
-            <Link href="/connect/consent-details" className="underline underline-offset-2 hover:text-white transition-colors">
-              Details
-            </Link>
-          </p>
-        </header>
-
-        <ul className="space-y-3">
-          {CONSENT_ITEMS.map((item) => (
-            <li key={item.key}>
-              <label
-                className={`block glass-card rounded-2xl p-5 cursor-pointer transition-all ${
-                  consents[item.key] ? "border-white/20" : "opacity-60"
-                }`}
-              >
-                <div className="flex items-start gap-4">
-                  <input
-                    type="checkbox"
-                    checked={consents[item.key]}
-                    onChange={(e) =>
-                      setConsents((c) => ({ ...c, [item.key]: e.target.checked }))
-                    }
-                    className="mt-1 size-4 accent-white"
-                  />
-                  <div className="space-y-1.5">
-                    <div className="text-sm font-mono text-white">{item.title}</div>
-                    <div className="text-sm text-white/50 leading-relaxed">{item.body}</div>
-                  </div>
-                </div>
-              </label>
-            </li>
-          ))}
-        </ul>
-
-        <button
-          type="button"
-          onClick={handleConsentSubmit}
-          disabled={saving}
-          className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3.5 rounded-full bg-white text-black font-mono text-sm font-medium shadow-xl shadow-white/10 hover:shadow-white/20 hover:scale-[1.02] transition-all ring-1 ring-white/30 disabled:opacity-50 disabled:hover:scale-100"
-        >
-          {saving ? "Saving…" : "Continue"}
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-10 pt-6 sm:pt-12">
-      <header className="space-y-4">
-        <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
-          Step 2 of 2
-        </p>
+    <div className="space-y-8 pt-6 sm:pt-12">
+      <header className="space-y-3">
         <h1 className="font-mono font-bold text-3xl sm:text-5xl tracking-tighter leading-[1.1] pb-1 text-glow">
-          Your profile
+          Set up your profile
         </h1>
         <p className="text-base text-white/70 leading-relaxed max-w-prose">
-          This is what people see when they scan you. Edit any time in Settings.
+          This is what people see when they scan your QR. You can change everything later in Settings.
         </p>
+        {me?.email && (
+          <p className="text-xs text-white/40 font-mono">Signed in as {me.email}</p>
+        )}
       </header>
 
       <div className="space-y-4">
@@ -195,19 +114,48 @@ export default function OnboardingPage() {
             value={form.bio}
             placeholder="What you're working on, what you're looking for..."
             onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))}
-            rows={4}
+            rows={3}
             className="w-full px-4 py-3 bg-white/[0.03] border border-white/10 rounded-xl text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/30 focus:bg-white/[0.05] transition-colors resize-none"
           />
         </label>
       </div>
 
+      <fieldset className="space-y-2 pt-2">
+        <legend className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40 mb-2">
+          Preferences{" "}
+          <Link
+            href="/connect/consent-details"
+            className="ml-2 normal-case tracking-normal underline text-white/40 hover:text-white"
+          >
+            details
+          </Link>
+        </legend>
+        <ul className="space-y-1.5">
+          {CONSENT_ITEMS.map((item) => (
+            <li key={item.key}>
+              <label className="flex items-center gap-2.5 text-sm text-white/80 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={consents[item.key]}
+                  onChange={(e) =>
+                    setConsents((c) => ({ ...c, [item.key]: e.target.checked }))
+                  }
+                  className="size-4 accent-white"
+                />
+                <span>{item.label}</span>
+              </label>
+            </li>
+          ))}
+        </ul>
+      </fieldset>
+
       <button
         type="button"
-        onClick={handleProfileSubmit}
+        onClick={handleSubmit}
         disabled={saving || !form.name.trim()}
         className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3.5 rounded-full bg-white text-black font-mono text-sm font-medium shadow-xl shadow-white/10 hover:shadow-white/20 hover:scale-[1.02] transition-all ring-1 ring-white/30 disabled:opacity-50 disabled:hover:scale-100"
       >
-        {saving ? "Saving…" : "Save and start"}
+        {saving ? "Saving…" : "Continue"}
       </button>
     </div>
   );
