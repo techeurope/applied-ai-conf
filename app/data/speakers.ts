@@ -604,7 +604,7 @@ export const SPEAKERS = [
     linkedinUrl: 'https://www.linkedin.com/in/sacha-uzan23/',
     bio: '',
     vertical: 'AI Infrastructure',
-    building: 'Web search infrastructure for AI',
+    building: 'Production-grade web search API for AI',
     talkTitle: '',
     initial: 'SU',
     accent: 'from-blue-400/40 via-sky-400/30 to-cyan-500/40',
