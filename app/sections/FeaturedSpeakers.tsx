@@ -13,7 +13,7 @@ const COLS_LG = 3;
 const COLS_MD = 2;
 
 export default function FeaturedSpeakers() {
-  const speakers: Speaker[] = SPEAKERS.filter((s) => !s.hidden);
+  const speakers: Speaker[] = (SPEAKERS as Speaker[]).filter((s) => !s.hidden);
   const [expanded, setExpanded] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
