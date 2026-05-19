@@ -303,6 +303,99 @@ export const deactivateUser = mutation({
   },
 });
 
+export const getTicketLink = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, { userId }) => {
+    await requireAdmin(ctx);
+    const link = await ctx.db
+      .query("ticketLinks")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .first();
+    if (!link) return null;
+    const luma = await ctx.db
+      .query("lumaAttendees")
+      .withIndex("by_luma_guest_id", (q) => q.eq("lumaGuestId", link.lumaGuestId))
+      .first();
+    return { link, luma };
+  },
+});
+
+export const manualLinkTicket = mutation({
+  args: { userId: v.id("users"), lumaEmail: v.string() },
+  handler: async (ctx, { userId, lumaEmail }) => {
+    const admin = await requireAdmin(ctx);
+    const target = await ctx.db.get(userId);
+    if (!target) throw new Error("User not found");
+
+    const existing = await ctx.db
+      .query("ticketLinks")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .first();
+    if (existing) throw new Error("User is already linked");
+
+    const normalized = lumaEmail.toLowerCase().trim();
+    const luma = await ctx.db
+      .query("lumaAttendees")
+      .withIndex("by_email", (q) => q.eq("email", normalized))
+      .first();
+    if (!luma) throw new Error("No Luma attendee with that email in the cache");
+
+    const claimedByAnother = await ctx.db
+      .query("ticketLinks")
+      .withIndex("by_luma_guest_id", (q) => q.eq("lumaGuestId", luma.lumaGuestId))
+      .first();
+    if (claimedByAnother) {
+      throw new Error("That Luma guest is already linked to another account");
+    }
+
+    const now = Date.now();
+    const linkId = await ctx.db.insert("ticketLinks", {
+      userId,
+      lumaGuestId: luma.lumaGuestId,
+      lumaEmail: luma.email,
+      method: "admin_link",
+      verifiedAt: now,
+      verifiedByUserId: admin._id,
+    });
+    const patch: Record<string, unknown> = {
+      ticketLinkedAt: now,
+      lumaGuestId: luma.lumaGuestId,
+    };
+    if (luma.name && (!target.name || target.name === "Unnamed" || target.name === target.email)) {
+      patch.name = luma.name;
+    }
+    await ctx.db.patch(userId, patch);
+    await writeAudit(ctx, admin, "ticket.manual_link", userId, undefined, {
+      lumaEmail: luma.email,
+      lumaGuestId: luma.lumaGuestId,
+    });
+    return { linkId };
+  },
+});
+
+export const unlinkTicket = mutation({
+  args: { userId: v.id("users") },
+  handler: async (ctx, { userId }) => {
+    const admin = await requireAdmin(ctx);
+    const link = await ctx.db
+      .query("ticketLinks")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .first();
+    if (!link) throw new Error("No ticket link to remove");
+    await ctx.db.delete(link._id);
+    await ctx.db.patch(userId, {
+      ticketLinkedAt: undefined,
+      lumaGuestId: undefined,
+    });
+    await writeAudit(ctx, admin, "ticket.unlink", userId, undefined, {
+      lumaEmail: link.lumaEmail,
+      lumaGuestId: link.lumaGuestId,
+      previousMethod: link.method,
+    });
+    return { ok: true };
+  },
+});
+
 export const reactivateUser = mutation({
   args: { userId: v.id("users") },
   handler: async (ctx, { userId }) => {

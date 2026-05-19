@@ -20,11 +20,15 @@ export default function AdminAttendeeDetailPage({
   const reactivate = useMutation(api.admin.reactivateUser);
   const createCode = useMutation(api.admin.createClaimCode);
   const rotateToken = useMutation(api.admin.rotateUserToken);
+  const manualLink = useMutation(api.admin.manualLinkTicket);
+  const unlinkTicket = useMutation(api.admin.unlinkTicket);
+  const ticket = useQuery(api.admin.getTicketLink, { userId });
 
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [newCode, setNewCode] = useState<string | null>(null);
+  const [manualLumaEmail, setManualLumaEmail] = useState("");
   const [form, setForm] = useState<{
     name: string;
     role: string;
@@ -125,6 +129,33 @@ export default function AdminAttendeeDetailPage({
     setError(null);
     try {
       await resetOnboarding({ userId });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function handleManualLink(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy("link");
+    setError(null);
+    try {
+      await manualLink({ userId, lumaEmail: manualLumaEmail });
+      setManualLumaEmail("");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function handleUnlinkTicket() {
+    if (!confirm("Remove this user's Luma ticket link?")) return;
+    setBusy("unlink");
+    setError(null);
+    try {
+      await unlinkTicket({ userId });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed");
     } finally {
@@ -280,6 +311,52 @@ export default function AdminAttendeeDetailPage({
           </div>
         </section>
       ) : null}
+
+      <section className="glass-card rounded-2xl p-5 space-y-3">
+        <h3 className="font-mono text-sm font-bold">Luma ticket</h3>
+        {ticket?.link ? (
+          <div className="space-y-2 text-sm">
+            <Detail label="Method" value={ticket.link.method} />
+            <Detail label="Luma email" value={ticket.link.lumaEmail} />
+            <Detail
+              label="Verified at"
+              value={new Date(ticket.link.verifiedAt).toLocaleString()}
+            />
+            {ticket.luma?.ticketType && (
+              <Detail label="Ticket type" value={ticket.luma.ticketType} />
+            )}
+            <ActionButton
+              label="Unlink ticket"
+              onClick={handleUnlinkTicket}
+              busy={busy === "unlink"}
+              danger
+            />
+          </div>
+        ) : (
+          <form onSubmit={handleManualLink} className="space-y-2">
+            <p className="text-xs text-white/60">
+              Not yet linked. Enter the Luma email to attach this user to a
+              cached attendee record. Use only when the user can't self-verify.
+            </p>
+            <div className="flex gap-2">
+              <input
+                type="email"
+                value={manualLumaEmail}
+                onChange={(e) => setManualLumaEmail(e.target.value)}
+                placeholder="email@onLuma"
+                className="flex-1 rounded-xl bg-white/5 ring-1 ring-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-white/30"
+              />
+              <button
+                type="submit"
+                disabled={busy === "link" || !manualLumaEmail.trim()}
+                className="px-4 py-2 rounded-full bg-white text-black font-mono text-xs disabled:opacity-50"
+              >
+                {busy === "link" ? "…" : "Link"}
+              </button>
+            </div>
+          </form>
+        )}
+      </section>
 
       <section className="glass-card rounded-2xl p-5 space-y-3">
         <h3 className="font-mono text-sm font-bold">Actions</h3>
