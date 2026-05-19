@@ -100,6 +100,23 @@ export const listAdminsBootstrap = internalQuery({
   },
 });
 
+export const bootstrapGrantByWorkosUserId = internalMutation({
+  args: { workosUserId: v.string(), email: v.optional(v.string()) },
+  handler: async (ctx, { workosUserId, email }) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_workos_id", (q) => q.eq("workosUserId", workosUserId))
+      .first();
+    if (!user) throw new Error(`No user with workosUserId ${workosUserId}`);
+    const patch: Record<string, unknown> = { accessLevel: "admin" };
+    if (email && (!user.email || user.email !== email.toLowerCase())) {
+      patch.email = email.toLowerCase().trim();
+    }
+    await ctx.db.patch(user._id, patch);
+    return { userId: user._id, email: patch.email ?? user.email };
+  },
+});
+
 // --- admin queries ---------------------------------------------------------
 
 export const listUsers = query({

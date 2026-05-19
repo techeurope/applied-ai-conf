@@ -44,18 +44,26 @@ export const getById = query({
 });
 
 export const ensureFromWorkos = mutation({
-  args: {},
-  handler: async (ctx) => {
+  args: { email: v.optional(v.string()), name: v.optional(v.string()) },
+  handler: async (ctx, { email: emailArg, name: nameArg }) => {
     const identity = await requireWorkosIdentity(ctx);
+    const claimedEmail = (emailArg ?? identity.email ?? "").toLowerCase().trim();
+    const claimedName = nameArg ?? identity.name;
     const existing = await ctx.db
       .query("users")
       .withIndex("by_workos_id", (q) => q.eq("workosUserId", identity.subject))
       .first();
-    if (existing) return existing._id;
+    if (existing) {
+      const patch: Record<string, unknown> = {};
+      if (claimedEmail && existing.email !== claimedEmail) patch.email = claimedEmail;
+      if (claimedName && existing.name === "Unnamed") patch.name = claimedName;
+      if (Object.keys(patch).length > 0) await ctx.db.patch(existing._id, patch);
+      return existing._id;
+    }
     const userId = await ctx.db.insert("users", {
-      email: identity.email ?? "",
+      email: claimedEmail,
       workosUserId: identity.subject,
-      name: identity.name ?? identity.email ?? "Unnamed",
+      name: claimedName ?? claimedEmail ?? "Unnamed",
       onboardingRequired: true,
       isSpeaker: false,
     });

@@ -32,9 +32,13 @@ export function ConnectShell({ children }: { children: ReactNode }) {
     pathname?.startsWith("/connect/consent-details");
 
   useEffect(() => {
-    if (!auth.user || me !== null) return;
-    ensureUser({}).catch(() => undefined);
-  }, [auth.user, ensureUser, me]);
+    if (!auth.user) return;
+    const fullName = [auth.user.firstName, auth.user.lastName].filter(Boolean).join(" ").trim();
+    ensureUser({
+      email: auth.user.email ?? undefined,
+      name: fullName || auth.user.email || undefined,
+    }).catch(() => undefined);
+  }, [auth.user, ensureUser]);
 
   useEffect(() => {
     if (!auth.user || !me?.onboardingRequired || hideNav) return;
