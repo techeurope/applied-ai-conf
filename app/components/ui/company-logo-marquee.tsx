@@ -38,6 +38,7 @@ import { ModalLogo } from "@/components/ui/modal-logo";
 import { NebiusLogo } from "@/components/ui/nebius-logo";
 import { GoogleDeepMindLogo } from "@/components/ui/google-deepmind-logo";
 import { RestateLogo } from "@/components/ui/restate-logo";
+import { LinkupLogo } from "@/components/ui/linkup-logo";
 
 type LogoComponent = React.ComponentType<{ className?: string }>;
 
@@ -78,6 +79,7 @@ const COMPANY_LOGOS: Record<string, LogoComponent> = {
   Nebius: NebiusLogo,
   "Google DeepMind": GoogleDeepMindLogo,
   Restate: RestateLogo,
+  Linkup: LinkupLogo,
 };
 
 // Square/compact logos need a larger height to match the visual weight of wide wordmarks
@@ -122,6 +124,7 @@ const COMPANY_ITEMS = [
   { name: "distil labs", url: "https://www.distillabs.ai" },
   { name: "Modal", url: "https://modal.com" },
   { name: "Restate", url: "https://restate.dev" },
+  { name: "Linkup", url: "https://www.linkup.so" },
 ];
 
 const NORMAL_SPEED = 100; // pixels per second

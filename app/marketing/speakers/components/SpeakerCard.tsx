@@ -30,6 +30,7 @@ import { ModalLogo } from "@/components/ui/modal-logo";
 import { NebiusLogo } from "@/components/ui/nebius-logo";
 import { GoogleDeepMindLogo } from "@/components/ui/google-deepmind-logo";
 import { RestateLogo } from "@/components/ui/restate-logo";
+import { LinkupLogo } from "@/components/ui/linkup-logo";
 
 type LogoComponent = React.ComponentType<{ className?: string }>;
 
@@ -61,6 +62,7 @@ const COMPANY_LOGOS: Record<string, LogoComponent> = {
   Nebius: NebiusLogo,
   "Google DeepMind": GoogleDeepMindLogo,
   Restate: RestateLogo,
+  Linkup: LinkupLogo,
 };
 
 interface ImageConfig {
