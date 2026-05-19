@@ -19,6 +19,7 @@ export default function AdminAttendeeDetailPage({
   const resetOnboarding = useMutation(api.admin.resetOnboarding);
   const reactivate = useMutation(api.admin.reactivateUser);
   const createCode = useMutation(api.admin.createClaimCode);
+  const rotateToken = useMutation(api.admin.rotateUserToken);
 
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
@@ -124,6 +125,19 @@ export default function AdminAttendeeDetailPage({
     setError(null);
     try {
       await resetOnboarding({ userId });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function handleRotateToken() {
+    if (!confirm("Rotate this user's QR token? Their old QR will stop working.")) return;
+    setBusy("rotate");
+    setError(null);
+    try {
+      await rotateToken({ userId });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed");
     } finally {
@@ -274,6 +288,11 @@ export default function AdminAttendeeDetailPage({
             label="Reset onboarding"
             onClick={handleResetOnboarding}
             busy={busy === "reset"}
+          />
+          <ActionButton
+            label="Rotate QR token"
+            onClick={handleRotateToken}
+            busy={busy === "rotate"}
           />
           <ActionButton label="Generate claim code" onClick={handleNewCode} busy={busy === "code"} />
           {user.deactivatedAt ? (

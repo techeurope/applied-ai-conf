@@ -1,6 +1,19 @@
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
+import { generatePublicToken } from "./_tokens";
+
+async function ensureUniquePublicToken(ctx: any): Promise<string> {
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const candidate = generatePublicToken();
+    const clash = await ctx.db
+      .query("users")
+      .withIndex("by_public_token", (q: any) => q.eq("publicToken", candidate))
+      .first();
+    if (!clash) return candidate;
+  }
+  throw new Error("Could not generate a unique public token after 8 attempts");
+}
 
 async function requireWorkosIdentity(ctx: { auth: { getUserIdentity: () => Promise<{ subject: string; email?: string; name?: string } | null> } }) {
   const identity = await ctx.auth.getUserIdentity();
@@ -43,6 +56,47 @@ export const getById = query({
   },
 });
 
+export const getByPublicToken = query({
+  args: { token: v.string() },
+  handler: async (ctx, { token }) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_public_token", (q) => q.eq("publicToken", token))
+      .first();
+    if (!user || user.deletedAt) return null;
+    return user;
+  },
+});
+
+// Resolves a /connect/u/<x> URL where x is either a publicToken (aac_...)
+// or an old Convex _id. Token match takes precedence.
+export const getByTokenOrId = query({
+  args: { value: v.string() },
+  handler: async (ctx, { value }) => {
+    const byToken = await ctx.db
+      .query("users")
+      .withIndex("by_public_token", (q) => q.eq("publicToken", value))
+      .first();
+    if (byToken && !byToken.deletedAt) return byToken;
+    // Convex _id format: 32 lowercase alphanumerics.
+    if (/^[a-z0-9]{32}$/.test(value)) {
+      const byId = await ctx.db.get(value as Id<"users">);
+      if (byId && !byId.deletedAt) return byId;
+    }
+    return null;
+  },
+});
+
+export const rotatePublicToken = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const user = await requireActiveUser(ctx);
+    const token = await ensureUniquePublicToken(ctx);
+    await ctx.db.patch(user._id, { publicToken: token });
+    return token;
+  },
+});
+
 export const ensureFromWorkos = mutation({
   args: { email: v.optional(v.string()), name: v.optional(v.string()) },
   handler: async (ctx, { email: emailArg, name: nameArg }) => {
@@ -57,17 +111,37 @@ export const ensureFromWorkos = mutation({
       const patch: Record<string, unknown> = {};
       if (claimedEmail && existing.email !== claimedEmail) patch.email = claimedEmail;
       if (claimedName && existing.name === "Unnamed") patch.name = claimedName;
+      if (!existing.publicToken) patch.publicToken = await ensureUniquePublicToken(ctx);
       if (Object.keys(patch).length > 0) await ctx.db.patch(existing._id, patch);
       return existing._id;
     }
+    const publicToken = await ensureUniquePublicToken(ctx);
     const userId = await ctx.db.insert("users", {
       email: claimedEmail,
       workosUserId: identity.subject,
       name: claimedName ?? claimedEmail ?? "Unnamed",
       onboardingRequired: true,
       isSpeaker: false,
+      publicToken,
     });
     return userId;
+  },
+});
+
+// Backfill: assigns a publicToken to every existing user that lacks one.
+// Run once after schema migration.
+export const backfillPublicTokens = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const all = await ctx.db.query("users").collect();
+    let updated = 0;
+    for (const u of all) {
+      if (u.publicToken) continue;
+      const token = await ensureUniquePublicToken(ctx);
+      await ctx.db.patch(u._id, { publicToken: token });
+      updated += 1;
+    }
+    return { updated, total: all.length };
   },
 });
 

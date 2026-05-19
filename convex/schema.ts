@@ -23,11 +23,13 @@ export default defineSchema({
     deactivatedBy: v.optional(v.id("users")),
     deactivatedReason: v.optional(v.string()),
     claimCodeId: v.optional(v.id("claimCodes")),
+    publicToken: v.optional(v.string()),
   })
     .index("by_email", ["email"])
     .index("by_workos_id", ["workosUserId"])
     .index("by_team", ["teamId"])
-    .index("by_access_level", ["accessLevel"]),
+    .index("by_access_level", ["accessLevel"])
+    .index("by_public_token", ["publicToken"]),
 
   teams: defineTable({
     name: v.string(),

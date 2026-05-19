@@ -4,12 +4,12 @@ import QRCode from "qrcode";
 import { useEffect, useState } from "react";
 
 interface UserQRProps {
-  userId: string;
+  token: string;
   origin?: string;
   size?: number;
 }
 
-export function UserQR({ userId, origin, size = 320 }: UserQRProps) {
+export function UserQR({ token, origin, size = 320 }: UserQRProps) {
   const [dataUrl, setDataUrl] = useState<string | null>(null);
   const [resolvedOrigin, setResolvedOrigin] = useState(origin);
 
@@ -21,7 +21,7 @@ export function UserQR({ userId, origin, size = 320 }: UserQRProps) {
 
   useEffect(() => {
     if (!resolvedOrigin) return;
-    const url = `${resolvedOrigin}/connect/u/${userId}`;
+    const url = `${resolvedOrigin}/connect/u/${token}`;
     QRCode.toDataURL(url, {
       width: size,
       margin: 2,
@@ -30,7 +30,7 @@ export function UserQR({ userId, origin, size = 320 }: UserQRProps) {
     })
       .then(setDataUrl)
       .catch(() => setDataUrl(null));
-  }, [userId, resolvedOrigin, size]);
+  }, [token, resolvedOrigin, size]);
 
   return (
     <div className="space-y-3">
@@ -50,7 +50,7 @@ export function UserQR({ userId, origin, size = 320 }: UserQRProps) {
       </div>
       {resolvedOrigin && (
         <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/30 text-center break-all">
-          {resolvedOrigin}/connect/u/{userId}
+          {resolvedOrigin}/connect/u/{token}
         </p>
       )}
     </div>

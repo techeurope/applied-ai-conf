@@ -8,6 +8,7 @@ import {
   type QueryCtx,
 } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
+import { generatePublicToken } from "./_tokens";
 
 const ADMIN_ACTIONS = {
   grantAdmin: "admin.grant",
@@ -256,6 +257,31 @@ export const resetOnboarding = mutation({
     await ctx.db.patch(userId, { onboardingRequired: true });
     await writeAudit(ctx, admin, ADMIN_ACTIONS.resetOnboarding, userId);
     return userId;
+  },
+});
+
+export const rotateUserToken = mutation({
+  args: { userId: v.id("users") },
+  handler: async (ctx, { userId }) => {
+    const admin = await requireAdmin(ctx);
+    const target = await ctx.db.get(userId);
+    if (!target) throw new Error("User not found");
+    let token = "";
+    for (let i = 0; i < 8; i++) {
+      const candidate = generatePublicToken();
+      const clash = await ctx.db
+        .query("users")
+        .withIndex("by_public_token", (q) => q.eq("publicToken", candidate))
+        .first();
+      if (!clash) {
+        token = candidate;
+        break;
+      }
+    }
+    if (!token) throw new Error("Could not generate a unique token");
+    await ctx.db.patch(userId, { publicToken: token });
+    await writeAudit(ctx, admin, "user.rotate_token", userId, undefined, { token });
+    return token;
   },
 });
 

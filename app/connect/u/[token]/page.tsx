@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useMutation, useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import { api } from "@convex/_generated/api";
-import type { Id } from "@convex/_generated/dataModel";
 
 export default function ProfileViewPage({
   params,
@@ -14,7 +13,7 @@ export default function ProfileViewPage({
 }) {
   const { token } = use(params);
   const router = useRouter();
-  const user = useQuery(api.users.getById, { userId: token as Id<"users"> });
+  const user = useQuery(api.users.getByTokenOrId, { value: token });
   const contacts = useQuery(api.contacts.list);
   const addContact = useMutation(api.contacts.add);
   const [saving, setSaving] = useState(false);

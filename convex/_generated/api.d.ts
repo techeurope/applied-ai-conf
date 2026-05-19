@@ -9,6 +9,7 @@
  */
 
 import type * as _auth from "../_auth.js";
+import type * as _tokens from "../_tokens.js";
 import type * as admin from "../admin.js";
 import type * as claim from "../claim.js";
 import type * as consents from "../consents.js";
@@ -29,6 +30,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   _auth: typeof _auth;
+  _tokens: typeof _tokens;
   admin: typeof admin;
   claim: typeof claim;
   consents: typeof consents;

@@ -25,7 +25,7 @@ export default function MyQRPage() {
         </p>
       </header>
 
-      <UserQR userId={me._id} />
+      <UserQR token={me.publicToken ?? me._id} />
 
       <div className="glass-card rounded-2xl p-5 space-y-2">
         <div className="font-mono text-sm text-white">{me.name}</div>

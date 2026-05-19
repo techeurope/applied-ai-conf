@@ -35,7 +35,7 @@ export default function QRForUserPage({
         </p>
       </header>
 
-      <UserQR userId={user._id} />
+      <UserQR token={user.publicToken ?? user._id} />
 
       <p className="text-xs text-white/40 leading-relaxed">
         Open this page on a phone or another device, then scan with the Connect scanner on a
