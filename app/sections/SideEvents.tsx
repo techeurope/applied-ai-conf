@@ -77,7 +77,7 @@ export default function SideEvents() {
         {groups.map((group, gi) => (
           <div
             key={group.label}
-            className={`mb-20 last:mb-0 transition-all duration-700 ${
+            className={`mb-20 transition-all duration-700 ${
               isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             }`}
             style={{ transitionDelay: `${150 + gi * 100}ms` }}
@@ -181,6 +181,24 @@ export default function SideEvents() {
             </div>
           </div>
         ))}
+
+        {/* CTA */}
+        <div
+          className={`text-center transition-all duration-700 ${
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+          }`}
+          style={{ transitionDelay: `${150 + groups.length * 100}ms` }}
+        >
+          <p className="text-gray-400 mb-6">
+            Are you hosting an event? Please let us know.
+          </p>
+          <a
+            href="mailto:tim@techeurope.io?subject=Hosting%20an%20event%20during%20Applied%20AI%20Week"
+            className="inline-flex h-12 items-center justify-center rounded-full bg-white px-8 text-base font-bold text-black transition-all hover:bg-gray-100 hover:scale-105"
+          >
+            Get in touch
+          </a>
+        </div>
       </div>
     </section>
   );

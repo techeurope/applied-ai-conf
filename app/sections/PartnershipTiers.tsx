@@ -192,21 +192,6 @@ export default function PartnershipTiers() {
             </div>
           </div>
         </div>
-
-        {/* CTA */}
-        <div className="text-center">
-          <p className="text-gray-400 mb-6">
-            Want to partner with us?
-          </p>
-          <Link
-            href="https://tally.so/r/Me1ZKM"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex h-12 items-center justify-center rounded-full bg-white px-8 text-base font-bold text-black transition-all hover:bg-gray-100 hover:scale-105"
-          >
-            Get in touch
-          </Link>
-        </div>
       </div>
     </section>
   );
