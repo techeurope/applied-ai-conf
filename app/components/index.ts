@@ -41,5 +41,6 @@ export { GoogleDeepMindLogo } from './ui/google-deepmind-logo';
 export { RestateLogo } from './ui/restate-logo';
 export { LinkupLogo } from './ui/linkup-logo';
 export { RunpodLogo } from './ui/runpod-logo';
+export { V7Logo } from './ui/v7-logo';
 export { default as CookieConsent } from './CookieConsent';
 export { default as PostHogProvider } from './PostHogProvider';

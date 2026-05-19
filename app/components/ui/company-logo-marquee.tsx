@@ -40,6 +40,7 @@ import { GoogleDeepMindLogo } from "@/components/ui/google-deepmind-logo";
 import { RestateLogo } from "@/components/ui/restate-logo";
 import { LinkupLogo } from "@/components/ui/linkup-logo";
 import { RunpodLogo } from "@/components/ui/runpod-logo";
+import { V7Logo } from "@/components/ui/v7-logo";
 
 type LogoComponent = React.ComponentType<{ className?: string }>;
 
@@ -82,6 +83,7 @@ const COMPANY_LOGOS: Record<string, LogoComponent> = {
   Restate: RestateLogo,
   Linkup: LinkupLogo,
   Runpod: RunpodLogo,
+  V7: V7Logo,
 };
 
 // Square/compact logos need a larger height to match the visual weight of wide wordmarks
@@ -128,6 +130,7 @@ const COMPANY_ITEMS = [
   { name: "Restate", url: "https://restate.dev" },
   { name: "Linkup", url: "https://www.linkup.so" },
   { name: "Runpod", url: "https://www.runpod.io" },
+  { name: "V7", url: "https://www.v7labs.com" },
 ];
 
 const NORMAL_SPEED = 100; // pixels per second

@@ -565,6 +565,7 @@ export const SPEAKERS = [
     name: 'Simon Edwardsson',
     title: 'Co-Founder & CTO',
     company: 'V7',
+    companyLogo: '/logos/v7.svg',
     companyUrl: 'https://www.v7labs.com/',
     linkedinUrl: 'https://www.linkedin.com/in/simonedwardsson/',
     bio: '',
@@ -576,6 +577,7 @@ export const SPEAKERS = [
     image: '/speakers/simon_edwardsson_fullbody_square.png',
     imageTransparent: '/speakers/simon_edwardsson_fullbody_transparent_square.png',
     imageAlt: 'Simon Edwardsson headshot',
+    logoAlt: 'V7 logo',
   },
   {
     name: 'Emmett Fear',
