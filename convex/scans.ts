@@ -22,6 +22,9 @@ export const record = mutation({
   },
   handler: async (ctx, { scannedUserId, clientId, eventId }) => {
     const scanner = await getMe(ctx);
+    if (!scanner.ticketLinkedAt && scanner.accessLevel !== "admin") {
+      throw new Error("Ticket not verified");
+    }
     if (scanner._id === scannedUserId) {
       throw new Error("Cannot scan yourself");
     }

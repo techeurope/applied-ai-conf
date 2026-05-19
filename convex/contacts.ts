@@ -47,6 +47,9 @@ export const add = mutation({
   args: { userId: v.id("users") },
   handler: async (ctx, { userId }) => {
     const me = await getMe(ctx);
+    if (!me.ticketLinkedAt && me.accessLevel !== "admin") {
+      throw new Error("Ticket not verified");
+    }
     if (me._id === userId) throw new Error("Can't add yourself");
     const target = await ctx.db.get(userId);
     if (!target || target.deletedAt) throw new Error("User not found");

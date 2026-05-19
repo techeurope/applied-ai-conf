@@ -13,3 +13,11 @@ export async function requireActiveUser(ctx: QueryCtx | MutationCtx): Promise<Do
   if (user.deletedAt) throw new Error("Account deleted");
   return user;
 }
+
+export async function requireVerifiedUser(ctx: QueryCtx | MutationCtx): Promise<Doc<"users">> {
+  const user = await requireActiveUser(ctx);
+  if (!user.ticketLinkedAt && user.accessLevel !== "admin") {
+    throw new Error("Ticket not verified");
+  }
+  return user;
+}

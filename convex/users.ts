@@ -223,6 +223,11 @@ export const directoryList = query({
   handler: async (ctx, { limit = 200 }) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return [];
+    const me = await ctx.db
+      .query("users")
+      .withIndex("by_workos_id", (q) => q.eq("workosUserId", identity.subject))
+      .first();
+    if (!me || (!me.ticketLinkedAt && me.accessLevel !== "admin")) return [];
 
     const speakers = await ctx.db
       .query("users")

@@ -29,6 +29,13 @@ export function ConnectShell({ children }: { children: ReactNode }) {
     pathname === "/connect" ||
     pathname?.startsWith("/connect/login") ||
     pathname?.startsWith("/connect/onboarding") ||
+    pathname?.startsWith("/connect/link-ticket") ||
+    pathname?.startsWith("/connect/consent-details");
+
+  const onGateBypassPath =
+    pathname?.startsWith("/connect/link-ticket") ||
+    pathname?.startsWith("/connect/settings") ||
+    pathname?.startsWith("/connect/u/") ||
     pathname?.startsWith("/connect/consent-details");
 
   useEffect(() => {
@@ -40,10 +47,24 @@ export function ConnectShell({ children }: { children: ReactNode }) {
     }).catch(() => undefined);
   }, [auth.user, ensureUser]);
 
+  const verified =
+    !!me &&
+    (!!me.ticketLinkedAt || me.accessLevel === "admin");
+
+  useEffect(() => {
+    if (!auth.user || !me) return;
+    if (!verified && !onGateBypassPath) {
+      router.replace("/connect/link-ticket");
+    }
+  }, [auth.user, me, verified, onGateBypassPath, router]);
+
   useEffect(() => {
     if (!auth.user || !me?.onboardingRequired || hideNav) return;
+    // Only push to onboarding once the user is verified — otherwise the
+    // link-ticket gate takes precedence.
+    if (!verified) return;
     router.replace("/connect/onboarding");
-  }, [auth.user, hideNav, me?.onboardingRequired, router]);
+  }, [auth.user, hideNav, me?.onboardingRequired, verified, router]);
 
   useEffect(() => {
     if (me?.deactivatedAt) {
