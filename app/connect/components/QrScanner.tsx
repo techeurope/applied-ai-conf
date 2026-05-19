@@ -1,6 +1,6 @@
 "use client";
 
-import { BrowserMultiFormatReader, IScannerControls } from "@zxing/browser";
+import { BrowserMultiFormatReader } from "@zxing/browser";
 import { useEffect, useRef, useState } from "react";
 
 interface QrScannerProps {
@@ -10,42 +10,63 @@ interface QrScannerProps {
 
 export function QrScanner({ onScan, paused = false }: QrScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const controlsRef = useRef<IScannerControls | null>(null);
+  const onScanRef = useRef(onScan);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    onScanRef.current = onScan;
+  }, [onScan]);
 
   useEffect(() => {
     if (paused) return;
     const video = videoRef.current;
     if (!video) return;
-    const reader = new BrowserMultiFormatReader();
-    let cancelled = false;
 
-    reader
-      .decodeFromVideoDevice(undefined, video, (result) => {
-        if (!cancelled && result) {
-          onScan(result.getText());
-        }
-      })
-      .then((controls) => {
+    let cancelled = false;
+    let stream: MediaStream | null = null;
+    const reader = new BrowserMultiFormatReader();
+
+    (async () => {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: "environment" } },
+          audio: false,
+        });
         if (cancelled) {
-          controls.stop();
-        } else {
-          controlsRef.current = controls;
+          stream.getTracks().forEach((t) => t.stop());
+          return;
         }
-      })
-      .catch((err: unknown) => {
+        video.srcObject = stream;
+        await video.play().catch(() => {});
+        await reader.decodeFromVideoElement(video, (result) => {
+          if (!cancelled && result) {
+            onScanRef.current(result.getText());
+          }
+        });
+      } catch (err) {
         if (!cancelled) {
           const message = err instanceof Error ? err.message : "Camera unavailable";
           setError(message);
         }
-      });
+      }
+    })();
 
     return () => {
       cancelled = true;
-      controlsRef.current?.stop();
-      controlsRef.current = null;
+      try {
+        // Stop zxing's internal decode loop without touching srcObject.
+        (reader as unknown as { reset?: () => void }).reset?.();
+      } catch {
+        // ignore
+      }
+      if (stream) {
+        stream.getTracks().forEach((t) => t.stop());
+        if (video.srcObject === stream) {
+          video.srcObject = null;
+        }
+      }
     };
-  }, [onScan, paused]);
+  }, [paused]);
 
   if (error) {
     return (
