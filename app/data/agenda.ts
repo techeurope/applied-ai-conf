@@ -73,7 +73,7 @@ export const AGENDA: AgendaSlot[] = [
   { id: 'main-11', startTime: '15:30', endTime: '15:50', title: 'Building a Universal Agent for Legal', speakerNames: ['Zino Kader', 'Jakob Emmerling'], stage: 'main', format: 'talk' },
   { id: 'side-10', startTime: '15:30', endTime: '15:50', title: 'From Caching to Batching to Flex — How to optimize AI system for production', speakerNames: ['Lucia Loher', 'Patrick Löber'], stage: 'side', format: 'talk' },
 
-  { id: 'main-12', startTime: '15:55', endTime: '16:15', title: 'To be announced', speakerName: 'Sabba Keynejad', stage: 'main', format: 'talk' },
+  { id: 'main-12', startTime: '15:55', endTime: '16:15', title: 'Reinventing VEED for the agentic era', speakerName: 'Sabba Keynejad', stage: 'main', format: 'talk' },
   { id: 'side-11', startTime: '15:55', endTime: '16:15', title: 'The 100x Inference Tax You Don\'t Have to Pay', speakerName: 'Jacek Golebiowski', stage: 'side', format: 'talk' },
 
   { id: 'main-13', startTime: '16:20', endTime: '16:40', title: 'Leading through AI change', speakerName: 'Masashi Beheim', stage: 'main', format: 'talk' },

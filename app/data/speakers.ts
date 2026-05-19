@@ -210,7 +210,7 @@ export const SPEAKERS = [
     bio: '',
     vertical: 'Media',
     building: 'AI-Video Platform with >4 million users',
-    talkTitle: '',
+    talkTitle: 'Reinventing VEED for the agentic era',
     initial: 'SK',
     accent: 'from-violet-400/40 via-purple-400/30 to-indigo-500/40',
     image: '/speakers/sabba_keynejad.jpg',
