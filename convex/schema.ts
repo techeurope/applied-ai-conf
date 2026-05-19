@@ -145,6 +145,19 @@ export default defineSchema({
     .index("by_pending_attendee", ["pendingAttendeeId"])
     .index("by_created", ["createdAt"]),
 
+  lumaAttendees: defineTable({
+    lumaGuestId: v.string(),
+    email: v.string(),
+    name: v.optional(v.string()),
+    ticketType: v.optional(v.string()),
+    registeredAt: v.number(),
+    approvalStatus: v.string(),
+    checkedInAt: v.optional(v.number()),
+    syncedAt: v.number(),
+  })
+    .index("by_luma_guest_id", ["lumaGuestId"])
+    .index("by_email", ["email"]),
+
   auditLog: defineTable({
     actorUserId: v.id("users"),
     action: v.string(),
