@@ -246,7 +246,7 @@ export const SPEAKERS = [
     bio: '',
     vertical: 'Developer Experience',
     building: 'MCP Apps, WebMCP, and the future of agent UIs beyond chat',
-    talkTitle: 'Your Agent Is an Infinite Canvas',
+    talkTitle: 'MCP vs Skills',
     initial: 'RN',
     accent: 'from-red-400/40 via-rose-400/30 to-pink-500/40',
     image: '/speakers/rachel_nabors_fullbody_square.png',
