@@ -40,5 +40,6 @@ export { NebiusLogo } from './ui/nebius-logo';
 export { GoogleDeepMindLogo } from './ui/google-deepmind-logo';
 export { RestateLogo } from './ui/restate-logo';
 export { LinkupLogo } from './ui/linkup-logo';
+export { RunpodLogo } from './ui/runpod-logo';
 export { default as CookieConsent } from './CookieConsent';
 export { default as PostHogProvider } from './PostHogProvider';
