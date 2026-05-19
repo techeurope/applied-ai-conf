@@ -103,15 +103,6 @@ export const completeOnboarding = mutation({
   },
 });
 
-export const restartOnboarding = mutation({
-  args: {},
-  handler: async (ctx) => {
-    const user = await requireActiveUser(ctx);
-    await ctx.db.patch(user._id, { onboardingRequired: true });
-    return user._id;
-  },
-});
-
 export const deleteAccount = mutation({
   args: {},
   handler: async (ctx) => {

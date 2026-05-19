@@ -2,7 +2,6 @@
 
 import { useMutation, useQuery } from "convex/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@workos-inc/authkit-nextjs/components";
 import { api } from "@convex/_generated/api";
 import { useState } from "react";
@@ -23,7 +22,6 @@ const CONSENT_LABELS: Record<ConsentKey, string> = {
 };
 
 export default function SettingsPage() {
-  const router = useRouter();
   const auth = useAuth();
   const me = useQuery(api.users.me);
   const goals = useQuery(api.goals.list);
@@ -31,7 +29,6 @@ export default function SettingsPage() {
   const addGoal = useMutation(api.goals.add);
   const removeGoal = useMutation(api.goals.remove);
   const setConsent = useMutation(api.consents.set);
-  const restartOnboarding = useMutation(api.users.restartOnboarding);
   const deleteAccount = useMutation(api.users.deleteAccount);
 
   const [newGoal, setNewGoal] = useState("");
@@ -124,16 +121,6 @@ export default function SettingsPage() {
       <section className="space-y-3">
         <h2 className="font-mono text-sm text-foreground">Account</h2>
         <div className="flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={async () => {
-              await restartOnboarding({});
-              router.push("/connect/onboarding");
-            }}
-            className="font-mono text-xs text-white/70 hover:text-white underline underline-offset-4"
-          >
-            Restart onboarding
-          </button>
           <button
             type="button"
             onClick={() => auth.signOut({ returnTo: "/connect" })}
