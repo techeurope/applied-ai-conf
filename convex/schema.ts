@@ -24,6 +24,8 @@ export default defineSchema({
     deactivatedReason: v.optional(v.string()),
     claimCodeId: v.optional(v.id("claimCodes")),
     publicToken: v.optional(v.string()),
+    ticketLinkedAt: v.optional(v.number()),
+    lumaGuestId: v.optional(v.string()),
   })
     .index("by_email", ["email"])
     .index("by_workos_id", ["workosUserId"])
@@ -146,6 +148,34 @@ export default defineSchema({
     .index("by_code", ["code"])
     .index("by_pending_attendee", ["pendingAttendeeId"])
     .index("by_created", ["createdAt"]),
+
+  ticketLinks: defineTable({
+    userId: v.id("users"),
+    lumaGuestId: v.string(),
+    lumaEmail: v.string(),
+    method: v.union(
+      v.literal("auto"),
+      v.literal("email_code"),
+      v.literal("claim_code"),
+      v.literal("admin_link"),
+    ),
+    verifiedAt: v.number(),
+    verifiedByUserId: v.optional(v.id("users")),
+  })
+    .index("by_user", ["userId"])
+    .index("by_luma_guest_id", ["lumaGuestId"]),
+
+  emailCodes: defineTable({
+    userId: v.id("users"),
+    targetEmail: v.string(),
+    codeHash: v.string(),
+    attempts: v.number(),
+    expiresAt: v.number(),
+    consumedAt: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_email", ["userId", "targetEmail"]),
 
   lumaAttendees: defineTable({
     lumaGuestId: v.string(),

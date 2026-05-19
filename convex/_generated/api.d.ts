@@ -20,6 +20,7 @@ import type * as luma from "../luma.js";
 import type * as notifications from "../notifications.js";
 import type * as scans from "../scans.js";
 import type * as seed from "../seed.js";
+import type * as ticket from "../ticket.js";
 import type * as users from "../users.js";
 
 import type {
@@ -41,6 +42,7 @@ declare const fullApi: ApiFromModules<{
   notifications: typeof notifications;
   scans: typeof scans;
   seed: typeof seed;
+  ticket: typeof ticket;
   users: typeof users;
 }>;
 

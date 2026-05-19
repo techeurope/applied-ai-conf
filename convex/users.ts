@@ -2,6 +2,7 @@ import { mutation, query, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import { generatePublicToken } from "./_tokens";
+import { tryAutoLink } from "./ticket";
 
 async function ensureUniquePublicToken(ctx: any): Promise<string> {
   for (let attempt = 0; attempt < 8; attempt++) {
@@ -113,6 +114,8 @@ export const ensureFromWorkos = mutation({
       if (claimedName && existing.name === "Unnamed") patch.name = claimedName;
       if (!existing.publicToken) patch.publicToken = await ensureUniquePublicToken(ctx);
       if (Object.keys(patch).length > 0) await ctx.db.patch(existing._id, patch);
+      const refreshed = (await ctx.db.get(existing._id))!;
+      await tryAutoLink(ctx, refreshed);
       return existing._id;
     }
     const publicToken = await ensureUniquePublicToken(ctx);
@@ -124,6 +127,8 @@ export const ensureFromWorkos = mutation({
       isSpeaker: false,
       publicToken,
     });
+    const fresh = (await ctx.db.get(userId))!;
+    await tryAutoLink(ctx, fresh);
     return userId;
   },
 });

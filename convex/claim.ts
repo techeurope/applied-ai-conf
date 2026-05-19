@@ -71,7 +71,12 @@ export const redeem = mutation({
     });
 
     // Enrich the user record from the pending row, but never overwrite existing values.
-    const patch: Record<string, unknown> = { claimCodeId: found._id };
+    // Also marks the user as ticket-verified so the access gate lets them in,
+    // even though they never had a Luma ticket.
+    const patch: Record<string, unknown> = {
+      claimCodeId: found._id,
+      ticketLinkedAt: Date.now(),
+    };
     if (pending.name && !user.name.trim()) patch.name = pending.name;
     if (pending.company && !user.company) patch.company = pending.company;
     if (pending.jobRole && !user.role) patch.role = pending.jobRole;
