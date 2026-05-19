@@ -318,7 +318,7 @@ export const SPEAKERS = [
     bio: '',
     vertical: 'AI Infrastructure',
     building: 'Serverless AI infrastructure for training and inference',
-    talkTitle: '',
+    talkTitle: 'Build Your Own Background Agent: The infra that scales it to millions',
     initial: 'LZ',
     accent: 'from-green-400/40 via-emerald-400/30 to-teal-500/40',
     image: '/speakers/lucy_zhang_fullbody_square.png',
