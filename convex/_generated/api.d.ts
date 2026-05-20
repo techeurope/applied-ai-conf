@@ -15,6 +15,7 @@ import type * as claim from "../claim.js";
 import type * as consents from "../consents.js";
 import type * as contacts from "../contacts.js";
 import type * as email from "../email.js";
+import type * as favorites from "../favorites.js";
 import type * as goals from "../goals.js";
 import type * as luma from "../luma.js";
 import type * as notifications from "../notifications.js";
@@ -37,6 +38,7 @@ declare const fullApi: ApiFromModules<{
   consents: typeof consents;
   contacts: typeof contacts;
   email: typeof email;
+  favorites: typeof favorites;
   goals: typeof goals;
   luma: typeof luma;
   notifications: typeof notifications;

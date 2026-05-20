@@ -165,6 +165,14 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_luma_guest_id", ["lumaGuestId"]),
 
+  favoriteSessions: defineTable({
+    userId: v.id("users"),
+    sessionSlug: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_session", ["userId", "sessionSlug"]),
+
   emailCodes: defineTable({
     userId: v.id("users"),
     targetEmail: v.string(),
