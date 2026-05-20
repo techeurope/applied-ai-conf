@@ -501,6 +501,74 @@ export const listClaimCodes = query({
   },
 });
 
+export const createClaimCodesBulk = mutation({
+  args: {
+    entries: v.array(
+      v.object({
+        email: v.string(),
+        name: v.optional(v.string()),
+        company: v.optional(v.string()),
+        jobRole: v.optional(v.string()),
+        kind: v.union(
+          v.literal("speaker"),
+          v.literal("walkin"),
+          v.literal("guest"),
+          v.literal("staff"),
+        ),
+        note: v.optional(v.string()),
+      }),
+    ),
+  },
+  handler: async (ctx, { entries }) => {
+    const admin = await requireAdmin(ctx);
+    const created: Array<{ email: string; code: string; codeId: Id<"claimCodes"> }> = [];
+    for (const entry of entries) {
+      const normalizedEmail = entry.email.toLowerCase().trim();
+      const pendingId = await ctx.db.insert("pendingAttendees", {
+        email: normalizedEmail,
+        name: entry.name,
+        company: entry.company,
+        jobRole: entry.jobRole,
+        kind: entry.kind,
+        note: entry.note,
+        createdByUserId: admin._id,
+        createdAt: Date.now(),
+      });
+      let code = generateCode();
+      for (let i = 0; i < 5; i++) {
+        const clash = await ctx.db
+          .query("claimCodes")
+          .withIndex("by_code", (q) => q.eq("code", code))
+          .first();
+        if (!clash) break;
+        code = generateCode();
+      }
+      const codeId = await ctx.db.insert("claimCodes", {
+        code,
+        pendingAttendeeId: pendingId,
+        createdByUserId: admin._id,
+        createdAt: Date.now(),
+      });
+      created.push({ email: normalizedEmail, code, codeId });
+    }
+    await writeAudit(ctx, admin, "claim_code.bulk_create", undefined, undefined, {
+      count: created.length,
+    });
+    return created;
+  },
+});
+
+export const getClaimCodeForEmail = query({
+  args: { codeId: v.id("claimCodes") },
+  handler: async (ctx, { codeId }) => {
+    await requireAdmin(ctx);
+    const code = await ctx.db.get(codeId);
+    if (!code) return null;
+    const pending = await ctx.db.get(code.pendingAttendeeId);
+    return { code, pending };
+  },
+});
+
 export const revokeClaimCode = mutation({
   args: { codeId: v.id("claimCodes") },
   handler: async (ctx, { codeId }) => {

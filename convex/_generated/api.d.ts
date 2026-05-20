@@ -11,6 +11,7 @@
 import type * as _auth from "../_auth.js";
 import type * as _tokens from "../_tokens.js";
 import type * as admin from "../admin.js";
+import type * as admin_email from "../admin_email.js";
 import type * as claim from "../claim.js";
 import type * as consents from "../consents.js";
 import type * as contacts from "../contacts.js";
@@ -35,6 +36,7 @@ declare const fullApi: ApiFromModules<{
   _auth: typeof _auth;
   _tokens: typeof _tokens;
   admin: typeof admin;
+  admin_email: typeof admin_email;
   claim: typeof claim;
   consents: typeof consents;
   contacts: typeof contacts;
