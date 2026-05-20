@@ -1,12 +1,12 @@
 import { withAuth } from "@workos-inc/authkit-nextjs";
-import { redirect } from "next/navigation";
 import { ScanLine, Users, Compass, CalendarDays } from "lucide-react";
+import { BadgeHome } from "./components/BadgeHome";
 
 export default async function ConnectHome() {
   const { user } = await withAuth();
 
   if (user) {
-    redirect("/connect/scan");
+    return <BadgeHome />;
   }
 
   return (

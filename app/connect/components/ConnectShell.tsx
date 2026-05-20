@@ -26,7 +26,7 @@ export function ConnectShell({ children }: { children: ReactNode }) {
   const me = useQuery(api.users.me);
   const ensureUser = useMutation(api.users.ensureFromWorkos);
   const hideNav =
-    pathname === "/connect" ||
+    (pathname === "/connect" && !auth.user) ||
     pathname?.startsWith("/connect/login") ||
     pathname?.startsWith("/connect/onboarding") ||
     pathname?.startsWith("/connect/link-ticket") ||
