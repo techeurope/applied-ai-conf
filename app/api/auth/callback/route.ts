@@ -22,7 +22,11 @@ const baseURL = (() => {
   }
 })();
 
+// Always land on /connect after sign-in. ConnectShell handles the next hop:
+// → /connect/link-ticket if not verified, → /connect/onboarding if profile is
+// still empty, → badge home otherwise. Hardcoding /connect/onboarding here
+// trapped already-onboarded users on the setup form after every sign-in.
 export const GET = handleAuth({
-  returnPathname: "/connect/onboarding",
+  returnPathname: "/connect",
   ...(baseURL ? { baseURL } : {}),
 });
