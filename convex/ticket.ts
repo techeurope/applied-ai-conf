@@ -54,6 +54,7 @@ export async function tryAutoLink(ctx: MutationCtx, user: Doc<"users">) {
     .withIndex("by_email", (q) => q.eq("email", user.email))
     .first();
   if (!luma) return null;
+  if (luma.approvalStatus !== "approved") return null;
 
   const now = Date.now();
   const linkId = await ctx.db.insert("ticketLinks", {
@@ -112,12 +113,12 @@ export const requestEmailCode = action({
     if (!identity) throw new Error("Not authenticated");
     const normalized = lumaEmail.toLowerCase().trim();
 
-    const found: { matched: boolean; user: Doc<"users"> | null } = await ctx.runQuery(
+    const found: { matched: boolean; approved: boolean; user: Doc<"users"> | null } = await ctx.runQuery(
       internal.ticket._lookupForRequest,
       { lumaEmail: normalized },
     );
 
-    if (!found.matched) {
+    if (!found.matched || !found.approved) {
       return { status: "not_found" };
     }
     if (!found.user) {
@@ -191,6 +192,9 @@ export const verifyEmailCode = mutation({
       .withIndex("by_email", (q) => q.eq("email", normalized))
       .first();
     if (!luma) throw new Error("Luma attendee not found in cache");
+    if (luma.approvalStatus !== "approved") {
+      throw new Error("Your Luma registration is not approved yet");
+    }
 
     await ctx.db.patch(issued._id, { consumedAt: Date.now() });
     const now = Date.now();
@@ -228,7 +232,11 @@ export const _lookupForRequest = internalQuery({
       .query("lumaAttendees")
       .withIndex("by_email", (q) => q.eq("email", lumaEmail))
       .first();
-    return { matched: !!luma, user: user ?? null };
+    return {
+      matched: !!luma,
+      approved: luma?.approvalStatus === "approved",
+      user: user ?? null,
+    };
   },
 });
 

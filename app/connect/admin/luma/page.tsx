@@ -6,18 +6,24 @@ import { api } from "@convex/_generated/api";
 
 export default function AdminLumaPage() {
   const [search, setSearch] = useState("");
+  const [includeUnapproved, setIncludeUnapproved] = useState(false);
   const stats = useQuery(api.luma.stats, {});
   const attendees = useQuery(api.luma.list, {
     search: search.trim() || undefined,
     limit: 500,
+    includeUnapproved,
   });
 
   return (
     <div className="space-y-5">
       <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Stat label="Total" value={stats?.total ?? "—"} />
         <Stat label="Approved" value={stats?.approved ?? "—"} />
+        <Stat label="Invited" value={stats?.invited ?? "—"} />
+        <Stat label="Pending" value={stats?.pending ?? "—"} />
+        <Stat label="Waitlist" value={stats?.waitlist ?? "—"} />
+        <Stat label="Declined" value={stats?.declined ?? "—"} />
         <Stat label="Checked-in" value={stats?.checkedIn ?? "—"} />
+        <Stat label="Total cached" value={stats?.total ?? "—"} />
         <Stat
           label="Last sync"
           value={
@@ -36,13 +42,23 @@ export default function AdminLumaPage() {
         (add <code>--prod</code> for production).
       </p>
 
-      <input
-        type="search"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search name, email, ticket type"
-        className="w-full rounded-full bg-white/5 ring-1 ring-white/10 px-4 py-2 text-sm placeholder:text-white/30 focus:outline-none focus:ring-white/30"
-      />
+      <div className="flex flex-col sm:flex-row gap-2">
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search name, email, ticket type"
+          className="flex-1 rounded-full bg-white/5 ring-1 ring-white/10 px-4 py-2 text-sm placeholder:text-white/30 focus:outline-none focus:ring-white/30"
+        />
+        <label className="inline-flex items-center gap-2 px-3 py-2 rounded-full ring-1 ring-white/10 text-xs font-mono text-white/70">
+          <input
+            type="checkbox"
+            checked={includeUnapproved}
+            onChange={(e) => setIncludeUnapproved(e.target.checked)}
+          />
+          Show non-approved
+        </label>
+      </div>
 
       <div className="text-xs font-mono text-white/40">
         {attendees ? `${attendees.length} shown` : "loading…"}

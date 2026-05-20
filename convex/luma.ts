@@ -63,12 +63,14 @@ export const list = query({
   args: {
     search: v.optional(v.string()),
     limit: v.optional(v.number()),
+    includeUnapproved: v.optional(v.boolean()),
   },
-  handler: async (ctx, { search, limit = 500 }) => {
+  handler: async (ctx, { search, limit = 500, includeUnapproved }) => {
     await requireAdmin(ctx);
-    const all = await ctx.db.query("lumaAttendees").take(limit * 2);
+    const all = await ctx.db.query("lumaAttendees").take(limit * 4);
     const term = search?.toLowerCase().trim() ?? "";
     return all
+      .filter((a) => (includeUnapproved ? true : a.approvalStatus === "approved"))
       .filter((a) => {
         if (!term) return true;
         return (
@@ -88,8 +90,21 @@ export const stats = query({
     const all = await ctx.db.query("lumaAttendees").collect();
     const checkedIn = all.filter((a) => a.checkedInAt).length;
     const approved = all.filter((a) => a.approvalStatus === "approved").length;
+    const invited = all.filter((a) => a.approvalStatus === "invited").length;
+    const declined = all.filter((a) => a.approvalStatus === "declined").length;
+    const pending = all.filter((a) => a.approvalStatus === "pending_approval").length;
+    const waitlist = all.filter((a) => a.approvalStatus === "waitlist").length;
     const lastSynced = all.reduce((max, a) => Math.max(max, a.syncedAt), 0);
-    return { total: all.length, checkedIn, approved, lastSynced };
+    return {
+      total: all.length,
+      approved,
+      invited,
+      declined,
+      pending,
+      waitlist,
+      checkedIn,
+      lastSynced,
+    };
   },
 });
 

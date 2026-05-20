@@ -339,6 +339,11 @@ export const manualLinkTicket = mutation({
       .withIndex("by_email", (q) => q.eq("email", normalized))
       .first();
     if (!luma) throw new Error("No Luma attendee with that email in the cache");
+    if (luma.approvalStatus !== "approved") {
+      throw new Error(
+        `That Luma attendee is "${luma.approvalStatus}", not approved. Admin override only via the dashboard.`,
+      );
+    }
 
     const claimedByAnother = await ctx.db
       .query("ticketLinks")
