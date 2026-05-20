@@ -19,6 +19,7 @@ import type * as favorites from "../favorites.js";
 import type * as goals from "../goals.js";
 import type * as luma from "../luma.js";
 import type * as notifications from "../notifications.js";
+import type * as partners from "../partners.js";
 import type * as scans from "../scans.js";
 import type * as seed from "../seed.js";
 import type * as ticket from "../ticket.js";
@@ -42,6 +43,7 @@ declare const fullApi: ApiFromModules<{
   goals: typeof goals;
   luma: typeof luma;
   notifications: typeof notifications;
+  partners: typeof partners;
   scans: typeof scans;
   seed: typeof seed;
   ticket: typeof ticket;

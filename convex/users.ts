@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import { generatePublicToken } from "./_tokens";
 import { tryAutoLink } from "./ticket";
+import { consumePartnerInviteIfAny } from "./partners";
 
 async function ensureUniquePublicToken(ctx: any): Promise<string> {
   for (let attempt = 0; attempt < 8; attempt++) {
@@ -115,7 +116,9 @@ export const ensureFromWorkos = mutation({
       if (!existing.publicToken) patch.publicToken = await ensureUniquePublicToken(ctx);
       if (Object.keys(patch).length > 0) await ctx.db.patch(existing._id, patch);
       const refreshed = (await ctx.db.get(existing._id))!;
-      await tryAutoLink(ctx, refreshed);
+      await consumePartnerInviteIfAny(ctx, refreshed);
+      const after = (await ctx.db.get(existing._id))!;
+      await tryAutoLink(ctx, after);
       return existing._id;
     }
     const publicToken = await ensureUniquePublicToken(ctx);
@@ -128,7 +131,9 @@ export const ensureFromWorkos = mutation({
       publicToken,
     });
     const fresh = (await ctx.db.get(userId))!;
-    await tryAutoLink(ctx, fresh);
+    await consumePartnerInviteIfAny(ctx, fresh);
+    const afterInvite = (await ctx.db.get(userId))!;
+    await tryAutoLink(ctx, afterInvite);
     return userId;
   },
 });

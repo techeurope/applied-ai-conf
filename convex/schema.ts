@@ -38,7 +38,40 @@ export default defineSchema({
     slug: v.string(),
     logoStorageId: v.optional(v.id("_storage")),
     createdByUserId: v.id("users"),
-  }).index("by_slug", ["slug"]),
+    kind: v.optional(v.union(v.literal("partner"), v.literal("regular"))),
+    partnerTier: v.optional(v.string()),
+    partnerBoothLocation: v.optional(v.string()),
+    partnerBio: v.optional(v.string()),
+    partnerWebsite: v.optional(v.string()),
+    partnerVerifiedAt: v.optional(v.number()),
+    partnerVerifiedByUserId: v.optional(v.id("users")),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_kind", ["kind"]),
+
+  partnerMembers: defineTable({
+    teamId: v.id("teams"),
+    userId: v.id("users"),
+    role: v.union(v.literal("owner"), v.literal("member")),
+    invitedAt: v.number(),
+    invitedByUserId: v.id("users"),
+    joinedAt: v.number(),
+  })
+    .index("by_team", ["teamId"])
+    .index("by_user", ["userId"])
+    .index("by_team_user", ["teamId", "userId"]),
+
+  partnerInvites: defineTable({
+    teamId: v.id("teams"),
+    email: v.string(),
+    role: v.union(v.literal("owner"), v.literal("member")),
+    invitedAt: v.number(),
+    invitedByUserId: v.id("users"),
+    consumedAt: v.optional(v.number()),
+    consumedByUserId: v.optional(v.id("users")),
+  })
+    .index("by_team", ["teamId"])
+    .index("by_email", ["email"]),
 
   profiles: defineTable({
     userId: v.id("users"),
