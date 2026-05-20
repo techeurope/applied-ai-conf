@@ -11,7 +11,7 @@ export { KnowunityLogo } from './ui/knowunity-logo';
 export { VeedLogo } from './ui/veed-logo';
 export { CodewordsLogo } from './ui/codewords-logo';
 export { DustLogo } from './ui/dust-logo';
-export { IntercomLogo } from './ui/intercom-logo';
+export { FinLogo } from './ui/fin-logo';
 export { GradiumLogo } from './ui/gradium-logo';
 export { LlamaIndexLogo } from './ui/llamaindex-logo';
 export { ConfluentLogo } from './ui/confluent-logo';

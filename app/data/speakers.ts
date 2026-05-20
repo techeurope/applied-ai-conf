@@ -4,9 +4,9 @@ export const SPEAKERS = [
   {
     name: 'Des Traynor',
     title: 'Co-Founder & CSO',
-    company: 'Intercom',
-    companyLogo: '/logos/intercom.svg',
-    companyUrl: 'https://www.intercom.com/',
+    company: 'Fin',
+    companyLogo: '/logos/fin.svg',
+    companyUrl: 'https://fin.ai/',
     linkedinUrl: 'https://www.linkedin.com/in/destraynor',
     bio: '',
     vertical: 'Customer Service',
@@ -17,7 +17,7 @@ export const SPEAKERS = [
     image: '/speakers/des_traynor.jpg',
     imageTransparent: '/speakers/des_traynor_fullbody_transparent_square.png',
     imageAlt: 'Des Traynor headshot',
-    logoAlt: 'Intercom logo',
+    logoAlt: 'Fin logo',
   },
   {
     name: 'Clara Matos',

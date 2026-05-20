@@ -10,7 +10,7 @@ import { KnowunityLogo } from "@/components/ui/knowunity-logo";
 import { VeedLogo } from "@/components/ui/veed-logo";
 import { CodewordsLogo } from "@/components/ui/codewords-logo";
 import { DustLogo } from "@/components/ui/dust-logo";
-import { IntercomLogo } from "@/components/ui/intercom-logo";
+import { FinLogo } from "@/components/ui/fin-logo";
 import { GradiumLogo } from "@/components/ui/gradium-logo";
 import { LlamaIndexLogo } from "@/components/ui/llamaindex-logo";
 import { ConfluentLogo } from "@/components/ui/confluent-logo";
@@ -53,7 +53,7 @@ const COMPANY_LOGOS: Record<string, LogoComponent> = {
   "VEED.IO": VeedLogo,
   CodeWords: CodewordsLogo,
   Dust: DustLogo,
-  Intercom: IntercomLogo,
+  Fin: FinLogo,
   Gradium: GradiumLogo,
   LlamaIndex: LlamaIndexLogo,
   Confluent: ConfluentLogo,
@@ -116,7 +116,7 @@ const COMPANY_ITEMS = [
   { name: "CodeWords", url: "https://codewords.ai" },
   { name: "Flink", url: "https://www.flink.com" },
   { name: "Gradium", url: "https://gradium.co" },
-  { name: "Intercom", url: "https://intercom.com" },
+  { name: "Fin", url: "https://fin.ai" },
   { name: "Peec AI", url: "https://peec.ai" },
   { name: "Blinkist", url: "https://www.blinkist.com" },
   { name: "ai-coustics", url: "https://ai-coustics.com" },

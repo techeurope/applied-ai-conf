@@ -11,7 +11,7 @@ import { KnowunityLogo } from "@/components/ui/knowunity-logo";
 import { VeedLogo } from "@/components/ui/veed-logo";
 import { CodewordsLogo } from "@/components/ui/codewords-logo";
 import { DustLogo } from "@/components/ui/dust-logo";
-import { IntercomLogo } from "@/components/ui/intercom-logo";
+import { FinLogo } from "@/components/ui/fin-logo";
 import { GradiumLogo } from "@/components/ui/gradium-logo";
 import { LlamaIndexLogo } from "@/components/ui/llamaindex-logo";
 import { ConfluentLogo } from "@/components/ui/confluent-logo";
@@ -45,7 +45,7 @@ const COMPANY_LOGOS: Record<string, LogoComponent> = {
   "VEED.IO": VeedLogo,
   CodeWords: CodewordsLogo,
   Dust: DustLogo,
-  Intercom: IntercomLogo,
+  Fin: FinLogo,
   Gradium: GradiumLogo,
   LlamaIndex: LlamaIndexLogo,
   Confluent: ConfluentLogo,
