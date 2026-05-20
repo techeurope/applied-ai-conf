@@ -15,17 +15,65 @@ What's left to test, what to provide, and what to run when ready to push.
 ## What I already verified in CDP on `https://conf.localhost`
 
 - [x] Access gate (`/connect` → `/connect/link-ticket` for unverified)
-- [x] Approval filter (my own `invited` email correctly rejected)
+- [x] Approval filter (my own `invited` email correctly rejected; `approved` passes)
+- [x] **Auto-link happy path** — after approving `timpietrusky@gmail.com`
+      on Luma and resetting Tim's dev record, signing in fires
+      `ensureFromWorkos` → `tryAutoLink` → `ticketLinks` row with
+      `method: "auto"` and `lumaGuestId: gst-OZCGDD36dVw9EuD`. Tim
+      skipped the link-ticket page entirely.
 - [x] Admin bypass (granted admin → gate passes)
 - [x] Onboarding single-page form
 - [x] Claim-code generate + redeem → ticket-linked → gate passes
 - [x] Token-based QR (`aac_b2haebd5`) + legacy `_id` fallback
-- [x] Auto-link smoke test (patched email to real Luma → `ticketLinks` row created)
 - [x] Badge home page at `/connect`
 - [x] Favorite talks → heart on `/connect/agenda` → shows in `/connect/agenda/mine`
 - [x] Created partner team **Stripe (gold)**, verified, invited self → auto-attached
 - [x] **Team** tab appeared in nav
 - [x] `/connect/team` dashboard renders, `/connect/partner/stripe` public page works
+- [x] **Bulk claim-code generation** (CSV in admin UI → list of codes back)
+- [x] **Resend email delivery** — emailed code `XRC5-G8Y3` to
+      `tim@techeurope.io` via `onboarding@resend.dev`; UI showed
+      "Code emailed to tim@techeurope.io"
+- [x] Partner invite for `timpietrusky+testuser@gmail.com` created a
+      pending `partnerInvites` row that will auto-attach on sign-up
+- [x] Audit log captures every admin action with actor / target / metadata
+
+## Resend sandbox limitation discovered tonight
+
+Resend test mode **only delivers to the Resend account-owner email**
+(`tim@techeurope.io`).  Trying to send to any other address (including
+`timpietrusky@gmail.com`) returns:
+
+> Resend: You can only send testing emails to your own email address
+> (tim@techeurope.io). To send emails to other recipients, please
+> verify a domain at resend.com/domains, and change the `from` address
+> to an email using this domain.
+
+This is **only a Resend sandbox restriction** — verifying
+`techeurope.io` DNS lifts it. For any real-attendee testing,
+verify the domain first.
+
+## Impersonation callback broke (FYI)
+
+I enabled WorkOS User Impersonation on staging and tried it. The
+WorkOS dashboard generates a code and redirects to our
+`/api/auth/callback?code=…` — but `@workos-inc/authkit-nextjs`
+`handleAuth` expects a `state` cookie/param that impersonation
+doesn't send, so the callback returns:
+
+> {"error":{"message":"Something went wrong","description":"Couldn't sign in…"}}
+
+Not a blocker — Tim's existing staging session is still live and I
+drove all tests through that. For impersonating a **different** user
+(e.g. testuser), we'd need a custom callback handler or one of these:
+
+- Sign the test user up in a regular (non-CDP) browser, then
+  impersonation cookies should work once any session exists for that
+  identity.
+- Drop AuthKit's `handleAuth` and roll our own callback that accepts
+  impersonation tokens.
+- Skip impersonation, just sign up the test user normally in a real
+  browser (the cleanest path).
 
 ## 1. Tests you need to run (need a real inbox / second account)
 
