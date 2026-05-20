@@ -101,6 +101,56 @@ export const listAdminsBootstrap = internalQuery({
   },
 });
 
+export const purgeStagingArtifacts = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const removed = { users: 0, ticketLinks: 0, contacts: 0, codes: 0, pending: 0 };
+    // Orphan staging user.
+    const orphan = await ctx.db
+      .query("users")
+      .withIndex("by_workos_id", (q) => q.eq("workosUserId", "user_01KRVWC1FQMF5JNK21MHEA0865"))
+      .first();
+    if (orphan) {
+      const link = await ctx.db
+        .query("ticketLinks")
+        .withIndex("by_user", (q) => q.eq("userId", orphan._id))
+        .first();
+      if (link) {
+        await ctx.db.delete(link._id);
+        removed.ticketLinks += 1;
+      }
+      const contacts = await ctx.db
+        .query("contacts")
+        .withIndex("by_contacted", (q) => q.eq("contactedUserId", orphan._id))
+        .collect();
+      for (const c of contacts) {
+        await ctx.db.delete(c._id);
+        removed.contacts += 1;
+      }
+      await ctx.db.delete(orphan._id);
+      removed.users += 1;
+    }
+    // Test pending attendee + linked code.
+    const testPending = await ctx.db
+      .query("pendingAttendees")
+      .withIndex("by_email", (q) => q.eq("email", "anna.speaker@example.com"))
+      .collect();
+    for (const p of testPending) {
+      const codes = await ctx.db
+        .query("claimCodes")
+        .withIndex("by_pending_attendee", (q) => q.eq("pendingAttendeeId", p._id))
+        .collect();
+      for (const c of codes) {
+        await ctx.db.delete(c._id);
+        removed.codes += 1;
+      }
+      await ctx.db.delete(p._id);
+      removed.pending += 1;
+    }
+    return removed;
+  },
+});
+
 export const bootstrapGrantByWorkosUserId = internalMutation({
   args: { workosUserId: v.string(), email: v.optional(v.string()) },
   handler: async (ctx, { workosUserId, email }) => {
