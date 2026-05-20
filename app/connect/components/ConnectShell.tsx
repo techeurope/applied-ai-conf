@@ -12,7 +12,6 @@ import { api } from "@convex/_generated/api";
 const tabs = [
   { href: "/connect/scan", label: "Scan", icon: ScanLine },
   { href: "/connect/contacts", label: "Contacts", icon: Users },
-  { href: "/connect/directory", label: "Directory", icon: Compass },
   { href: "/connect/agenda", label: "Agenda", icon: CalendarDays },
   { href: "/connect/settings", label: "Settings", icon: Settings },
 ];

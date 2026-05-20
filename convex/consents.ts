@@ -5,7 +5,8 @@ const consentKey = v.union(
   v.literal("visible_when_scanned"),
   v.literal("directory_listing"),
   v.literal("ai_fit_scoring"),
-  v.literal("email_summaries"),
+  v.literal("email_summaries"), // legacy, kept for back-compat
+  v.literal("conference_updates"),
   v.literal("team_sharing"),
 );
 

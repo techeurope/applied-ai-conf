@@ -9,13 +9,79 @@ import { api } from "@convex/_generated/api";
 type ConsentKey =
   | "visible_when_scanned"
   | "directory_listing"
-  | "email_summaries";
+  | "conference_updates";
 
-const CONSENT_ITEMS: { key: ConsentKey; label: string }[] = [
-  { key: "visible_when_scanned", label: "Show my profile when scanned" },
-  { key: "directory_listing", label: "List me in the directory" },
-  { key: "email_summaries", label: "Email me an end-of-day summary" },
+const CONSENT_ITEMS: { key: ConsentKey; label: string; hint: string }[] = [
+  {
+    key: "visible_when_scanned",
+    label: "Show my profile when scanned",
+    hint: "Without this your QR can't do anything.",
+  },
+  {
+    key: "directory_listing",
+    label: "List me in the attendee directory",
+    hint: "Other attendees can find and connect with you in-app.",
+  },
+  {
+    key: "conference_updates",
+    label: "Email me conference updates",
+    hint: "Schedule changes, post-event recap, transactional only. No marketing.",
+  },
 ];
+
+const DRAFT_STORAGE_KEY = "aac:onboarding-draft:v1";
+
+interface OnboardingDraft {
+  name: string;
+  role: string;
+  company: string;
+  linkedinUrl: string;
+  bio: string;
+  consents: Record<ConsentKey, boolean>;
+}
+
+const EMPTY_DRAFT: OnboardingDraft = {
+  name: "",
+  role: "",
+  company: "",
+  linkedinUrl: "",
+  bio: "",
+  consents: {
+    visible_when_scanned: true,
+    directory_listing: true,
+    conference_updates: true,
+  },
+};
+
+function loadDraft(): OnboardingDraft | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<OnboardingDraft>;
+    return { ...EMPTY_DRAFT, ...parsed, consents: { ...EMPTY_DRAFT.consents, ...(parsed.consents ?? {}) } };
+  } catch {
+    return null;
+  }
+}
+
+function saveDraft(draft: OnboardingDraft) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
+  } catch {
+    /* quota / disabled — ignore */
+  }
+}
+
+function clearDraft() {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(DRAFT_STORAGE_KEY);
+  } catch {
+    /* ignore */
+  }
+}
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -24,47 +90,58 @@ export default function OnboardingPage() {
   const completeOnboarding = useMutation(api.users.completeOnboarding);
   const me = useQuery(api.users.me);
 
-  const [consents, setConsents] = useState<Record<ConsentKey, boolean>>({
-    visible_when_scanned: true,
-    directory_listing: true,
-    email_summaries: true,
-  });
-  const [form, setForm] = useState({
-    name: "",
-    role: "",
-    company: "",
-    linkedinUrl: "",
-    bio: "",
-  });
+  const [form, setForm] = useState<OnboardingDraft>(EMPTY_DRAFT);
+  const [hydrated, setHydrated] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     ensure({}).catch(() => undefined);
   }, [ensure]);
 
+  // First mount: load local draft if any (covers refreshes and navigations away).
   useEffect(() => {
-    if (me) {
-      setForm((prev) => ({
-        name: me.name || prev.name,
-        role: me.role || prev.role,
-        company: me.company || prev.company,
-        linkedinUrl: me.linkedinUrl || prev.linkedinUrl,
-        bio: me.bio || prev.bio,
-      }));
-    }
-  }, [me]);
+    const draft = loadDraft();
+    if (draft) setForm(draft);
+    setHydrated(true);
+  }, []);
+
+  // Once `me` arrives, fill in any fields not already typed by the user.
+  useEffect(() => {
+    if (!hydrated || !me) return;
+    setForm((prev) => ({
+      ...prev,
+      name: prev.name || me.name || "",
+      role: prev.role || me.role || "",
+      company: prev.company || me.company || "",
+      linkedinUrl: prev.linkedinUrl || me.linkedinUrl || "",
+      bio: prev.bio || me.bio || "",
+    }));
+  }, [me, hydrated]);
+
+  // Persist draft on every change after hydration.
+  useEffect(() => {
+    if (!hydrated) return;
+    saveDraft(form);
+  }, [form, hydrated]);
 
   async function handleSubmit() {
     setSaving(true);
     try {
       await ensure({});
       await Promise.all(
-        (Object.keys(consents) as ConsentKey[]).map((key) =>
-          setConsent({ key, granted: consents[key] }),
+        (Object.keys(form.consents) as ConsentKey[]).map((key) =>
+          setConsent({ key, granted: form.consents[key] }),
         ),
       );
-      await completeOnboarding(form);
-      router.push("/connect/scan");
+      await completeOnboarding({
+        name: form.name,
+        role: form.role,
+        company: form.company,
+        linkedinUrl: form.linkedinUrl,
+        bio: form.bio,
+      });
+      clearDraft();
+      router.push("/connect");
     } finally {
       setSaving(false);
     }
@@ -127,22 +204,28 @@ export default function OnboardingPage() {
             href="/connect/consent-details"
             className="ml-2 normal-case tracking-normal underline text-white/40 hover:text-white"
           >
-            details
+            full explanation
           </Link>
         </legend>
-        <ul className="space-y-1.5">
+        <ul className="space-y-2">
           {CONSENT_ITEMS.map((item) => (
             <li key={item.key}>
-              <label className="flex items-center gap-2.5 text-sm text-white/80 cursor-pointer">
+              <label className="flex items-start gap-2.5 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={consents[item.key]}
+                  checked={form.consents[item.key]}
                   onChange={(e) =>
-                    setConsents((c) => ({ ...c, [item.key]: e.target.checked }))
+                    setForm((f) => ({
+                      ...f,
+                      consents: { ...f.consents, [item.key]: e.target.checked },
+                    }))
                   }
-                  className="size-4 accent-white"
+                  className="mt-0.5 size-4 accent-white shrink-0"
                 />
-                <span>{item.label}</span>
+                <span className="block leading-snug">
+                  <span className="block text-sm text-white/80">{item.label}</span>
+                  <span className="block text-[11px] text-white/40">{item.hint}</span>
+                </span>
               </label>
             </li>
           ))}

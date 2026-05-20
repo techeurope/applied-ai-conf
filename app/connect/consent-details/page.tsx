@@ -39,10 +39,11 @@ export default function ConsentDetailsPage() {
       </section>
 
       <section className="space-y-2">
-        <h2 className="font-mono text-sm text-foreground">Email me an end-of-day summary</h2>
+        <h2 className="font-mono text-sm text-foreground">Email me conference updates</h2>
         <p className="text-sm text-zinc-300 leading-relaxed">
-          One transactional email per event day listing who you scanned and your notes. No
-          marketing.
+          Schedule changes, room moves, post-event recap, anything operational about the
+          conference itself. Transactional only — no marketing or third-party announcements.
+          We send via Resend; opt out and we&apos;ll never email you.
         </p>
       </section>
 

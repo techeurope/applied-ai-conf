@@ -132,7 +132,8 @@ export default defineSchema({
       v.literal("visible_when_scanned"),
       v.literal("directory_listing"),
       v.literal("ai_fit_scoring"),
-      v.literal("email_summaries"),
+      v.literal("email_summaries"), // legacy, kept for existing rows; no UI
+      v.literal("conference_updates"),
       v.literal("team_sharing"),
     ),
     granted: v.boolean(),

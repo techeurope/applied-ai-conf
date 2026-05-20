@@ -1,13 +1,14 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import { BrowserMultiFormatReader } from "@zxing/browser";
-import { ImageUp, Camera } from "lucide-react";
+import { ImageUp, Camera, QrCode } from "lucide-react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { QrScanner } from "../components/QrScanner";
+import { UserQR } from "../components/UserQR";
 
 function parseConnectUrl(text: string): string | null {
   try {
@@ -22,7 +23,8 @@ function parseConnectUrl(text: string): string | null {
 export default function ScanPage() {
   const router = useRouter();
   const recordScan = useMutation(api.scans.record);
-  const [mode, setMode] = useState<"camera" | "upload">("camera");
+  const me = useQuery(api.users.me);
+  const [mode, setMode] = useState<"show" | "camera" | "upload">("show");
   const [status, setStatus] = useState<"idle" | "saving" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -88,11 +90,21 @@ export default function ScanPage() {
           Scan
         </h1>
         <p className="text-sm text-white/60">
-          Point your camera at someone&apos;s QR, or upload a photo.
+          Show your QR so others can scan you, or point your camera at theirs.
         </p>
       </header>
 
       <div className="inline-flex p-1 rounded-full border border-white/10 bg-white/[0.02]">
+        <button
+          type="button"
+          onClick={() => setMode("show")}
+          className={`px-4 py-1.5 rounded-full font-mono text-[10px] uppercase tracking-[0.18em] transition-colors flex items-center gap-1.5 ${
+            mode === "show" ? "bg-white text-black" : "text-white/60 hover:text-white"
+          }`}
+        >
+          <QrCode className="size-3.5" strokeWidth={2} />
+          My QR
+        </button>
         <button
           type="button"
           onClick={() => setMode("camera")}
@@ -114,6 +126,15 @@ export default function ScanPage() {
           Upload
         </button>
       </div>
+
+      {mode === "show" && me && (
+        <div className="space-y-3">
+          <UserQR token={me.publicToken ?? me._id} />
+          <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40 text-center">
+            Show this to people you meet. They scan, they get your profile.
+          </p>
+        </div>
+      )}
 
       {mode === "camera" && <QrScanner onScan={handleScan} paused={status === "saving"} />}
 

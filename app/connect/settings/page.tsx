@@ -10,14 +10,14 @@ type ConsentKey =
   | "visible_when_scanned"
   | "directory_listing"
   | "ai_fit_scoring"
-  | "email_summaries"
+  | "conference_updates"
   | "team_sharing";
 
 const CONSENT_LABELS: Record<ConsentKey, string> = {
   visible_when_scanned: "Show my profile when scanned",
-  directory_listing: "List me in the directory",
+  directory_listing: "List me in the attendee directory",
   ai_fit_scoring: "Use my profile for fit-scoring",
-  email_summaries: "End-of-day email summary",
+  conference_updates: "Email me conference updates",
   team_sharing: "Team sharing (auto-pool with my team)",
 };
 
