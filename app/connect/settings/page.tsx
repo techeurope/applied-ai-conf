@@ -35,10 +35,7 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-8 pt-2">
-      <header className="space-y-1">
-        <h1 className="font-mono text-xl tracking-tight">Settings</h1>
-        <p className="text-sm text-zinc-400">{me?.email}</p>
-      </header>
+      <p className="text-xs text-zinc-400">{me?.email}</p>
 
       <section className="space-y-3">
         <h2 className="font-mono text-sm text-foreground">Goals</h2>

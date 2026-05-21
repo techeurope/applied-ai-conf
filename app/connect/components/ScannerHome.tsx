@@ -4,11 +4,12 @@ import { useCallback, useRef, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import { BrowserMultiFormatReader } from "@zxing/browser";
-import { ImageUp, Camera, QrCode } from "lucide-react";
+import { ImageUp, Camera, QrCode, Pencil } from "lucide-react";
+import Link from "next/link";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
-import { QrScanner } from "../components/QrScanner";
-import { UserQR } from "../components/UserQR";
+import { QrScanner } from "./QrScanner";
+import { UserQR } from "./UserQR";
 
 function parseConnectUrl(text: string): string | null {
   try {
@@ -20,7 +21,7 @@ function parseConnectUrl(text: string): string | null {
   }
 }
 
-export default function ScanPage() {
+export function ScannerHome() {
   const router = useRouter();
   const recordScan = useMutation(api.scans.record);
   const me = useQuery(api.users.me);
@@ -84,55 +85,44 @@ export default function ScanPage() {
   );
 
   return (
-    <div className="space-y-6 pt-2">
-      <header className="space-y-2">
-        <h1 className="font-mono font-bold text-3xl sm:text-4xl tracking-tighter leading-[1.1] pb-1 text-glow">
-          Scan
-        </h1>
-        <p className="text-sm text-white/60">
-          Show your QR so others can scan you, or point your camera at theirs.
-        </p>
-      </header>
-
+    <div className="space-y-5 pt-1">
       <div className="inline-flex p-1 rounded-full border border-white/10 bg-white/[0.02]">
-        <button
-          type="button"
-          onClick={() => setMode("show")}
-          className={`px-4 py-1.5 rounded-full font-mono text-[10px] uppercase tracking-[0.18em] transition-colors flex items-center gap-1.5 ${
-            mode === "show" ? "bg-white text-black" : "text-white/60 hover:text-white"
-          }`}
-        >
-          <QrCode className="size-3.5" strokeWidth={2} />
+        <ModeButton active={mode === "show"} onClick={() => setMode("show")} icon={QrCode}>
           My QR
-        </button>
-        <button
-          type="button"
-          onClick={() => setMode("camera")}
-          className={`px-4 py-1.5 rounded-full font-mono text-[10px] uppercase tracking-[0.18em] transition-colors flex items-center gap-1.5 ${
-            mode === "camera" ? "bg-white text-black" : "text-white/60 hover:text-white"
-          }`}
-        >
-          <Camera className="size-3.5" strokeWidth={2} />
+        </ModeButton>
+        <ModeButton active={mode === "camera"} onClick={() => setMode("camera")} icon={Camera}>
           Camera
-        </button>
-        <button
-          type="button"
-          onClick={() => setMode("upload")}
-          className={`px-4 py-1.5 rounded-full font-mono text-[10px] uppercase tracking-[0.18em] transition-colors flex items-center gap-1.5 ${
-            mode === "upload" ? "bg-white text-black" : "text-white/60 hover:text-white"
-          }`}
-        >
-          <ImageUp className="size-3.5" strokeWidth={2} />
+        </ModeButton>
+        <ModeButton active={mode === "upload"} onClick={() => setMode("upload")} icon={ImageUp}>
           Upload
-        </button>
+        </ModeButton>
       </div>
 
       {mode === "show" && me && (
         <div className="space-y-3">
           <UserQR token={me.publicToken ?? me._id} />
+          <div className="text-center space-y-1">
+            <p className="font-mono text-sm text-white">{me.name || "Unnamed"}</p>
+            <p className="text-xs text-white/60">
+              {[me.role, me.company].filter(Boolean).join(" · ") || (
+                <Link href="/connect/settings" className="underline">
+                  Add a role and company in Settings
+                </Link>
+              )}
+            </p>
+          </div>
           <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40 text-center">
-            Show this to people you meet. They scan, they get your profile.
+            Show this to people you meet.
           </p>
+          <div className="text-center pt-1">
+            <Link
+              href="/connect/settings"
+              className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-white/40 hover:text-white transition-colors"
+            >
+              <Pencil className="size-3.5" strokeWidth={1.75} />
+              Edit profile
+            </Link>
+          </div>
         </div>
       )}
 
@@ -186,5 +176,30 @@ export default function ScanPage() {
         </div>
       )}
     </div>
+  );
+}
+
+function ModeButton({
+  active,
+  onClick,
+  icon: Icon,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: typeof Camera;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`px-4 py-1.5 rounded-full font-mono text-[10px] uppercase tracking-[0.18em] transition-colors flex items-center gap-1.5 ${
+        active ? "bg-white text-black" : "text-white/60 hover:text-white"
+      }`}
+    >
+      <Icon className="size-3.5" strokeWidth={2} />
+      {children}
+    </button>
   );
 }

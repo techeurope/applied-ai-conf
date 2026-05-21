@@ -6,21 +6,13 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@convex/_generated/api";
 
-type ConsentKey =
-  | "visible_when_scanned"
-  | "directory_listing"
-  | "conference_updates";
+type ConsentKey = "visible_when_scanned" | "conference_updates";
 
 const CONSENT_ITEMS: { key: ConsentKey; label: string; hint: string }[] = [
   {
     key: "visible_when_scanned",
     label: "Show my profile when scanned",
     hint: "Without this your QR can't do anything.",
-  },
-  {
-    key: "directory_listing",
-    label: "List me in the attendee directory",
-    hint: "Other attendees can find and connect with you in-app.",
   },
   {
     key: "conference_updates",
@@ -48,7 +40,6 @@ const EMPTY_DRAFT: OnboardingDraft = {
   bio: "",
   consents: {
     visible_when_scanned: true,
-    directory_listing: true,
     conference_updates: true,
   },
 };

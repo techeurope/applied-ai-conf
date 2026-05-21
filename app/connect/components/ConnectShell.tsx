@@ -10,7 +10,7 @@ import type { ReactNode } from "react";
 import { api } from "@convex/_generated/api";
 
 const tabs = [
-  { href: "/connect/scan", label: "Scan", icon: ScanLine },
+  { href: "/connect", label: "Scan", icon: ScanLine },
   { href: "/connect/contacts", label: "Contacts", icon: Users },
   { href: "/connect/agenda", label: "Agenda", icon: CalendarDays },
   { href: "/connect/settings", label: "Settings", icon: Settings },
@@ -118,7 +118,11 @@ export function ConnectShell({ children }: { children: ReactNode }) {
             <nav aria-label="Primary" className="-mx-4 sm:-mx-6 border-t border-white/5">
               <ul className="flex overflow-x-auto no-scrollbar px-4 sm:px-6">
                 {visibleTabs.map(({ href, label, icon: Icon }) => {
-                  const active = pathname === href || pathname?.startsWith(href + "/");
+                  // /connect must be an exact match (otherwise it'd light up on every nested route).
+                  const active =
+                    href === "/connect"
+                      ? pathname === "/connect"
+                      : pathname === href || pathname?.startsWith(href + "/");
                   return (
                     <li key={href} className="shrink-0">
                       <Link

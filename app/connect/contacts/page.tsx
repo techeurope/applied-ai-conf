@@ -8,15 +8,12 @@ export default function ContactsPage() {
   const contacts = useQuery(api.contacts.list);
 
   return (
-    <div className="space-y-6 pt-2">
-      <header className="flex items-end justify-between gap-4">
-        <h1 className="font-mono font-bold text-3xl sm:text-4xl tracking-tighter leading-[1.1] pb-1 text-glow">
-          Contacts
-        </h1>
-        <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40 pb-2">
+    <div className="space-y-5 pt-1">
+      <div className="flex justify-end">
+        <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
           {contacts?.length ?? 0} {contacts?.length === 1 ? "person" : "people"}
         </span>
-      </header>
+      </div>
 
       {contacts === undefined && (
         <p className="font-mono text-xs text-white/40">Loading…</p>
@@ -27,7 +24,7 @@ export default function ContactsPage() {
           <p className="text-base text-white/80 mb-1">No contacts yet.</p>
           <p className="text-sm text-white/50 mb-6">Scan someone&apos;s QR to add them.</p>
           <Link
-            href="/connect/scan"
+            href="/connect"
             className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-white text-black font-mono text-xs font-medium hover:scale-[1.02] transition-all ring-1 ring-white/30"
           >
             Open scanner
