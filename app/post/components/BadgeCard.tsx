@@ -21,11 +21,15 @@ const C = {
   fg08: "rgba(255, 255, 255, 0.08)",
 };
 
-/* Pull live from data so the badge stays in sync with the partners page. */
-const PARTNERS: string[] = [
+/* All Premium + Gold partners, premium first. No visual distinction by tier.
+   Pulled live from data so the cover stays in sync with the partners page. */
+const PARTNERS_ALL: string[] = [
   ...PARTNERS_DATA.premium.map((p) => p.name),
   ...PARTNERS_DATA.gold.map((p) => p.name),
-].slice(0, 6);
+];
+const PARTNERS_ROW_SIZE = Math.ceil(PARTNERS_ALL.length / 2);
+const PARTNERS_ROW_1 = PARTNERS_ALL.slice(0, PARTNERS_ROW_SIZE);
+const PARTNERS_ROW_2 = PARTNERS_ALL.slice(PARTNERS_ROW_SIZE);
 
 const TE_GLYPH = `/$$$$$$$$ /$$$$$$$$
 |__  $$__/| $$_____/
@@ -322,8 +326,8 @@ export function BadgeCard({ name, role, company, imageUrl }: BadgeCardProps) {
           </div>
         </div>
 
-        {/* Bottom block */}
-        <div style={{ marginTop: "auto", paddingTop: 36 }}>
+        {/* Bottom block — packed toward the top, fixed gap below body */}
+        <div style={{ marginTop: 56 }}>
           <Rule label={heroLine} total={64} />
           <div
             style={{
@@ -360,28 +364,46 @@ export function BadgeCard({ name, role, company, imageUrl }: BadgeCardProps) {
             </div>
           </div>
 
-          {/* Partner row */}
+          {/* Partner rows — premium first, then gold, no tier distinction */}
           <div
             style={{
               marginTop: 28,
               display: "flex",
-              alignItems: "center",
-              gap: 16,
+              flexDirection: "column",
+              gap: 10,
               fontSize: 18,
               lineHeight: 1,
               color: C.fg70,
               whiteSpace: "nowrap",
             }}
           >
-            <span style={{ color: C.fg50 }}>Partners:</span>
-            {PARTNERS.map((p, i) => (
-              <Fragment key={p}>
-                <span>{p}</span>
-                {i < PARTNERS.length - 1 && (
-                  <span style={{ color: C.fg30 }}>|</span>
-                )}
-              </Fragment>
-            ))}
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              <span style={{ color: C.fg50 }}>Partners:</span>
+              {PARTNERS_ROW_1.map((p, i) => (
+                <Fragment key={p}>
+                  <span>{p}</span>
+                  {i < PARTNERS_ROW_1.length - 1 && (
+                    <span style={{ color: C.fg30 }}>|</span>
+                  )}
+                </Fragment>
+              ))}
+            </div>
+            {PARTNERS_ROW_2.length > 0 && (
+              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                {/* Invisible label so row 2 aligns with where names start in row 1 */}
+                <span style={{ color: C.fg50, visibility: "hidden" }}>
+                  Partners:
+                </span>
+                {PARTNERS_ROW_2.map((p, i) => (
+                  <Fragment key={p}>
+                    <span>{p}</span>
+                    {i < PARTNERS_ROW_2.length - 1 && (
+                      <span style={{ color: C.fg30 }}>|</span>
+                    )}
+                  </Fragment>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
