@@ -2,32 +2,23 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toPng } from "html-to-image";
-import posthog from "posthog-js";
 import { Download, ImagePlus, X } from "lucide-react";
 import { BadgeCard } from "./components/BadgeCard";
-import { BadgeCardWide } from "./components/BadgeCardWide";
 import { getFontEmbedCSS } from "@/lib/font-embed";
-import { LUMA_EVENT_ID } from "@/data/navigation";
 
-type BadgeFormat = "square" | "wide";
+const CARD_WIDTH = 1080;
+const CARD_HEIGHT = 1080;
 
-const FORMAT_CONFIG = {
-  square: { width: 1080, height: 1080, label: "Square (Instagram)" },
-  wide: { width: 1200, height: 630, label: "Wide (Twitter/LinkedIn)" },
-} as const;
-
-export default function BadgePage() {
+export default function PostPage() {
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
-  const [format, setFormat] = useState<BadgeFormat>("square");
+  const [company, setCompany] = useState("");
   const [isExporting, setIsExporting] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
   const previewRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [scale, setScale] = useState(0.4);
-
-  const config = FORMAT_CONFIG[format];
 
   useEffect(() => {
     const element = previewRef.current;
@@ -37,7 +28,7 @@ export default function BadgePage() {
       const { width: containerWidth } = element.getBoundingClientRect();
       const padding = 32;
       const availableWidth = containerWidth - padding * 2;
-      const newScale = availableWidth / config.width;
+      const newScale = availableWidth / CARD_WIDTH;
       setScale(Math.max(0.15, Math.min(newScale, 1)));
     };
 
@@ -45,7 +36,7 @@ export default function BadgePage() {
     const observer = new ResizeObserver(updateScale);
     observer.observe(element);
     return () => observer.disconnect();
-  }, [config.width]);
+  }, []);
 
   const handleImageUpload = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,7 +79,7 @@ export default function BadgePage() {
         ? name.toLowerCase().replace(/\s+/g, "_")
         : "badge";
       const link = document.createElement("a");
-      link.download = `appliedaiconf_${safeName}_${config.width}x${config.height}.png`;
+      link.download = `appliedaiconf_${safeName}_${CARD_WIDTH}x${CARD_HEIGHT}.png`;
       link.href = dataUrl;
       link.click();
     } catch (error) {
@@ -108,10 +99,10 @@ export default function BadgePage() {
             className="text-3xl sm:text-4xl font-bold text-white tracking-tight"
             style={{ fontFamily: "var(--font-kode-mono), monospace" }}
           >
-            Get Your Badge
+            Share you&apos;re attending
           </h1>
           <p className="text-neutral-400 mt-3 text-lg">
-            Generate a personalized attendee badge and share it on social media.
+            Make a cover for your X, LinkedIn or Instagram post. Tell the world you&apos;ll be there.
           </p>
         </div>
 
@@ -131,7 +122,7 @@ export default function BadgePage() {
                 id="badge-name"
                 type="text"
                 value={name}
-                onChange={(e) => setName(e.target.value.slice(0, 20))}
+                onChange={(e) => setName(e.target.value.slice(0, 40))}
                 placeholder="Enter your name"
                 className="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-neutral-600 focus:outline-none focus:border-white/60 transition-colors"
                 style={{ fontFamily: "var(--font-kode-mono), monospace" }}
@@ -151,6 +142,24 @@ export default function BadgePage() {
                 value={role}
                 onChange={(e) => setRole(e.target.value.slice(0, 40))}
                 placeholder="e.g. Engineer, CTO"
+                className="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-neutral-600 focus:outline-none focus:border-white/60 transition-colors"
+                style={{ fontFamily: "var(--font-kode-mono), monospace" }}
+              />
+            </div>
+            <div className="sm:w-56">
+              <label
+                htmlFor="badge-company"
+                className="block text-sm text-neutral-400 mb-2"
+                style={{ fontFamily: "var(--font-kode-mono), monospace" }}
+              >
+                Company <span className="text-neutral-500 font-normal">(optional)</span>
+              </label>
+              <input
+                id="badge-company"
+                type="text"
+                value={company}
+                onChange={(e) => setCompany(e.target.value.slice(0, 40))}
+                placeholder="e.g. Acme"
                 className="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-neutral-600 focus:outline-none focus:border-white/60 transition-colors"
                 style={{ fontFamily: "var(--font-kode-mono), monospace" }}
               />
@@ -202,30 +211,6 @@ export default function BadgePage() {
                 </button>
               )}
             </div>
-            <div className="flex items-center gap-2">
-              <span
-                className="text-sm text-neutral-400 shrink-0"
-                style={{ fontFamily: "var(--font-kode-mono), monospace" }}
-              >
-                Format
-              </span>
-              <div className="flex gap-1.5">
-                {(Object.keys(FORMAT_CONFIG) as BadgeFormat[]).map((key) => (
-                  <button
-                    key={key}
-                    onClick={() => setFormat(key)}
-                    title={FORMAT_CONFIG[key].label}
-                    className={`px-3 py-2 rounded-lg border text-sm transition-all cursor-pointer ${format === key
-                        ? "bg-white text-black border-white"
-                        : "bg-transparent text-white border-white/20 hover:border-white/40"
-                      }`}
-                    style={{ fontFamily: "var(--font-kode-mono), monospace" }}
-                  >
-                    {key === "square" ? "Square" : "Wide"}
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
 
@@ -238,15 +223,16 @@ export default function BadgePage() {
             style={{
               transform: `scale(${scale})`,
               transformOrigin: "top center",
-              height: config.height * scale,
+              height: CARD_HEIGHT * scale,
             }}
           >
             <div ref={cardRef}>
-              {format === "square" ? (
-                <BadgeCard name={name} role={role || undefined} imageUrl={imageUrl} />
-              ) : (
-                <BadgeCardWide name={name} role={role || undefined} imageUrl={imageUrl} />
-              )}
+              <BadgeCard
+                name={name}
+                role={role || undefined}
+                company={company || undefined}
+                imageUrl={imageUrl}
+              />
             </div>
           </div>
         </div>
@@ -260,30 +246,7 @@ export default function BadgePage() {
             style={{ fontFamily: "var(--font-kode-mono), monospace" }}
           >
             <Download className="w-4 h-4" />
-            {isExporting ? "Exporting..." : "Download Badge"}
-          </button>
-
-          <button
-            data-luma-action="checkout"
-            data-luma-event-id={LUMA_EVENT_ID}
-            onClick={() => {
-              try {
-                posthog.capture("ticket_click", { location: "badge_page" });
-              } catch {
-                // ignore analytics failures
-              }
-              try {
-                // X ads conversion event (if pixel is present globally)
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (window as any).twq?.("event", "tw-p7886-rajk1", {});
-              } catch {
-                // ignore X tracking failures
-              }
-            }}
-            className="w-full border border-white/20 hover:border-white/40 text-white py-3 px-6 rounded-lg transition-all text-center cursor-pointer"
-            style={{ fontFamily: "var(--font-kode-mono), monospace" }}
-          >
-            Get your ticket
+            {isExporting ? "Exporting..." : "Download cover"}
           </button>
         </div>
       </div>

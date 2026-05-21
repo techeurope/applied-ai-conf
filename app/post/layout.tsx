@@ -3,17 +3,17 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Get Your Badge | Applied AI Conf Berlin",
+  title: "Share you're attending | Applied AI Conf Berlin",
   description:
-    "Generate your personalized attendee badge for Applied AI Conf Berlin on May 28, 2026. Share it on social media!",
+    "Generate a social post cover for Applied AI Conf Berlin on May 28, 2026. Tell the world you'll be there.",
   openGraph: {
-    title: "Get Your Badge | Applied AI Conf Berlin",
+    title: "Share you're attending | Applied AI Conf Berlin",
     description:
-      "Generate your personalized attendee badge for Applied AI Conf Berlin on May 28, 2026.",
+      "Generate a social post cover for Applied AI Conf Berlin on May 28, 2026.",
   },
 };
 
-export default function BadgeLayout({
+export default function PostLayout({
   children,
 }: {
   children: React.ReactNode;
