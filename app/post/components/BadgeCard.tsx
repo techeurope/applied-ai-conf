@@ -17,8 +17,6 @@ const C = {
   fg70: "rgba(255, 255, 255, 0.70)",
   fg50: "rgba(255, 255, 255, 0.50)",
   fg30: "rgba(255, 255, 255, 0.30)",
-  fg15: "rgba(255, 255, 255, 0.15)",
-  fg08: "rgba(255, 255, 255, 0.08)",
 };
 
 /* All Premium + Gold partners, premium first. No visual distinction by tier.
@@ -40,15 +38,6 @@ const COVER_LOGO_SCALE: Record<string, number> = {
   Dust: 1,
   dltHub: 1,
 };
-
-const TE_GLYPH = `/$$$$$$$$ /$$$$$$$$
-|__  $$__/| $$_____/
-   | $$   | $$  /$$$$
-   | $$   | $$$$$$$
-   | $$   | $$____/
-   | $$   | $$
-   | $$   | $$$$$$$$
-   |__/   |________/`;
 
 /* 12 asterisks arranged in a ring — the {Tech: Europe} mark.
    Positions are pre-rounded to 4 decimal places so server and client
@@ -213,24 +202,6 @@ export function BadgeCard({ name, role, company, imageUrl }: BadgeCardProps) {
         WebkitFontSmoothing: "antialiased",
       }}
     >
-      {/* Faint corner glyph */}
-      <pre
-        style={{
-          position: "absolute",
-          top: -10,
-          left: -40,
-          margin: 0,
-          fontFamily: MONO,
-          fontSize: 14,
-          lineHeight: "14px",
-          whiteSpace: "pre",
-          color: C.fg08,
-          pointerEvents: "none",
-        }}
-      >
-        {TE_GLYPH}
-      </pre>
-
       {/* Outer dashed frame */}
       <div
         style={{
