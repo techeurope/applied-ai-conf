@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import { PARTNERS as PARTNERS_DATA } from "@/data/partners";
+import type { Partner } from "@/types";
 
 interface BadgeCardProps {
   name: string;
@@ -22,7 +23,7 @@ const C = {
 
 /* All Premium + Gold partners, premium first. No visual distinction by tier.
    Pulled live from data so the cover stays in sync with the partners page. */
-const PARTNERS_ALL = [
+const PARTNERS_ALL: Partner[] = [
   ...PARTNERS_DATA.premium,
   ...PARTNERS_DATA.gold,
 ];
