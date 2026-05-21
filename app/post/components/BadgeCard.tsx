@@ -425,6 +425,7 @@ export function BadgeCard({ name, role, company, imageUrl }: BadgeCardProps) {
                           maxWidth: "100%",
                           objectFit: "contain",
                           filter: "brightness(0) invert(1)",
+                          opacity: 0.8,
                           transform: scale ? `scale(${scale})` : undefined,
                         }}
                       />
