@@ -552,7 +552,7 @@ export const SPEAKERS = [
     linkedinUrl: 'https://www.linkedin.com/in/carl-brenssell/',
     bio: '',
     vertical: 'Workplace AI',
-    building: 'AI and ML product at Slack',
+    building: 'AI-powered workplace communication for teams',
     talkTitle: '',
     initial: 'CB',
     accent: 'from-cyan-400/40 via-blue-400/30 to-indigo-500/40',
