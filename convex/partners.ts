@@ -412,6 +412,117 @@ export const bootstrapSeedPartners = internalMutation({
   },
 });
 
+// Bulk-attach Luma attendees to partner teams by matching email domain.
+// For each approved Luma row whose email host is in domainMap, the row is
+// either: (a) auto-attached as a partnerMember if a Convex user with that
+// email already exists, or (b) recorded as a partnerInvites row so they
+// auto-attach on first sign-in. Idempotent.
+export const bootstrapAttachByDomain = internalMutation({
+  args: {
+    domainMap: v.array(
+      v.object({
+        domain: v.string(), // lowercase, no @
+        slug: v.string(),
+        role: v.optional(v.union(v.literal("owner"), v.literal("member"))),
+      }),
+    ),
+    tickets: v.optional(v.array(v.string())), // restrict to these ticket types; empty = all approved
+  },
+  handler: async (ctx, { domainMap, tickets }) => {
+    const admin = await ctx.db
+      .query("users")
+      .withIndex("by_access_level", (q) => q.eq("accessLevel", "admin"))
+      .first();
+    if (!admin) throw new Error("No admin user exists. Grant admin first.");
+
+    const teamBySlug = new Map<string, Doc<"teams">>();
+    for (const m of domainMap) {
+      const team = await ctx.db
+        .query("teams")
+        .withIndex("by_slug", (q) => q.eq("slug", m.slug))
+        .first();
+      if (!team || team.kind !== "partner") continue;
+      teamBySlug.set(m.slug, team);
+    }
+
+    const allowedTickets = tickets && tickets.length > 0 ? new Set(tickets) : null;
+    const summary: Record<
+      string,
+      { attached: number; invited: number; alreadyMember: number; skipped: number }
+    > = {};
+
+    const luma = await ctx.db.query("lumaAttendees").collect();
+    for (const row of luma) {
+      if (row.approvalStatus !== "approved") continue;
+      if (allowedTickets && (!row.ticketType || !allowedTickets.has(row.ticketType))) continue;
+      const at = row.email.indexOf("@");
+      if (at < 0) continue;
+      const host = row.email.slice(at + 1).toLowerCase();
+      const match = domainMap.find((m) => m.domain === host);
+      if (!match) continue;
+      const team = teamBySlug.get(match.slug);
+      if (!team) continue;
+      const role = match.role ?? "owner";
+      summary[match.slug] ??= { attached: 0, invited: 0, alreadyMember: 0, skipped: 0 };
+
+      const existingUser = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", row.email))
+        .first();
+
+      if (existingUser) {
+        const memberRow = await ctx.db
+          .query("partnerMembers")
+          .withIndex("by_team_user", (q) =>
+            q.eq("teamId", team._id).eq("userId", existingUser._id),
+          )
+          .first();
+        if (memberRow) {
+          summary[match.slug].alreadyMember += 1;
+          continue;
+        }
+        // Skip if user already belongs to a different team.
+        if (existingUser.teamId && existingUser.teamId !== team._id) {
+          summary[match.slug].skipped += 1;
+          continue;
+        }
+        await ctx.db.insert("partnerMembers", {
+          teamId: team._id,
+          userId: existingUser._id,
+          role,
+          invitedAt: Date.now(),
+          invitedByUserId: admin._id,
+          joinedAt: Date.now(),
+        });
+        const patch: Record<string, unknown> = { teamId: team._id };
+        if (!existingUser.ticketLinkedAt) patch.ticketLinkedAt = Date.now();
+        await ctx.db.patch(existingUser._id, patch);
+        summary[match.slug].attached += 1;
+      } else {
+        const dup = await ctx.db
+          .query("partnerInvites")
+          .withIndex("by_email", (q) => q.eq("email", row.email))
+          .filter((q) => q.eq(q.field("teamId"), team._id))
+          .filter((q) => q.eq(q.field("consumedAt"), undefined))
+          .first();
+        if (dup) {
+          summary[match.slug].alreadyMember += 1;
+          continue;
+        }
+        await ctx.db.insert("partnerInvites", {
+          teamId: team._id,
+          email: row.email,
+          role,
+          invitedAt: Date.now(),
+          invitedByUserId: admin._id,
+        });
+        summary[match.slug].invited += 1;
+      }
+    }
+    return summary;
+  },
+});
+
 // Removes partner teams whose tier is in the given list, deleting their
 // memberships + pending invites first.  Used to retire "community" tier.
 export const bootstrapPurgeTeamsByTier = internalMutation({
