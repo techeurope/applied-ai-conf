@@ -22,7 +22,7 @@ export const AGENDA: AgendaSlot[] = [
 
   // ── 10:10–10:30 ──────────────────────────────────────────────
   { id: 'main-2', startTime: '10:10', endTime: '10:30', title: 'Beyond Benchmarks: How Evaluations Ensure Safety at Scale in LLM Applications', speakerName: 'Clara Matos', stage: 'main', format: 'talk' },
-  { id: 'side-2', startTime: '10:10', endTime: '10:30', title: 'Audio Intelligence: The Hidden Layer Driving Voice AI Reliability', speakerName: 'Fabian Seipel', stage: 'side', format: 'talk' },
+  { id: 'side-2', startTime: '10:10', endTime: '10:30', title: 'TBA', speakerName: 'Carl Brenssell', stage: 'side', format: 'talk' },
 
   // ── Coffee Break (10:30–10:50) ────────────────────────────────
   { id: 'break-1', startTime: '10:30', endTime: '10:50', title: 'Coffee Break', stage: 'main', format: 'break' },
@@ -77,7 +77,7 @@ export const AGENDA: AgendaSlot[] = [
   { id: 'side-11', startTime: '15:55', endTime: '16:15', title: 'The 100x Inference Tax You Don\'t Have to Pay', speakerName: 'Jacek Golebiowski', stage: 'side', format: 'talk' },
 
   { id: 'main-13', startTime: '16:20', endTime: '16:40', title: 'Leading through AI change', speakerName: 'Masashi Beheim', stage: 'main', format: 'talk' },
-  { id: 'side-12', startTime: '16:20', endTime: '16:40', title: 'Building the Missing Infrastructure Layer for Agents and Distributed Applications', speakerName: 'Stephan Ewen', stage: 'side', format: 'talk' },
+  { id: 'side-12', startTime: '16:20', endTime: '16:40', title: 'Building the Missing Infrastructure Layer for Agents and Distributed Applications', speakerNames: ['Giselle van Dongen', 'Igal Shilman'], stage: 'side', format: 'talk' },
 
   // ── Coffee Break (16:40–17:00) ────────────────────────────────
   { id: 'break-3', startTime: '16:40', endTime: '17:00', title: 'Coffee Break', stage: 'main', format: 'break' },
