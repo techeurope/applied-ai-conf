@@ -29,7 +29,17 @@ export default function PartnerPublicProfilePage({
 
   return (
     <div className="space-y-6 pt-2">
-      <header className="space-y-2">
+      <header className="space-y-3">
+        {profile.logoUrl && (
+          <div className="h-14 max-w-[200px] flex items-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={profile.logoUrl}
+              alt={`${profile.name} logo`}
+              className="h-full w-auto object-contain"
+            />
+          </div>
+        )}
         <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
           {profile.tier ? `${profile.tier} sponsor` : "Sponsor"}
         </p>

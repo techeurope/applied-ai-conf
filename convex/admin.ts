@@ -248,6 +248,27 @@ export const getUserActivity = query({
   },
 });
 
+// Admin-only view of any team's shared lead pool.
+export const teamLeads = query({
+  args: { teamId: v.id("teams") },
+  handler: async (ctx, { teamId }) => {
+    await requireAdmin(ctx);
+    const contacts = await ctx.db
+      .query("contacts")
+      .withIndex("by_owner", (q) =>
+        q.eq("ownerType", "team").eq("ownerId", teamId as string),
+      )
+      .order("desc")
+      .collect();
+    return await Promise.all(
+      contacts.map(async (c) => ({
+        contact: c,
+        lead: await ctx.db.get(c.contactedUserId),
+      })),
+    );
+  },
+});
+
 export const auditFeed = query({
   args: { limit: v.optional(v.number()) },
   handler: async (ctx, { limit = 100 }) => {

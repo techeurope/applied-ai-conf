@@ -76,6 +76,42 @@ export const add = mutation({
   },
 });
 
+// Partner-team-only: qualify a lead with a status (hot/warm/cold/junk) and a
+// longer description.  Personal contacts ignore these fields; they live on the
+// contacts row but are surfaced only in the team-leads UI.
+export const updateLeadQualification = mutation({
+  args: {
+    contactId: v.id("contacts"),
+    leadStatus: v.optional(
+      v.union(
+        v.literal("hot"),
+        v.literal("warm"),
+        v.literal("cold"),
+        v.literal("junk"),
+        v.literal("clear"),
+      ),
+    ),
+    leadDescription: v.optional(v.string()),
+  },
+  handler: async (ctx, { contactId, leadStatus, leadDescription }) => {
+    const user = await getMe(ctx);
+    const contact = await ctx.db.get(contactId);
+    if (!contact) throw new Error("Contact not found");
+    if (contact.ownerType !== "team") {
+      throw new Error("Lead qualification only applies to team contacts");
+    }
+    if (!user.teamId || contact.ownerId !== user.teamId) {
+      throw new Error("Not your team's lead");
+    }
+    const patch: Record<string, unknown> = {};
+    if (leadStatus !== undefined) {
+      patch.leadStatus = leadStatus === "clear" ? undefined : leadStatus;
+    }
+    if (leadDescription !== undefined) patch.leadDescription = leadDescription;
+    await ctx.db.patch(contactId, patch);
+  },
+});
+
 export const updateNotes = mutation({
   args: {
     contactId: v.id("contacts"),

@@ -261,6 +261,81 @@ export const removeMember = mutation({
   },
 });
 
+// Team-owner-scoped invite: any member with role="owner" can invite teammates
+// without needing the conference admin in the loop. Sends a Resend email so
+// the invitee knows what they signed up for.
+export const ownerInviteMember = mutation({
+  args: {
+    teamId: v.id("teams"),
+    email: v.string(),
+    role: v.union(v.literal("owner"), v.literal("member")),
+  },
+  handler: async (ctx, { teamId, email, role }) => {
+    const me = await requireActiveUser(ctx);
+    const team = await ctx.db.get(teamId);
+    if (!team || team.kind !== "partner") throw new Error("Team not found");
+    const myMembership = await ctx.db
+      .query("partnerMembers")
+      .withIndex("by_team_user", (q) => q.eq("teamId", teamId).eq("userId", me._id))
+      .first();
+    const isOwner = myMembership?.role === "owner";
+    const isAdmin = me.accessLevel === "admin";
+    if (!isOwner && !isAdmin) throw new Error("Only the team owner can invite");
+
+    const normalized = email.toLowerCase().trim();
+    const existingUser = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", normalized))
+      .first();
+
+    if (existingUser) {
+      const existingMember = await ctx.db
+        .query("partnerMembers")
+        .withIndex("by_team_user", (q) =>
+          q.eq("teamId", teamId).eq("userId", existingUser._id),
+        )
+        .first();
+      if (existingMember) throw new Error("Already a member");
+      await ctx.db.insert("partnerMembers", {
+        teamId,
+        userId: existingUser._id,
+        role,
+        invitedAt: Date.now(),
+        invitedByUserId: me._id,
+        joinedAt: Date.now(),
+      });
+      const userPatch: Record<string, unknown> = { teamId };
+      if (!existingUser.ticketLinkedAt) userPatch.ticketLinkedAt = Date.now();
+      await ctx.db.patch(existingUser._id, userPatch);
+      await writeAudit(ctx, me._id, "partner.owner_member_add", {
+        teamId,
+        userId: existingUser._id,
+      });
+      return { kind: "attached" as const, userId: existingUser._id };
+    }
+
+    const dupInvite = await ctx.db
+      .query("partnerInvites")
+      .withIndex("by_email", (q) => q.eq("email", normalized))
+      .filter((q) => q.eq(q.field("teamId"), teamId))
+      .filter((q) => q.eq(q.field("consumedAt"), undefined))
+      .first();
+    if (dupInvite) throw new Error("Already invited");
+    const inviteId = await ctx.db.insert("partnerInvites", {
+      teamId,
+      email: normalized,
+      role,
+      invitedAt: Date.now(),
+      invitedByUserId: me._id,
+    });
+    await writeAudit(ctx, me._id, "partner.owner_invite", {
+      teamId,
+      email: normalized,
+    });
+    return { kind: "invited" as const, inviteId, teamName: team.name };
+  },
+});
+
 export const revokeInvite = mutation({
   args: { inviteId: v.id("partnerInvites") },
   handler: async (ctx, { inviteId }) => {
@@ -287,6 +362,7 @@ export const bootstrapSeedPartners = internalMutation({
         slug: v.string(),
         tier: v.string(),
         website: v.optional(v.string()),
+        logoUrl: v.optional(v.string()),
       }),
     ),
   },
@@ -299,14 +375,23 @@ export const bootstrapSeedPartners = internalMutation({
     if (!admin) {
       throw new Error("No admin user exists. Grant admin first.");
     }
-    const result: Array<{ slug: string; status: "created" | "exists" }> = [];
+    const result: Array<{ slug: string; status: "created" | "updated" | "exists" }> = [];
     for (const entry of entries) {
       const existing = await ctx.db
         .query("teams")
         .withIndex("by_slug", (q) => q.eq("slug", entry.slug))
         .first();
       if (existing) {
-        result.push({ slug: entry.slug, status: "exists" });
+        // Backfill logoUrl + website on existing rows but don't touch other fields.
+        const patch: Record<string, unknown> = {};
+        if (entry.logoUrl && existing.logoUrl !== entry.logoUrl) patch.logoUrl = entry.logoUrl;
+        if (entry.website && existing.partnerWebsite !== entry.website) patch.partnerWebsite = entry.website;
+        if (Object.keys(patch).length) {
+          await ctx.db.patch(existing._id, patch);
+          result.push({ slug: entry.slug, status: "updated" });
+        } else {
+          result.push({ slug: entry.slug, status: "exists" });
+        }
         continue;
       }
       const now = Date.now();
@@ -319,10 +404,45 @@ export const bootstrapSeedPartners = internalMutation({
         partnerWebsite: entry.website,
         partnerVerifiedAt: now,
         partnerVerifiedByUserId: admin._id,
+        logoUrl: entry.logoUrl,
       });
       result.push({ slug: entry.slug, status: "created" });
     }
     return result;
+  },
+});
+
+// Removes partner teams whose tier is in the given list, deleting their
+// memberships + pending invites first.  Used to retire "community" tier.
+export const bootstrapPurgeTeamsByTier = internalMutation({
+  args: { tiers: v.array(v.string()) },
+  handler: async (ctx, { tiers }) => {
+    const removed: Array<{ slug: string }> = [];
+    const set = new Set(tiers);
+    const teams = await ctx.db
+      .query("teams")
+      .withIndex("by_kind", (q) => q.eq("kind", "partner"))
+      .collect();
+    for (const team of teams) {
+      if (!team.partnerTier || !set.has(team.partnerTier)) continue;
+      const members = await ctx.db
+        .query("partnerMembers")
+        .withIndex("by_team", (q) => q.eq("teamId", team._id))
+        .collect();
+      for (const m of members) {
+        const u = await ctx.db.get(m.userId);
+        if (u?.teamId === team._id) await ctx.db.patch(u._id, { teamId: undefined });
+        await ctx.db.delete(m._id);
+      }
+      const invites = await ctx.db
+        .query("partnerInvites")
+        .withIndex("by_team", (q) => q.eq("teamId", team._id))
+        .collect();
+      for (const i of invites) await ctx.db.delete(i._id);
+      await ctx.db.delete(team._id);
+      removed.push({ slug: team.slug });
+    }
+    return removed;
   },
 });
 
@@ -466,6 +586,7 @@ export const publicProfile = query({
       booth: team.partnerBoothLocation,
       bio: team.partnerBio,
       website: team.partnerWebsite,
+      logoUrl: team.logoUrl,
       members: visibleMembers,
     };
   },

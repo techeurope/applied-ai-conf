@@ -340,20 +340,69 @@ export default function AdminPartnerDetailPage({
         </section>
       )}
 
-      <section className="glass-card rounded-2xl p-5 space-y-2">
-        <h3 className="font-mono text-sm font-bold">Leads</h3>
-        <p className="text-xs text-white/60">
-          Every scan by a team member lands in the shared lead pool. Members manage and
-          export leads from <span className="font-mono">/connect/team/leads</span>.
-        </p>
-        <Link
-          href={`/connect/team/leads?team=${teamId}`}
-          className="inline-flex items-center px-4 py-2 rounded-full ring-1 ring-white/20 font-mono text-xs"
-        >
-          View team leads →
-        </Link>
-      </section>
+      <TeamLeadsSection teamId={teamId as Id<"teams">} teamSlug={team.team.slug} />
     </div>
+  );
+}
+
+function TeamLeadsSection({
+  teamId,
+  teamSlug,
+}: {
+  teamId: Id<"teams">;
+  teamSlug: string;
+}) {
+  const leads = useQuery(api.admin.teamLeads, { teamId });
+  return (
+    <section className="glass-card rounded-2xl p-5 space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="font-mono text-sm font-bold">
+          Leads {leads ? `(${leads.length})` : ""}
+        </h3>
+        <a
+          href={`/api/team/leads/export?teamId=${teamId}`}
+          className="inline-flex items-center px-3 py-1.5 rounded-full ring-1 ring-white/20 font-mono text-[11px]"
+        >
+          Export CSV ↓
+        </a>
+      </div>
+      <p className="text-xs text-white/60">
+        All scans by members of <span className="font-mono">{teamSlug}</span>. Team
+        members manage these from <span className="font-mono">/connect/team/leads</span>.
+      </p>
+      {!leads ? (
+        <p className="text-xs text-white/40">loading…</p>
+      ) : leads.length === 0 ? (
+        <p className="text-xs text-white/50">No scans yet.</p>
+      ) : (
+        <ul className="divide-y divide-white/5">
+          {leads.map(({ contact, lead }) => (
+            <li key={contact._id} className="py-2 space-y-0.5">
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="font-mono text-sm">{lead?.name ?? "—"}</span>
+                <span className="font-mono text-[10px] text-white/30">
+                  {new Date(contact.lastScanAt).toLocaleDateString()}
+                </span>
+              </div>
+              <div className="text-xs text-white/60 truncate">
+                {[lead?.role, lead?.company].filter(Boolean).join(" · ")}
+              </div>
+              <div className="font-mono text-[10px] text-white/40 truncate">
+                {lead?.email}
+              </div>
+              {contact.leadStatus && (
+                <span className="font-mono text-[10px] uppercase tracking-[0.18em] px-1.5 py-0.5 rounded-full bg-white/10 text-white/80">
+                  {contact.leadStatus}
+                </span>
+              )}
+              {contact.notes && (
+                <p className="text-xs text-white/60 mt-1">{contact.notes}</p>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 

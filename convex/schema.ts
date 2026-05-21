@@ -45,6 +45,7 @@ export default defineSchema({
     partnerWebsite: v.optional(v.string()),
     partnerVerifiedAt: v.optional(v.number()),
     partnerVerifiedByUserId: v.optional(v.id("users")),
+    logoUrl: v.optional(v.string()),
   })
     .index("by_slug", ["slug"])
     .index("by_kind", ["kind"]),
@@ -102,6 +103,16 @@ export default defineSchema({
     tags: v.optional(v.array(v.string())),
     fitScore: v.optional(v.number()),
     fitThreads: v.optional(v.array(v.string())),
+    // Partner-team-only lead qualification (ignored on personal contacts).
+    leadStatus: v.optional(
+      v.union(
+        v.literal("hot"),
+        v.literal("warm"),
+        v.literal("cold"),
+        v.literal("junk"),
+      ),
+    ),
+    leadDescription: v.optional(v.string()),
   })
     .index("by_owner_contacted", ["ownerType", "ownerId", "contactedUserId"])
     .index("by_owner", ["ownerType", "ownerId"])

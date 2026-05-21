@@ -30,12 +30,15 @@ export default function SettingsPage() {
   const removeGoal = useMutation(api.goals.remove);
   const setConsent = useMutation(api.consents.set);
   const deleteAccount = useMutation(api.users.deleteAccount);
+  const updateProfile = useMutation(api.users.updateProfile);
 
   const [newGoal, setNewGoal] = useState("");
 
   return (
     <div className="space-y-8 pt-2">
       <p className="text-xs text-zinc-400">{me?.email}</p>
+
+      <ProfileEditor me={me ?? undefined} updateProfile={updateProfile} />
 
       <section className="space-y-3">
         <h2 className="font-mono text-sm text-foreground">Goals</h2>
@@ -143,6 +146,132 @@ export default function SettingsPage() {
         </button>
       </section>
     </div>
+  );
+}
+
+type Me = NonNullable<ReturnType<typeof useQuery<typeof api.users.me>>>;
+
+function ProfileEditor({
+  me,
+  updateProfile,
+}: {
+  me: Me | undefined;
+  updateProfile: ReturnType<typeof useMutation<typeof api.users.updateProfile>>;
+}) {
+  const [form, setForm] = useState({
+    name: "",
+    role: "",
+    company: "",
+    linkedinUrl: "",
+    headline: "",
+    bio: "",
+  });
+  const [hydrated, setHydrated] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  // Hydrate once from server state.
+  useState(() => {
+    if (me && !hydrated) {
+      setForm({
+        name: me.name ?? "",
+        role: me.role ?? "",
+        company: me.company ?? "",
+        linkedinUrl: me.linkedinUrl ?? "",
+        headline: me.headline ?? "",
+        bio: me.bio ?? "",
+      });
+      setHydrated(true);
+    }
+  });
+  // Re-hydrate when `me` first arrives.
+  if (me && !hydrated) {
+    setForm({
+      name: me.name ?? "",
+      role: me.role ?? "",
+      company: me.company ?? "",
+      linkedinUrl: me.linkedinUrl ?? "",
+      headline: me.headline ?? "",
+      bio: me.bio ?? "",
+    });
+    setHydrated(true);
+  }
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setMsg(null);
+    try {
+      await updateProfile({
+        name: form.name,
+        role: form.role || undefined,
+        company: form.company || undefined,
+        linkedinUrl: form.linkedinUrl || undefined,
+        headline: form.headline || undefined,
+        bio: form.bio || undefined,
+      });
+      setMsg("Saved");
+      setTimeout(() => setMsg(null), 2000);
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <section className="space-y-3">
+      <h2 className="font-mono text-sm text-foreground">Profile</h2>
+      <p className="text-xs text-zinc-500">
+        This is what people see when they scan your QR.
+      </p>
+      <form onSubmit={handleSave} className="space-y-3">
+        {(
+          [
+            { key: "name", label: "Name", placeholder: "Tim Pietrusky" },
+            { key: "role", label: "Role", placeholder: "Founding Engineer" },
+            { key: "company", label: "Company", placeholder: "{Tech: Europe}" },
+            { key: "linkedinUrl", label: "LinkedIn URL", placeholder: "https://linkedin.com/in/..." },
+            { key: "headline", label: "Talk headline (speakers)", placeholder: "Title of your talk" },
+          ] as const
+        ).map(({ key, label, placeholder }) => (
+          <label key={key} className="block space-y-1">
+            <span className="block font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
+              {label}
+            </span>
+            <input
+              type="text"
+              value={form[key]}
+              placeholder={placeholder}
+              onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+              className="w-full px-3 py-2 bg-zinc-900/60 border border-white/10 rounded-md text-sm focus:outline-none focus:border-white/30"
+            />
+          </label>
+        ))}
+        <label className="block space-y-1">
+          <span className="block font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
+            Bio
+          </span>
+          <textarea
+            value={form.bio}
+            placeholder="What you're working on, what you're looking for..."
+            onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))}
+            rows={3}
+            className="w-full px-3 py-2 bg-zinc-900/60 border border-white/10 rounded-md text-sm focus:outline-none focus:border-white/30 resize-none"
+          />
+        </label>
+        <div className="flex items-center gap-3">
+          <button
+            type="submit"
+            disabled={saving || !form.name.trim()}
+            className="px-4 py-2 bg-foreground text-background font-mono text-xs rounded-md disabled:opacity-50"
+          >
+            {saving ? "Saving…" : "Save"}
+          </button>
+          {msg && <span className="font-mono text-[11px] text-white/60">{msg}</span>}
+        </div>
+      </form>
+    </section>
   );
 }
 

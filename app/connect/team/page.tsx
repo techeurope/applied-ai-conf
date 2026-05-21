@@ -1,13 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useQuery } from "convex/react";
+import { useState } from "react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
 
 export default function TeamDashboardPage() {
   const team = useQuery(api.partners.myTeam);
   const members = useQuery(api.partners.myTeamMembers);
   const leads = useQuery(api.partners.myTeamLeads);
+  const ownerInvite = useMutation(api.partners.ownerInviteMember);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteBusy, setInviteBusy] = useState(false);
+  const [inviteMsg, setInviteMsg] = useState<string | null>(null);
 
   if (team === undefined) return <p className="text-xs font-mono text-white/40">Loading…</p>;
   if (team === null) {
@@ -73,7 +78,7 @@ export default function TeamDashboardPage() {
       </section>
 
       <section className="glass-card rounded-2xl p-5 space-y-3">
-        <h2 className="font-mono text-sm font-bold">Team members</h2>
+        <h2 className="font-mono text-sm font-bold">Team members ({memberCount})</h2>
         <ul className="divide-y divide-white/5">
           {members?.map(({ membership, user }) => (
             <li key={membership._id} className="py-2 flex items-center justify-between gap-3">
@@ -87,9 +92,66 @@ export default function TeamDashboardPage() {
             </li>
           ))}
         </ul>
-        <p className="text-xs text-white/40">
-          Invites are managed by the conference admin. Ask them to add a teammate by email.
-        </p>
+
+        {team.role === "owner" ? (
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              setInviteBusy(true);
+              setInviteMsg(null);
+              try {
+                const r = await ownerInvite({
+                  teamId: team.team._id,
+                  email: inviteEmail,
+                  role: "member",
+                });
+                setInviteMsg(
+                  r.kind === "attached"
+                    ? `${inviteEmail} was already signed up — added to the team.`
+                    : `Invite saved. ${inviteEmail} will be auto-attached when they sign up.`,
+                );
+                setInviteEmail("");
+              } catch (e) {
+                setInviteMsg(e instanceof Error ? e.message : "Failed");
+              } finally {
+                setInviteBusy(false);
+              }
+            }}
+            className="space-y-2 pt-3 border-t border-white/5"
+          >
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
+              Invite a teammate
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="email"
+                required
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                placeholder="email@yourcompany.com"
+                className="flex-1 rounded-md bg-white/5 ring-1 ring-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-white/30"
+              />
+              <button
+                type="submit"
+                disabled={inviteBusy || !inviteEmail.trim()}
+                className="px-4 py-2 rounded-full bg-white text-black font-mono text-xs disabled:opacity-50"
+              >
+                {inviteBusy ? "…" : "Invite"}
+              </button>
+            </div>
+            {inviteMsg && (
+              <p className="text-xs text-white/60 font-mono">{inviteMsg}</p>
+            )}
+            <p className="text-[11px] text-white/40">
+              They&apos;ll auto-attach to the team when they sign up at{" "}
+              <span className="font-mono">conference.techeurope.io/connect</span>.
+            </p>
+          </form>
+        ) : (
+          <p className="text-xs text-white/40">
+            Only the team owner can invite new members. Ask them, or contact the conference admin.
+          </p>
+        )}
       </section>
     </div>
   );
