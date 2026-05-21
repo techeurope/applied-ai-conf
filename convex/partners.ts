@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import {
   mutation,
   query,
+  internalMutation,
   type MutationCtx,
 } from "./_generated/server";
 import { requireAdmin } from "./admin";
@@ -273,6 +274,55 @@ export const revokeInvite = mutation({
       email: invite.email,
     });
     return true;
+  },
+});
+
+// --- bootstrap: idempotent seed for known sponsor teams --------------------
+
+export const bootstrapSeedPartners = internalMutation({
+  args: {
+    entries: v.array(
+      v.object({
+        name: v.string(),
+        slug: v.string(),
+        tier: v.string(),
+        website: v.optional(v.string()),
+      }),
+    ),
+  },
+  handler: async (ctx, { entries }) => {
+    // Use the first admin we find as the createdBy/verifiedBy actor.
+    const admin = await ctx.db
+      .query("users")
+      .withIndex("by_access_level", (q) => q.eq("accessLevel", "admin"))
+      .first();
+    if (!admin) {
+      throw new Error("No admin user exists. Grant admin first.");
+    }
+    const result: Array<{ slug: string; status: "created" | "exists" }> = [];
+    for (const entry of entries) {
+      const existing = await ctx.db
+        .query("teams")
+        .withIndex("by_slug", (q) => q.eq("slug", entry.slug))
+        .first();
+      if (existing) {
+        result.push({ slug: entry.slug, status: "exists" });
+        continue;
+      }
+      const now = Date.now();
+      await ctx.db.insert("teams", {
+        name: entry.name,
+        slug: entry.slug,
+        createdByUserId: admin._id,
+        kind: "partner",
+        partnerTier: entry.tier,
+        partnerWebsite: entry.website,
+        partnerVerifiedAt: now,
+        partnerVerifiedByUserId: admin._id,
+      });
+      result.push({ slug: entry.slug, status: "created" });
+    }
+    return result;
   },
 });
 
