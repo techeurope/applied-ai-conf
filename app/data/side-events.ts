@@ -8,7 +8,7 @@ export interface SideEvent {
   rsvpUrl?: string;
   image?: string;
   tags: string[];
-  timing: "evening-before" | "after-conference";
+  timing: "evening-before" | "after-conference" | "morning-after";
 }
 
 export const SIDE_EVENTS: SideEvent[] = [
@@ -102,5 +102,18 @@ export const SIDE_EVENTS: SideEvent[] = [
     image: "/side-events/happy-hour-zero-peec-linkup.png",
     tags: ["Drinks", "Open"],
     timing: "after-conference",
+  },
+  {
+    id: "ai-builders-breakfast",
+    title: "AI Builders Breakfast",
+    date: "2026-05-29",
+    time: "09:00 – 10:30",
+    location: "telli office, Berlin Mitte",
+    description:
+      "Start your Friday at the telli office with good coffee, a proper breakfast, and good conversations with fellow AI builders. No pitch, no agenda, just a relaxed 1.5hrs to meet before the day kicks off.",
+    rsvpUrl: "https://luma.com/pw865wdw",
+    image: "/side-events/ai-builders-breakfast.png",
+    tags: ["Breakfast", "Builders"],
+    timing: "morning-after",
   },
 ];

@@ -44,6 +44,7 @@ export default function SideEvents() {
 
   const eveningBefore = SIDE_EVENTS.filter((e) => e.timing === "evening-before");
   const afterConference = SIDE_EVENTS.filter((e) => e.timing === "after-conference");
+  const morningAfter = SIDE_EVENTS.filter((e) => e.timing === "morning-after");
 
   const formatGroupDate = (dateStr: string) =>
     new Date(`${dateStr}T12:00:00`).toLocaleDateString("en-US", {
@@ -56,6 +57,7 @@ export default function SideEvents() {
   const groups = [
     { label: eveningBefore[0] && formatGroupDate(eveningBefore[0].date), events: eveningBefore },
     { label: afterConference[0] && formatGroupDate(afterConference[0].date), events: afterConference },
+    { label: morningAfter[0] && formatGroupDate(morningAfter[0].date), events: morningAfter },
   ].filter((g) => g.events.length > 0);
 
   return (
