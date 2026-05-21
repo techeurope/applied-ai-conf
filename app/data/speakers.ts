@@ -607,7 +607,7 @@ export const SPEAKERS = [
     bio: '',
     vertical: 'AI Infrastructure',
     building: 'GPU cloud for AI workloads',
-    talkTitle: '',
+    talkTitle: 'Inference Without the Wait: A Live Demo of Instant-On Model Deployment',
     initial: 'EF',
     accent: 'from-purple-400/40 via-violet-400/30 to-fuchsia-500/40',
     image: '/speakers/emmett_fear_fullbody_square.png',
