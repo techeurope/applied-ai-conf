@@ -1,23 +1,14 @@
-import Link from "next/link";
 import { AGENDA } from "@/data/agenda";
 import { AgendaList } from "../components/AgendaList";
 
 export default function AgendaPage() {
   return (
     <div className="space-y-4 pt-2">
-      <header className="flex items-center justify-between gap-3">
-        <div className="space-y-1">
-          <h1 className="font-mono text-xl tracking-tight">Agenda</h1>
-          <p className="text-sm text-zinc-400">
-            May 28, 2026 · The Delta Campus, Berlin
-          </p>
-        </div>
-        <Link
-          href="/connect/agenda/mine"
-          className="font-mono text-xs underline text-white/70 hover:text-white shrink-0"
-        >
-          My agenda →
-        </Link>
+      <header className="space-y-1">
+        <h1 className="font-mono text-xl tracking-tight">Agenda</h1>
+        <p className="text-sm text-zinc-400">
+          May 28, 2026 · The Delta Campus, Berlin
+        </p>
       </header>
 
       <AgendaList slots={AGENDA} />
