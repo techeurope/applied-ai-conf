@@ -385,7 +385,14 @@ export function BadgeCard({ name, role, company, imageUrl }: BadgeCardProps) {
               gap: 20,
             }}
           >
-            <div style={{ fontSize: 18, lineHeight: 1, color: C.fg50 }}>
+            <div
+              style={{
+                fontSize: 18,
+                lineHeight: 1,
+                color: C.fg50,
+                textAlign: "center",
+              }}
+            >
               PARTNERS
             </div>
             {PARTNERS_ROWS.map((row, ri) => (
