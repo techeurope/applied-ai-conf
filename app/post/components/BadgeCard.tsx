@@ -32,6 +32,14 @@ const PARTNERS_ROWS = [
   PARTNERS_ALL.slice(PARTNERS_PER_ROW, PARTNERS_PER_ROW * 2),
 ];
 
+/* logoScale from data is calibrated for the big partners page. On the cover
+   most logos still look right, but Dust and dltHub end up far too small.
+   Override only those two here, leave the rest with their data scale. */
+const COVER_LOGO_SCALE: Record<string, number> = {
+  Dust: 1,
+  dltHub: 1,
+};
+
 const TE_GLYPH = `/$$$$$$$$ /$$$$$$$$
 |__  $$__/| $$_____/
    | $$   | $$  /$$$$
@@ -365,13 +373,16 @@ export function BadgeCard({ name, role, company, imageUrl }: BadgeCardProps) {
             </div>
           </div>
 
-          {/* Partner logos — premium first, then gold, no tier distinction */}
+          {/* Muted dashed separator between meta info and partners */}
+          <Rule total={64} color={C.fg30} style={{ marginTop: 28 }} />
+
+          {/* Partner logos — premium first, then gold, no tier distinction. */}
           <div
             style={{
-              marginTop: 32,
+              marginTop: 20,
               display: "flex",
               flexDirection: "column",
-              gap: 28,
+              gap: 20,
             }}
           >
             <div style={{ fontSize: 18, lineHeight: 1, color: C.fg50 }}>
@@ -386,32 +397,33 @@ export function BadgeCard({ name, role, company, imageUrl }: BadgeCardProps) {
                   gap: 32,
                 }}
               >
-                {row.map((p) => (
-                  <div
-                    key={p.name}
-                    style={{
-                      flex: 1,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      height: 48,
-                    }}
-                  >
-                    <img
-                      src={p.logo}
-                      alt={p.logoAlt}
+                {row.map((p) => {
+                  const scale = COVER_LOGO_SCALE[p.name] ?? p.logoScale;
+                  return (
+                    <div
+                      key={p.name}
                       style={{
-                        maxHeight: 48,
-                        maxWidth: "100%",
-                        objectFit: "contain",
-                        filter: "brightness(0) invert(1)",
-                        transform: p.logoScale
-                          ? `scale(${p.logoScale})`
-                          : undefined,
+                        flex: 1,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        height: 48,
                       }}
-                    />
-                  </div>
-                ))}
+                    >
+                      <img
+                        src={p.logo}
+                        alt={p.logoAlt}
+                        style={{
+                          maxHeight: 48,
+                          maxWidth: "100%",
+                          objectFit: "contain",
+                          filter: "brightness(0) invert(1)",
+                          transform: scale ? `scale(${scale})` : undefined,
+                        }}
+                      />
+                    </div>
+                  );
+                })}
               </div>
             ))}
           </div>
