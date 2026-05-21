@@ -42,7 +42,7 @@ export const AGENDA: AgendaSlot[] = [
 
   // ── 11:40–12:00 ──────────────────────────────────────────────
   { id: 'main-5', startTime: '11:40', endTime: '12:00', title: 'Context Engineering and Anomaly Detection for event-driven AI Agents with Apache Flink and Kafka', speakerName: 'Steffen Hoellinger', stage: 'main', format: 'talk' },
-  { id: 'side-5', startTime: '11:40', endTime: '12:00', title: 'To be announced', speakerName: 'Katia Gil Guzman', stage: 'side', format: 'talk' },
+  { id: 'side-5', startTime: '11:40', endTime: '12:00', title: 'From Engineer to Orchestrator: How Codex changes the way engineers work', speakerName: 'Katia Gil Guzman', stage: 'side', format: 'talk' },
 
   // 5 min changeover (12:00–12:05)
 
@@ -55,7 +55,7 @@ export const AGENDA: AgendaSlot[] = [
   { id: 'lunch-side', startTime: '12:30', endTime: '13:30', title: 'Lunch Break', stage: 'side', format: 'break' },
 
   // ── Post-lunch: Main stage (4 × 20 min) ────────────────────────
-  { id: 'main-7', startTime: '13:30', endTime: '13:50', title: 'To be announced', speakerName: 'Simon Edwardsson', stage: 'main', format: 'talk' },
+  { id: 'main-7', startTime: '13:30', endTime: '13:50', title: 'Building Sandcastles for Agents: Safe Execution at Production Scale', speakerName: 'Simon Edwardsson', stage: 'main', format: 'talk' },
   { id: 'main-8', startTime: '13:55', endTime: '14:15', title: 'Cache Money: How Prompt Caching Cut Our LLM Bills in Half', speakerName: 'Balázs Csomor', stage: 'main', format: 'talk' },
   { id: 'main-9', startTime: '14:20', endTime: '14:40', title: "Deploying Intelligence into the World's Largest Enterprises", speakerName: 'Henry Thompson', stage: 'main', format: 'talk' },
   { id: 'main-10', startTime: '14:45', endTime: '15:05', title: 'Prompt Learning: Distilling Expensive Reasoning Into Fast Production Prompts', speakerName: 'Oğuz Gültepe', stage: 'main', format: 'talk' },
