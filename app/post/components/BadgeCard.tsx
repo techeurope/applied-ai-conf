@@ -1,5 +1,4 @@
 /* eslint-disable @next/next/no-img-element */
-import { Fragment } from "react";
 import { PARTNERS as PARTNERS_DATA } from "@/data/partners";
 
 interface BadgeCardProps {
@@ -23,13 +22,15 @@ const C = {
 
 /* All Premium + Gold partners, premium first. No visual distinction by tier.
    Pulled live from data so the cover stays in sync with the partners page. */
-const PARTNERS_ALL: string[] = [
-  ...PARTNERS_DATA.premium.map((p) => p.name),
-  ...PARTNERS_DATA.gold.map((p) => p.name),
+const PARTNERS_ALL = [
+  ...PARTNERS_DATA.premium,
+  ...PARTNERS_DATA.gold,
 ];
-const PARTNERS_ROW_SIZE = Math.ceil(PARTNERS_ALL.length / 2);
-const PARTNERS_ROW_1 = PARTNERS_ALL.slice(0, PARTNERS_ROW_SIZE);
-const PARTNERS_ROW_2 = PARTNERS_ALL.slice(PARTNERS_ROW_SIZE);
+const PARTNERS_PER_ROW = 4;
+const PARTNERS_ROWS = [
+  PARTNERS_ALL.slice(0, PARTNERS_PER_ROW),
+  PARTNERS_ALL.slice(PARTNERS_PER_ROW, PARTNERS_PER_ROW * 2),
+];
 
 const TE_GLYPH = `/$$$$$$$$ /$$$$$$$$
 |__  $$__/| $$_____/
@@ -326,8 +327,8 @@ export function BadgeCard({ name, role, company, imageUrl }: BadgeCardProps) {
           </div>
         </div>
 
-        {/* Bottom block — packed toward the top, fixed gap below body */}
-        <div style={{ marginTop: 56 }}>
+        {/* Bottom block — anchored to the bottom of the dashed frame */}
+        <div style={{ marginTop: "auto", paddingTop: 36 }}>
           <Rule label={heroLine} total={64} />
           <div
             style={{
@@ -364,46 +365,55 @@ export function BadgeCard({ name, role, company, imageUrl }: BadgeCardProps) {
             </div>
           </div>
 
-          {/* Partner rows — premium first, then gold, no tier distinction */}
+          {/* Partner logos — premium first, then gold, no tier distinction */}
           <div
             style={{
-              marginTop: 28,
+              marginTop: 32,
               display: "flex",
               flexDirection: "column",
-              gap: 10,
-              fontSize: 18,
-              lineHeight: 1,
-              color: C.fg70,
-              whiteSpace: "nowrap",
+              gap: 28,
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-              <span style={{ color: C.fg50 }}>Partners:</span>
-              {PARTNERS_ROW_1.map((p, i) => (
-                <Fragment key={p}>
-                  <span>{p}</span>
-                  {i < PARTNERS_ROW_1.length - 1 && (
-                    <span style={{ color: C.fg30 }}>|</span>
-                  )}
-                </Fragment>
-              ))}
+            <div style={{ fontSize: 18, lineHeight: 1, color: C.fg50 }}>
+              PARTNERS
             </div>
-            {PARTNERS_ROW_2.length > 0 && (
-              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                {/* Invisible label so row 2 aligns with where names start in row 1 */}
-                <span style={{ color: C.fg50, visibility: "hidden" }}>
-                  Partners:
-                </span>
-                {PARTNERS_ROW_2.map((p, i) => (
-                  <Fragment key={p}>
-                    <span>{p}</span>
-                    {i < PARTNERS_ROW_2.length - 1 && (
-                      <span style={{ color: C.fg30 }}>|</span>
-                    )}
-                  </Fragment>
+            {PARTNERS_ROWS.map((row, ri) => (
+              <div
+                key={ri}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 32,
+                }}
+              >
+                {row.map((p) => (
+                  <div
+                    key={p.name}
+                    style={{
+                      flex: 1,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      height: 48,
+                    }}
+                  >
+                    <img
+                      src={p.logo}
+                      alt={p.logoAlt}
+                      style={{
+                        maxHeight: 48,
+                        maxWidth: "100%",
+                        objectFit: "contain",
+                        filter: "brightness(0) invert(1)",
+                        transform: p.logoScale
+                          ? `scale(${p.logoScale})`
+                          : undefined,
+                      }}
+                    />
+                  </div>
                 ))}
               </div>
-            )}
+            ))}
           </div>
         </div>
       </div>
