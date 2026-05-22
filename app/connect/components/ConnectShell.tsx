@@ -8,6 +8,7 @@ import { ScanLine, Users, CalendarDays, Settings, Compass, LogOut, Shield, Brief
 import { useEffect } from "react";
 import type { ReactNode } from "react";
 import { api } from "@convex/_generated/api";
+import { applyDemoClockFromUrl } from "@/lib/conference-time";
 
 const tabs = [
   { href: "/connect", label: "Scan", icon: ScanLine },
@@ -38,6 +39,10 @@ export function ConnectShell({ children }: { children: ReactNode }) {
     pathname?.startsWith("/connect/settings") ||
     pathname?.startsWith("/connect/u/") ||
     pathname?.startsWith("/connect/consent-details");
+
+  useEffect(() => {
+    applyDemoClockFromUrl();
+  }, [pathname]);
 
   useEffect(() => {
     if (!auth.user) return;

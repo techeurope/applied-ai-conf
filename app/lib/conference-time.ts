@@ -15,6 +15,58 @@ export function timeToMinutes(hhmm: string): number {
   return h * 60 + m;
 }
 
+/**
+ * Debug clock override. Reads `?__now=HH:MM` from the URL on the client and
+ * stashes it in sessionStorage so subsequent navigations keep the override.
+ * `?__now=off` clears it. No effect on the server or on production users who
+ * never visit a URL with the param.
+ */
+const DEMO_KEY = "aac:demo-now";
+
+export function applyDemoClockFromUrl(): void {
+  if (typeof window === "undefined") return;
+  const params = new URLSearchParams(window.location.search);
+  const v = params.get("__now");
+  if (v === null) return;
+  try {
+    if (v === "off" || v === "") {
+      window.sessionStorage.removeItem(DEMO_KEY);
+    } else if (/^\d{1,2}:\d{2}$/.test(v)) {
+      window.sessionStorage.setItem(DEMO_KEY, v);
+    }
+  } catch {
+    /* sessionStorage disabled — ignore */
+  }
+}
+
+function parseHHMM(v: string | null | undefined): { nowMinutes: number; nowHHMM: string } | null {
+  if (!v || !/^\d{1,2}:\d{2}$/.test(v)) return null;
+  const [hRaw, mRaw] = v.split(":");
+  const h = Math.min(23, parseInt(hRaw, 10));
+  const min = Math.min(59, parseInt(mRaw, 10));
+  return {
+    nowMinutes: h * 60 + min,
+    nowHHMM: `${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}`,
+  };
+}
+
+function readDemoClock(): { nowMinutes: number; nowHHMM: string } | null {
+  if (typeof window === "undefined") return null;
+  // 1. Query param wins (synchronous, no effect required).
+  try {
+    const fromUrl = parseHHMM(new URLSearchParams(window.location.search).get("__now"));
+    if (fromUrl) return fromUrl;
+  } catch {
+    /* malformed url — fall through */
+  }
+  // 2. Sticky session value, set on any prior visit with ?__now=…
+  try {
+    return parseHHMM(window.sessionStorage.getItem(DEMO_KEY));
+  } catch {
+    return null;
+  }
+}
+
 export function getConferenceClock(now: Date = new Date()): ConferenceClock {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: CONFERENCE_TZ,
@@ -34,6 +86,16 @@ export function getConferenceClock(now: Date = new Date()): ConferenceClock {
   const today = new Date(`${date}T00:00:00Z`);
   const conf = new Date(`${CONFERENCE_DATE}T00:00:00Z`);
   const daysUntil = Math.round((conf.getTime() - today.getTime()) / 86_400_000);
+
+  const demo = readDemoClock();
+  if (demo) {
+    return {
+      isConferenceDay: true,
+      daysUntil: 0,
+      nowMinutes: demo.nowMinutes,
+      nowHHMM: demo.nowHHMM,
+    };
+  }
 
   return {
     isConferenceDay: date === CONFERENCE_DATE,
