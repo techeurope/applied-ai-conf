@@ -14,7 +14,7 @@ What's left to test, what to provide, and what to run when ready to push.
 
 ## What I already verified in CDP on `https://conf.localhost`
 
-- [x] Access gate (`/connect` → `/connect/link-ticket` for unverified)
+- [x] Access gate (`/app` → `/app/link-ticket` for unverified)
 - [x] Approval filter (my own `invited` email correctly rejected; `approved` passes)
 - [x] **Auto-link happy path** — after approving `timpietrusky@gmail.com`
       on Luma and resetting Tim's dev record, signing in fires
@@ -25,11 +25,11 @@ What's left to test, what to provide, and what to run when ready to push.
 - [x] Onboarding single-page form
 - [x] Claim-code generate + redeem → ticket-linked → gate passes
 - [x] Token-based QR (`aac_b2haebd5`) + legacy `_id` fallback
-- [x] Badge home page at `/connect`
-- [x] Favorite talks → heart on `/connect/agenda` → shows in `/connect/agenda/mine`
+- [x] Badge home page at `/app`
+- [x] Favorite talks → heart on `/app/agenda` → shows in `/app/agenda/mine`
 - [x] Created partner team **Stripe (gold)**, verified, invited self → auto-attached
 - [x] **Team** tab appeared in nav
-- [x] `/connect/team` dashboard renders, `/connect/partner/stripe` public page works
+- [x] `/app/team` dashboard renders, `/app/partner/stripe` public page works
 - [x] **Bulk claim-code generation** (CSV in admin UI → list of codes back)
 - [x] **Resend email delivery** — emailed code `XRC5-G8Y3` to
       `tim@techeurope.io` via `onboarding@resend.dev`; UI showed
@@ -87,7 +87,7 @@ WorkOS (or change your WorkOS email to an already-approved Luma email).
 
 ### 1b. Verification flow — different email path
 - [ ] Sign up with an email **different** from your Luma one.
-- [ ] Bounce to `/connect/link-ticket`.
+- [ ] Bounce to `/app/link-ticket`.
 - [ ] Type your Luma email → click Continue.
 - [ ] Check inbox for `onboarding@resend.dev`, get the 6-digit code.
 - [ ] Enter the code → land on onboarding → verified.
@@ -97,13 +97,13 @@ WorkOS (or change your WorkOS email to an already-approved Luma email).
 - [ ] Expected: "We can't find that email on the Luma guest list."
 
 ### 1d. Verification flow — claim code path
-- [ ] Admin generates a code at `/connect/admin/codes`.
+- [ ] Admin generates a code at `/app/admin/codes`.
 - [ ] Click "email" next to the code → check inbox.
-- [ ] Use the code on `/connect/link-ticket` → verified.
+- [ ] Use the code on `/app/link-ticket` → verified.
 
 ## 2. Bulk codes + email delivery (Phase 8)
 
-- [ ] `/connect/admin/codes` → "Bulk import" panel.
+- [ ] `/app/admin/codes` → "Bulk import" panel.
 - [ ] Paste sample rows:
       ```
       test1@yourdomain.com, Test One, Acme, CTO
@@ -115,27 +115,27 @@ WorkOS (or change your WorkOS email to an already-approved Luma email).
 
 ## 3. Partner team end-to-end (needs a second account)
 
-- [ ] Create a partner team in `/connect/admin/partners`.
+- [ ] Create a partner team in `/app/admin/partners`.
 - [ ] Mark as Verified.
 - [ ] Invite a teammate's email (different account).
 - [ ] Teammate signs up via WorkOS → auto-attached, **Team** tab visible.
 - [ ] Both you and teammate scan a third user's QR (or have the third user scan you).
-- [ ] Visit `/connect/team/leads` — should show the same shared contacts for both members.
+- [ ] Visit `/app/team/leads` — should show the same shared contacts for both members.
 - [ ] Either member can edit notes inline.
 - [ ] Click "Export CSV ↓" → downloads `<slug>-leads-YYYY-MM-DD.csv`.
 - [ ] CSV columns: scanned_at, name, email, role, company, linkedin, notes, tags.
 
 ## 4. Public partner profile
 
-- [ ] Visit `/connect/partner/stripe` in an incognito window.
+- [ ] Visit `/app/partner/stripe` in an incognito window.
 - [ ] See branding (name, tier, booth, bio, website).
 - [ ] See team members who have `directory_listing` consent ON.
 - [ ] Unverified team → page returns null.
 
 ## 5. Personal agenda
 
-- [ ] On `/connect/agenda`, heart 3-4 talks.
-- [ ] `/connect/agenda/mine` shows only the hearted ones.
+- [ ] On `/app/agenda`, heart 3-4 talks.
+- [ ] `/app/agenda/mine` shows only the hearted ones.
 - [ ] Breaks and Logistics rows should NOT show a heart.
 
 ## What I need from you (one-time)
@@ -180,7 +180,7 @@ prod:neat-coyote-777|eyJ2MiI6IjIwNWU3OTg0OTZhYTQzMmI5ZDAwZGMwYmJjYWNjZDMwIn0=
 ## Known gaps / non-blockers
 
 - **DNS-verified Resend** — sandbox sender only until you add DNS records.
-- **`/connect/u/<convex_id>` legacy fallback still in code** — kept for one
+- **`/app/u/<convex_id>` legacy fallback still in code** — kept for one
   release in case any old QR codes are in the wild.
 - **Self-serve partner join codes** — admins invite by email; partner team
   owners can't generate codes for their own teammates yet. Future.

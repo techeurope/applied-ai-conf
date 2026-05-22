@@ -1,6 +1,6 @@
 # Applied AI Conf Platform — Production Plan
 
-> Single-source plan for finishing the `/connect` platform before the
+> Single-source plan for finishing the `/app` platform before the
 > 28 May 2026 conference. Written for an agent picking this up cold.
 
 ## Where we are right now (May 2026 snapshot)
@@ -12,7 +12,7 @@ Already live on `https://conference.techeurope.io`:
 - Convex Production deployment `neat-coyote-777` with full schema.
 - Onboarding (single page: profile + 3 consent checkboxes).
 - Scan / Contacts / Directory / Agenda / Settings pages.
-- Admin area (`/connect/admin/*`): overview, attendees search + detail
+- Admin area (`/app/admin/*`): overview, attendees search + detail
   with edit/reset-onboarding/kick, claim codes generate/list/revoke,
   audit feed.
 - Walk-in admin flow via `pendingAttendees` + `claimCodes` tables.
@@ -24,7 +24,7 @@ What is **NOT** built yet (this plan covers it):
 
 - No link to Luma tickets — anyone with any email can sign up and use
   the platform.
-- QR URL exposes the raw Convex `_id` (`/connect/u/<convex_id>`).
+- QR URL exposes the raw Convex `_id` (`/app/u/<convex_id>`).
 - No personal agenda / favorite talks.
 - No transactional email provider — admin-generated claim codes can
   only be read aloud at the desk.
@@ -38,7 +38,7 @@ What is **NOT** built yet (this plan covers it):
 |---|---|
 | Email provider | **Resend** (added to plan — see Phase 1). |
 | When does the ticket-link wall appear | Right after WorkOS sign-up, **before** profile onboarding. |
-| What an unverified user can do | Nothing except `/connect/settings` and `/connect/link-ticket`. Admin claim-code redemption bypasses the wall. |
+| What an unverified user can do | Nothing except `/app/settings` and `/app/link-ticket`. Admin claim-code redemption bypasses the wall. |
 | Public QR token format | `aac_xxxxxxxx` — 8 chars after prefix, Crockford-style alphabet (no `0/O/1/I/L`), unique-indexed. |
 | Onboarding shape | Single page: profile fields top, 3 small consent checkboxes underneath, one Continue button. (Already shipped.) |
 
@@ -49,7 +49,7 @@ What is **NOT** built yet (this plan covers it):
    (emailVerified=true after email+password code, or trusted from
    Google/Magic Auth).
 
-2. On first /connect visit, ensureFromWorkos runs three checks in order:
+2. On first /app visit, ensureFromWorkos runs three checks in order:
 
    a) partnerInvites.email == workosUser.email
       → attach to partner team, write partnerMembers row,
@@ -61,9 +61,9 @@ What is **NOT** built yet (this plan covers it):
       → create ticketLinks row, method="auto".  ALSO merge Luma
         profile data onto the user.
 
-   c) Neither → user hits /connect/link-ticket gate.
+   c) Neither → user hits /app/link-ticket gate.
 
-3. /connect/link-ticket asks for the Luma email. Two paths:
+3. /app/link-ticket asks for the Luma email. Two paths:
 
    a) Auto-recognized in cache: send a 6-digit code via Resend to
       that email.  User enters the code → ticketLinks row,
@@ -77,8 +77,8 @@ What is **NOT** built yet (this plan covers it):
    link" action on attendee detail (Phase 7a).
 
 Gate (Phase 4): users without ticketLinks AND without partnerMembers
-AND without accessLevel=admin get redirected to /connect/link-ticket
-from every page except /connect/settings and /connect/link-ticket itself.
+AND without accessLevel=admin get redirected to /app/link-ticket
+from every page except /app/settings and /app/link-ticket itself.
 ```
 
 `ticketLinks.method` records how the link was established:
@@ -212,26 +212,26 @@ Ship order: **1 → 2 → 3 → 4 → 7a → 5 → 6 → 7b → 8 → 9**.
 
 | # | Phase | Outcome | Key files / new modules |
 |---|---|---|---|
-| 1 | **Resend + Luma sync** | Resend account, domain DNS verified, `convex/email.ts` action wrapper using `internalAction`. `lumaAttendees` table + `scripts/sync-luma-attendees.mjs` (cron-able). Admin view at `/connect/admin/luma`. | `convex/email.ts`, `convex/luma.ts`, `scripts/sync-luma-attendees.mjs`, `app/connect/admin/luma/page.tsx` |
-| 2 | **Public QR tokens** | `users.publicToken` + indexed lookup. Backfill mutation for existing users. `UserQR` renders `/connect/u/<token>`. `[token]/page.tsx` resolves by `publicToken`. Admin "rotate token" action. Keep `_id` fallback for one release. | `convex/users.ts`, `app/connect/components/UserQR.tsx`, `app/connect/u/[token]/page.tsx`, `convex/admin.ts` |
-| 3 | **Ticket linking + Luma data merge** | `ticketLinks` + `emailCodes` tables. `convex/ticket.ts`: `lookupByEmail`, `autoLinkIfMatch` (called from `ensureFromWorkos`), `requestEmailCode`, `verifyEmailCode`. On any successful link, merge cached Luma profile fields (name, company from registration_answers) onto the user where empty. `convex/claim.ts`: extend `redeem` to also write a `ticketLinks` row with method=`claim_code`. New page `/connect/link-ticket`. | `convex/ticket.ts`, `convex/claim.ts`, `convex/users.ts`, `app/connect/link-ticket/page.tsx` |
-| 4 | **Access gate** | `ConnectShell` redirects to `/connect/link-ticket` unless user has `ticketLinks` OR `partnerMembers` OR `accessLevel==="admin"`. Server-side `requireActiveUser` in `_auth.ts` extended to enforce. Bypass list: settings, link-ticket itself, `/connect/u/*` (public profile views). | `convex/_auth.ts`, `app/connect/components/ConnectShell.tsx` |
-| 5 | **Digital badge home** | `/connect` (authenticated) becomes the badge page: big QR + "Show this to connect" + buttons to Scan / Contacts / Agenda. `/connect/me` deprecated (redirect to `/connect`). `/connect/scan` stays for the explicit camera page. | `app/connect/page.tsx`, `app/connect/me/page.tsx` |
-| 6 | **Personal agenda** | `favoriteSessions` table + `convex/favorites.ts` (add/remove/list). Stable slugs from `app/data/agenda.ts`. Heart icon on `/connect/agenda` rows. New `/connect/agenda/mine` view. | `convex/favorites.ts`, `app/data/agenda.ts` (add slug), `app/connect/agenda/page.tsx`, `app/connect/agenda/mine/page.tsx` |
-| 7a | **Admin extensions — verification + Luma side** | "Linked ticket" section on attendee detail. Admin search Luma attendees → "Link to a user" action. "Unlink ticket" action. Audit-log entries for all of the above. | `app/connect/admin/attendees/[id]/page.tsx`, `app/connect/admin/luma/page.tsx`, `convex/admin.ts` |
-| 7b | **Partner teams (paid sponsors)** | See dedicated section below. Schema: `teams` extended, `partnerMembers`, `partnerInvites`. Admin-only partner creation + verification. Pre-invite by email. Shared `contacts` ownership already wired via `ownerType="team"`. Member dashboard + CSV export + branded public profile. | `convex/partners.ts`, `app/connect/admin/partners/*`, `app/connect/team/*`, `app/connect/partner/[slug]/page.tsx`, `convex/users.ts` (signup-time invite consumption) |
-| 8 | **Admin extensions — bulk + email codes** | CSV import for bulk claim-code generation. "Resend code via email" button (uses Resend). | `app/connect/admin/codes/page.tsx`, `convex/admin.ts` |
-| 9 | **Pre-conf email + cleanup** | Draft Luma email blast copy ("register on the platform"). Migrate orphaned staging Convex user + test claim code `FVGK-UD6X` + pending attendee `anna.speaker@example.com`. Remove `_id` fallback on `/connect/u/*`. | — |
+| 1 | **Resend + Luma sync** | Resend account, domain DNS verified, `convex/email.ts` action wrapper using `internalAction`. `lumaAttendees` table + `scripts/sync-luma-attendees.mjs` (cron-able). Admin view at `/app/admin/luma`. | `convex/email.ts`, `convex/luma.ts`, `scripts/sync-luma-attendees.mjs`, `app/app/admin/luma/page.tsx` |
+| 2 | **Public QR tokens** | `users.publicToken` + indexed lookup. Backfill mutation for existing users. `UserQR` renders `/app/u/<token>`. `[token]/page.tsx` resolves by `publicToken`. Admin "rotate token" action. Keep `_id` fallback for one release. | `convex/users.ts`, `app/app/components/UserQR.tsx`, `app/app/u/[token]/page.tsx`, `convex/admin.ts` |
+| 3 | **Ticket linking + Luma data merge** | `ticketLinks` + `emailCodes` tables. `convex/ticket.ts`: `lookupByEmail`, `autoLinkIfMatch` (called from `ensureFromWorkos`), `requestEmailCode`, `verifyEmailCode`. On any successful link, merge cached Luma profile fields (name, company from registration_answers) onto the user where empty. `convex/claim.ts`: extend `redeem` to also write a `ticketLinks` row with method=`claim_code`. New page `/app/link-ticket`. | `convex/ticket.ts`, `convex/claim.ts`, `convex/users.ts`, `app/app/link-ticket/page.tsx` |
+| 4 | **Access gate** | `ConnectShell` redirects to `/app/link-ticket` unless user has `ticketLinks` OR `partnerMembers` OR `accessLevel==="admin"`. Server-side `requireActiveUser` in `_auth.ts` extended to enforce. Bypass list: settings, link-ticket itself, `/app/u/*` (public profile views). | `convex/_auth.ts`, `app/app/components/ConnectShell.tsx` |
+| 5 | **Digital badge home** | `/app` (authenticated) becomes the badge page: big QR + "Show this to connect" + buttons to Scan / Contacts / Agenda. `/app/me` deprecated (redirect to `/app`). `/app/scan` stays for the explicit camera page. | `app/app/page.tsx`, `app/app/me/page.tsx` |
+| 6 | **Personal agenda** | `favoriteSessions` table + `convex/favorites.ts` (add/remove/list). Stable slugs from `app/data/agenda.ts`. Heart icon on `/app/agenda` rows. New `/app/agenda/mine` view. | `convex/favorites.ts`, `app/data/agenda.ts` (add slug), `app/app/agenda/page.tsx`, `app/app/agenda/mine/page.tsx` |
+| 7a | **Admin extensions — verification + Luma side** | "Linked ticket" section on attendee detail. Admin search Luma attendees → "Link to a user" action. "Unlink ticket" action. Audit-log entries for all of the above. | `app/app/admin/attendees/[id]/page.tsx`, `app/app/admin/luma/page.tsx`, `convex/admin.ts` |
+| 7b | **Partner teams (paid sponsors)** | See dedicated section below. Schema: `teams` extended, `partnerMembers`, `partnerInvites`. Admin-only partner creation + verification. Pre-invite by email. Shared `contacts` ownership already wired via `ownerType="team"`. Member dashboard + CSV export + branded public profile. | `convex/partners.ts`, `app/app/admin/partners/*`, `app/app/team/*`, `app/app/partner/[slug]/page.tsx`, `convex/users.ts` (signup-time invite consumption) |
+| 8 | **Admin extensions — bulk + email codes** | CSV import for bulk claim-code generation. "Resend code via email" button (uses Resend). | `app/app/admin/codes/page.tsx`, `convex/admin.ts` |
+| 9 | **Pre-conf email + cleanup** | Draft Luma email blast copy ("register on the platform"). Migrate orphaned staging Convex user + test claim code `FVGK-UD6X` + pending attendee `anna.speaker@example.com`. Remove `_id` fallback on `/app/u/*`. | — |
 
 ### Phase 7b detail — Partner teams
 
 **Why a real phase, not "future scope":** Sponsors paid for lead
 capture and need it working on May 28. Without it, sponsor reps fall
-back to their personal `/connect/contacts` and there's no team-shared
+back to their personal `/app/contacts` and there's no team-shared
 lead pool, no CSV export, and no per-partner analytics.
 
 **Verification model:**
-- Partner teams are **admin-only to create** (`/connect/admin/partners`
+- Partner teams are **admin-only to create** (`/app/admin/partners`
   has the form; nothing self-serve).
 - A partner team is "verified" once admin sets `partnerVerifiedAt` —
   this is the gate for paid features being live.
@@ -246,7 +246,7 @@ Admin path A (pre-invite by email — most common):
   Admin enters teamId + email + role(owner|member)
   → partnerInvites row created
   → at some point the rep signs up via WorkOS
-  → on first /connect visit, ensureFromWorkos checks partnerInvites
+  → on first /app visit, ensureFromWorkos checks partnerInvites
     by email, consumes it, writes partnerMembers, sets user.teamId.
 
 Admin path B (link existing user):
@@ -271,12 +271,12 @@ Self-onboarding path (later, optional): a join code per team
 
 | Path | Purpose | Who can access |
 |---|---|---|
-| `/connect/admin/partners` | List partner teams, "Create partner team" form | admin |
-| `/connect/admin/partners/[teamId]` | Edit team details, manage members, invite by email, view shared leads, CSV export | admin |
-| `/connect/team` | Partner member's dashboard: branding, member list, shared leads | partner members of that team |
-| `/connect/team/leads` | All shared leads from team scanning + notes editing | partner members |
-| `/connect/team/leads/export` | CSV download endpoint | partner team owner |
-| `/connect/partner/[slug]` | Public-facing partner profile: name, tier, logo, bio, booth location, optional member list | anyone |
+| `/app/admin/partners` | List partner teams, "Create partner team" form | admin |
+| `/app/admin/partners/[teamId]` | Edit team details, manage members, invite by email, view shared leads, CSV export | admin |
+| `/app/team` | Partner member's dashboard: branding, member list, shared leads | partner members of that team |
+| `/app/team/leads` | All shared leads from team scanning + notes editing | partner members |
+| `/app/team/leads/export` | CSV download endpoint | partner team owner |
+| `/app/partner/[slug]` | Public-facing partner profile: name, tier, logo, bio, booth location, optional member list | anyone |
 
 **Nav:**
 - Partner members see a new "Team" tab in `ConnectShell` (between
@@ -292,22 +292,22 @@ filter:  ownerType="team" AND ownerId=teamId
 ```
 
 **Public partner profile (Phase 7b):**
-- Same look-and-feel as `/connect/u/<token>` (user profile)
+- Same look-and-feel as `/app/u/<token>` (user profile)
 - Logo + name + tier badge + booth location + bio + website link
 - Optional: list of partner team members (each links to their
-  `/connect/u/<token>` if they opted in to `directory_listing` consent)
+  `/app/u/<token>` if they opted in to `directory_listing` consent)
 - Linkable from marketing-site sponsor pages too (separate from the
-  authenticated `/connect/*` scope, just a public read)
+  authenticated `/app/*` scope, just a public read)
 
 ## Digital badge home page (Phase 5 detail)
 
 ```
-/connect (authenticated)
+/app (authenticated)
 ├─ Big QR centered (UserQR with new publicToken URL)
-├─ Below: name · role · company  ·  edit → /connect/settings
+├─ Below: name · role · company  ·  edit → /app/settings
 └─ Action row: [Scan to connect →]  [My contacts →]  [My agenda →]
 
-Unauth /connect keeps current splash + "Sign in to continue".
+Unauth /app keeps current splash + "Sign in to continue".
 ```
 
 ## Operational facts
@@ -394,7 +394,7 @@ is newsletter-only, not transactional).
 
 Required for May 28. See **Phase 7b detail** above. Today scanning
 works for everyone (contacts land on the rep's personal
-`/connect/contacts`), but there's no team-shared pool, no CSV export,
+`/app/contacts`), but there's no team-shared pool, no CSV export,
 and no partner branding. Phase 7b builds all of that on top of the
 existing `teams` table + `contacts.ownerType` plumbing that's already
 in the schema.
@@ -405,7 +405,7 @@ in the schema.
 - Real-time scan notifications ("X scanned you")
 - 10-minute-before favorited session reminder push
 - Per-partner analytics dashboard (scans/day, conversion, top reps)
-- Shareable profile link with OG tags (`/connect/u/<token>` already
+- Shareable profile link with OG tags (`/app/u/<token>` already
   serves the page; just needs OG metadata)
 - Post-event recap email with contacts + notes
 - A scanner picks scan-context (personal vs. partner team) for users
