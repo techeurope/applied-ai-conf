@@ -26,8 +26,6 @@
 
 ## 🟡 Still open (smaller polish)
 
-- **ConnectShell / ConnectHome / ConnectLayout** function names — internal
-  handles, not user-visible. Rename for consistency, low value.
 - **Profile photo upload** — schema has `imageStorageId`, no UI yet.
 - **Partner logo upload** — schema has `logoStorageId` AND seeded
   `logoUrl`; the static path approach works for now, no manual upload
@@ -40,6 +38,26 @@
 - **Cron-based partner attach** — deliberately not on a cron. Run
   `scripts/sync-partner-teams.mjs` manually after new partner staff get
   Luma tickets.
+
+## ✅ Just landed
+
+- **AppShell / AppLayout / AppHome** rename — internal symbols cleaned
+  up after the `/connect` → `/app` move.
+- **`admin:bootstrapSetAccessLevel`** — single mutation to set any user
+  to `admin` / `member` / `vendor` by email. Replaces the manual
+  Convex-dashboard tweak previously needed for vendor accounts.
+- **Mission Control dashboard** — `/app` is now `Dashboard.tsx`. Status
+  header with live clock + conference day countdown, speaker callout
+  (auto-pulses when their talk is ≤2h away), Right-Now panel with
+  real-time progress bars on live talks + Up Next, badge panel with
+  tap-to-enlarge fullscreen QR, vouchers below.
+- **`/app/scan`** — camera + upload extracted into their own route. The
+  Home tab is no longer "Scan".
+- **Agenda Right-Now panel** — `/app/agenda` now has a live panel at
+  the top mirroring the dashboard, with tap-to-scroll to matching list
+  rows. Replaces the previous "buried LIVE pill" UX.
+- **Nav refresh** — Home / Scan / Contacts (with live count) / Agenda /
+  Settings; admin/team/vendor tabs unchanged.
 
 ## How to issue vouchers before the event
 
@@ -58,11 +76,6 @@ To grant a user the vendor role (so they can redeem):
 CONVEX_DEPLOY_KEY=<key> npx convex run \
   admin:bootstrapSetAccessLevel '{"email":"vendor@…", "accessLevel":"vendor"}'
 ```
-
-*(That mutation doesn't exist yet — currently you can promote to admin
-via `scripts/admin-grant.mjs`, but vendor needs to be set manually in
-the Convex dashboard or via a new bootstrap mutation. Easy follow-up
-if/when needed.)*
 
 ## Recurring agent instructions
 

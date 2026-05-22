@@ -76,6 +76,30 @@ export const bootstrapGrantByEmail = internalMutation({
   },
 });
 
+// Bootstrap a specific access level (admin / member / vendor) for a user.
+// Used to grant vendor accessLevel to lunch-table operators ahead of the event
+// without needing a UI for it.
+export const bootstrapSetAccessLevel = internalMutation({
+  args: {
+    email: v.string(),
+    accessLevel: v.union(
+      v.literal("admin"),
+      v.literal("member"),
+      v.literal("vendor"),
+    ),
+  },
+  handler: async (ctx, { email, accessLevel }) => {
+    const normalized = email.toLowerCase().trim();
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", normalized))
+      .first();
+    if (!user) throw new Error(`No user with email ${normalized}`);
+    await ctx.db.patch(user._id, { accessLevel });
+    return { userId: user._id, email: normalized, accessLevel };
+  },
+});
+
 export const bootstrapRevokeByEmail = internalMutation({
   args: { email: v.string() },
   handler: async (ctx, { email }) => {
