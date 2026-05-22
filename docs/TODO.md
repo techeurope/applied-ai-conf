@@ -1,106 +1,70 @@
-# `/app` Platform — Active TODO
+# `/app` Platform — TODO
 
-Tracked work after the `/connect` → `/app` rename. Tackle in roughly
-this order — items above unblock items below.
+## ✅ Done (after the /connect → /app rename)
 
-## 1. Move the agenda into Convex (foundation)
+- **Agenda in Convex** — sessions table on dev + prod (42 rows). AgendaList,
+  dashboard live strip, speaker callout all read from Convex (reactive).
+  `app/data/agenda.ts` still exists as the seed source.
+- **Admin agenda CMS** at `/app/admin/agenda` — inline edit every field,
+  filter by stage, create, delete, cancel toggle. Cancelled sessions grey
+  out + strike through but stay in the table so favorites resolve.
+- **DMC stage views** at `/stage/main` + `/stage/side` — full-screen,
+  public-readable, no auth, no nav chrome. LIVE NOW card with progress
+  bar, UP NEXT card, giant current time, auto-refresh every 10s. Skips
+  cancelled sessions.
+- **Vouchers**:
+  - Schema: `vouchers` table indexed by user, kind, public token
+    (`vch_xxxxxxxx`). users.accessLevel extended with "vendor".
+  - Attendee dashboard shows a card per voucher (QR + redeemed state).
+  - `/app/vendor` — vendor-gated scanner that redeems with one tap.
+  - `/v/[token]` — public landing for anyone who scans a voucher QR.
+  - Admin per-attendee Vouchers panel with "+ Issue lunch / coffee".
+  - `bootstrapIssueForVerifiedAttendees` mutation seeded lunch
+    vouchers on dev (2) + prod (1, Tim).
+- **Branding cleanup** — page title, PWA manifest, splash header, header
+  brand link, marketing copy all dropped "Connect" → "Applied AI Conf".
 
-**Why:** today the agenda is hardcoded in `app/data/agenda.ts` so any
-fix (typo, time change, swapping a talk) requires a deploy. The DMC
-stage view (#2) and the agenda CMS (#3) both depend on a live source.
+## 🟡 Still open (smaller polish)
 
-**Scope:**
-- New `sessions` table in Convex schema mirroring `AgendaSlot`:
-  `id (slug)`, `title`, `speakerName?`, `startTime`, `endTime`,
-  `stage`, `format`, `order`, `description?`.
-- Internal mutation `agenda:bootstrapSeed` that imports the current
-  `AGENDA` array. Run once on dev + prod.
-- `agenda:list` query (public — anyone can read the agenda).
-- Switch `AgendaList`, `ScannerHome` live-strip, and
-  `findSpeakerSlots` to read from Convex instead of the static
-  import. Re-fetch on focus + via Convex's reactivity for live
-  updates.
-- Keep `app/data/agenda.ts` as a fallback / seed source until we're
-  confident the DB copy is canonical, then delete it.
+- **ConnectShell / ConnectHome / ConnectLayout** function names — internal
+  handles, not user-visible. Rename for consistency, low value.
+- **Profile photo upload** — schema has `imageStorageId`, no UI yet.
+- **Partner logo upload** — schema has `logoStorageId` AND seeded
+  `logoUrl`; the static path approach works for now, no manual upload
+  needed unless a partner sends a new logo.
+- **Per-partner analytics dashboard** — scans/day, hot lead conversion.
+  Out of scope for May 28.
+- **Self-serve partner join code** — today only the team owner or
+  conference admin invites; no "share this code with your colleagues"
+  flow. Manual invite scales fine for our team count.
+- **Cron-based partner attach** — deliberately not on a cron. Run
+  `scripts/sync-partner-teams.mjs` manually after new partner staff get
+  Luma tickets.
 
-## 2. Admin agenda CMS
+## How to issue vouchers before the event
 
-**Why:** organisers need to edit titles, swap speakers, shift times,
-cancel sessions — without a deploy.
+```bash
+# Lunch for every verified attendee
+CONVEX_DEPLOY_KEY=<prod_key> npx convex run \
+  vouchers:bootstrapIssueForVerifiedAttendees '{"kind":"lunch"}'
 
-**Scope:**
-- New admin route `/app/admin/agenda` listing all sessions grouped by
-  stage and time, with inline edit for every field.
-- Mutations `agenda:create`, `agenda:update`, `agenda:delete`,
-  `agenda:reorder` — all admin-gated, audited.
-- Drag-to-reorder by start time. Conflict checking (don't allow two
-  sessions on the same stage overlapping).
-- "Cancel session" toggle (soft-disable so favorites referencing it
-  don't 404; render greyed-out + struck-through on the agenda).
+# Add a per-attendee voucher via the admin UI:
+# /app/admin/attendees/<id>  → "+ Issue lunch" / "+ Issue coffee"
+```
 
-## 3. DMC main-stage view
+To grant a user the vendor role (so they can redeem):
 
-**Why:** the day-of MC running the main stage wants a giant
-single-purpose screen: what's happening RIGHT NOW + what's NEXT,
-auto-updating, no nav chrome.
+```bash
+CONVEX_DEPLOY_KEY=<key> npx convex run \
+  admin:bootstrapSetAccessLevel '{"email":"vendor@…", "accessLevel":"vendor"}'
+```
 
-**Scope:**
-- New full-screen route `/app/stage/main` (and `/app/stage/side`).
-- Probably admin-only (configurable). Big typography, dark
-  background, "LIVE NOW" + "UP NEXT in N minutes".
-- Re-uses `getConferenceClock` + the new agenda query.
-- Refresh every 30s already covered by interval pattern in `AgendaList`.
+*(That mutation doesn't exist yet — currently you can promote to admin
+via `scripts/admin-grant.mjs`, but vendor needs to be set manually in
+the Convex dashboard or via a new bootstrap mutation. Easy follow-up
+if/when needed.)*
 
-## 4. Eating voucher (+ other vouchers)
+## Recurring agent instructions
 
-**Why:** attendees get meal/coffee/etc. vouchers as part of their
-ticket. Today the only way to manage that is paper / Luma's check-in.
-Move it into the app so vendors can redeem digitally.
-
-**Scope:**
-- New `vouchers` table: `userId`, `kind` (`"lunch" | "coffee" | …`),
-  `issuedAt`, `redeemedAt?`, `redeemedByUserId?` (vendor account),
-  `eventId?` (if multi-day).
-- Bootstrap mutation: issue 1× lunch voucher to every approved
-  attendee on event day.
-- Attendee dashboard card: "Today's vouchers" with a per-voucher QR
-  the vendor scans.
-- Vendor app flow: a new role/permission (`accessLevel: "vendor"` or
-  a `vendors` table). Vendor opens `/app/vendor`, scans an attendee's
-  voucher QR, marks it redeemed. Audit log entry.
-- Admin can issue extra vouchers (VIP gets a second coffee, etc.).
-
-**Open questions:**
-- Voucher-QR format vs. attendee-QR format — do we reuse `aac_xxx` or
-  a separate prefix like `vch_xxx`?
-- Should the dashboard show used + unused, or hide used? (probably
-  show with a strikethrough + redeemed-at timestamp).
-
-## 5. Smaller follow-ups noted along the way
-
-- **Page title metadata** still reads `Connect | Applied AI Conf`. If we
-  fully retire the "Connect" name, update `app/app/layout.tsx` and
-  the manifest's `name` / `short_name`.
-- **Unauth splash on `/app`** (the marketing-style page before sign-in)
-  still has a giant `<h1>connect</h1>`. Should probably say "Applied AI
-  Conf — the app" or similar.
-- **`ConnectShell` component name** is internal-only but renaming to
-  `AppShell` would match the URL space.
-- **Profile photo + partner logo upload UIs** — schema fields exist
-  (`imageStorageId`, `logoStorageId`) but no upload flow.
-- **Per-partner analytics dashboard** — scans/day, hot leads, etc.
-- **Self-serve partner join code** — today only the owner can invite,
-  the conference admin can also; no "share this link with your team"
-  flow.
-
-## Already-done audit after the rename
-
-- ✅ Code: all `/connect/…` → `/app/…` (verified with grep).
-- ✅ QR scanner keeps a backward-compat regex for legacy
-  `/connect/u/<token>` payloads.
-- ✅ WorkOS Production: App homepage URL + Sign-out redirects updated.
-- ✅ WorkOS Staging: App homepage URL + Sign-out redirects updated.
-- ✅ Convex prod + dev redeployed (email template text changes).
-- ✅ Docs (`PLATFORM_PLAN.md`, `TEST_CHECKLIST.md`) updated.
-- ✅ Vercel env vars: nothing to change (no `/connect` references in
-  any var; redirect URI lives under `/api/auth/callback`).
+(unchanged from prior plan — local-first, npx convex codegen not dev,
+prod CONVEX_DEPLOY_KEY, WorkOS impersonation for testing)
