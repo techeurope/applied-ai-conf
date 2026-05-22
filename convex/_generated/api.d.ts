@@ -12,6 +12,7 @@ import type * as _auth from "../_auth.js";
 import type * as _tokens from "../_tokens.js";
 import type * as admin from "../admin.js";
 import type * as admin_email from "../admin_email.js";
+import type * as agenda from "../agenda.js";
 import type * as claim from "../claim.js";
 import type * as consents from "../consents.js";
 import type * as contacts from "../contacts.js";
@@ -26,6 +27,7 @@ import type * as scans from "../scans.js";
 import type * as seed from "../seed.js";
 import type * as ticket from "../ticket.js";
 import type * as users from "../users.js";
+import type * as vouchers from "../vouchers.js";
 
 import type {
   ApiFromModules,
@@ -38,6 +40,7 @@ declare const fullApi: ApiFromModules<{
   _tokens: typeof _tokens;
   admin: typeof admin;
   admin_email: typeof admin_email;
+  agenda: typeof agenda;
   claim: typeof claim;
   consents: typeof consents;
   contacts: typeof contacts;
@@ -52,6 +55,7 @@ declare const fullApi: ApiFromModules<{
   seed: typeof seed;
   ticket: typeof ticket;
   users: typeof users;
+  vouchers: typeof vouchers;
 }>;
 
 /**
