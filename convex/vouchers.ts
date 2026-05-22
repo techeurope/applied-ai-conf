@@ -7,7 +7,6 @@ import {
 } from "./_generated/server";
 import type { Doc } from "./_generated/dataModel";
 import { requireAdmin } from "./admin";
-import { requireActiveUser } from "./_auth";
 
 const VCH_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ"; // no 0/1/I/L/O
 
@@ -62,60 +61,6 @@ export const myVouchers = query({
       .withIndex("by_user", (q) => q.eq("userId", user._id))
       .collect();
     return vouchers;
-  },
-});
-
-// --- vendor-facing -----------------------------------------------------------
-
-export const lookupByToken = query({
-  args: { token: v.string() },
-  handler: async (ctx, { token }) => {
-    const me = await requireActiveUser(ctx);
-    if (me.accessLevel !== "vendor" && me.accessLevel !== "admin") {
-      throw new Error("Vendors only");
-    }
-    const voucher = await ctx.db
-      .query("vouchers")
-      .withIndex("by_public_token", (q) => q.eq("publicToken", token))
-      .first();
-    if (!voucher) return null;
-    const owner = await ctx.db.get(voucher.userId);
-    return {
-      voucher,
-      owner: owner && !owner.deletedAt && !owner.deactivatedAt
-        ? { name: owner.name, email: owner.email, company: owner.company }
-        : null,
-    };
-  },
-});
-
-export const redeem = mutation({
-  args: { token: v.string() },
-  handler: async (ctx, { token }) => {
-    const me = await requireActiveUser(ctx);
-    if (me.accessLevel !== "vendor" && me.accessLevel !== "admin") {
-      throw new Error("Vendors only");
-    }
-    const voucher = await ctx.db
-      .query("vouchers")
-      .withIndex("by_public_token", (q) => q.eq("publicToken", token))
-      .first();
-    if (!voucher) throw new Error("Voucher not found");
-    if (voucher.redeemedAt) {
-      throw new Error(
-        `Already redeemed at ${new Date(voucher.redeemedAt).toLocaleTimeString()}`,
-      );
-    }
-    await ctx.db.patch(voucher._id, {
-      redeemedAt: Date.now(),
-      redeemedByUserId: me._id,
-    });
-    await writeAudit(ctx, me._id, "voucher.redeem", {
-      voucherId: voucher._id,
-      kind: voucher.kind,
-      ownerUserId: voucher.userId,
-    });
-    return { ok: true };
   },
 });
 

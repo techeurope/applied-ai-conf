@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@workos-inc/authkit-nextjs/components";
 import { useMutation, useQuery } from "convex/react";
-import { ScanLine, Users, CalendarDays, Settings, Compass, LogOut, Shield, Briefcase, UtensilsCrossed, Home } from "lucide-react";
+import { ScanLine, Users, CalendarDays, Settings, Compass, LogOut, Shield, Briefcase, Ticket, Home } from "lucide-react";
 import { useEffect } from "react";
 import type { ReactNode } from "react";
 import { api } from "@convex/_generated/api";
@@ -27,7 +27,7 @@ const tabs: Tab[] = [
 
 const adminTab: Tab = { href: "/app/admin", label: "Admin", icon: Shield };
 const teamTab: Tab = { href: "/app/team", label: "Team", icon: Briefcase };
-const vendorTab: Tab = { href: "/app/vendor", label: "Vendor", icon: UtensilsCrossed };
+const voucherTab: Tab = { href: "/app/voucher", label: "Voucher", icon: Ticket };
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -36,6 +36,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const me = useQuery(api.users.me);
   const myTeam = useQuery(api.partners.myTeam);
   const contacts = useQuery(api.contacts.list);
+  const vouchers = useQuery(api.vouchers.myVouchers);
   const ensureUser = useMutation(api.users.ensureFromWorkos);
   const hideNav =
     (pathname === "/app" && !auth.user) ||
@@ -96,8 +97,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       const contactsIdx = base.findIndex((t) => t.href === "/app/contacts");
       base.splice(contactsIdx + 1, 0, teamTab);
     }
-    if (me?.accessLevel === "vendor" || me?.accessLevel === "admin") {
-      base.push(vendorTab);
+    if (vouchers && vouchers.length > 0) {
+      // Slot Voucher after Scan so it's easy to flash at the lunch table.
+      const scanIdx = base.findIndex((t) => t.href === "/app/scan");
+      base.splice(scanIdx + 1, 0, voucherTab);
     }
     if (me?.accessLevel === "admin") base.push(adminTab);
     return base;

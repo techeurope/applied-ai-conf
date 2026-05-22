@@ -9,11 +9,10 @@ const KIND_META: Record<string, { icon: typeof UtensilsCrossed; label: string }>
   coffee: { icon: Coffee, label: "Coffee" },
 };
 
-// Unauthenticated public landing for a voucher QR. We can't read the voucher
-// from Convex here (no auth provider) but we don't need to — this page exists
-// just so a non-vendor camera scan gives the holder something readable.
-// The actual redemption happens at /app/vendor where a signed-in vendor
-// scans the QR and the token is parsed client-side.
+// Unauthenticated public landing for a voucher QR. Anyone scanning the code
+// with a generic phone camera lands here and sees a readable voucher screen.
+// Redemption itself happens via the vendor's own scanner app — we just
+// provide the QR.
 export default function VoucherLandingPage({
   params,
 }: {

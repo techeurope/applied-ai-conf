@@ -15,7 +15,6 @@ import {
   timeToMinutes,
 } from "@/lib/conference-time";
 import { UserQR } from "./UserQR";
-import { VoucherCard } from "./VoucherCard";
 
 type Slot = NonNullable<ReturnType<typeof useQuery<typeof api.agenda.list>>>[number];
 
@@ -23,7 +22,6 @@ export function Dashboard() {
   const me = useQuery(api.users.me);
   const myTeam = useQuery(api.partners.myTeam);
   const agenda = useQuery(api.agenda.list) ?? [];
-  const vouchers = useQuery(api.vouchers.myVouchers) ?? [];
   const favorites = useQuery(api.favorites.list);
 
   // Re-tick every 15s so progress bars + countdowns stay live.
@@ -130,18 +128,6 @@ export function Dashboard() {
         myTeam={myTeam ?? null}
         onExpand={() => setQrExpanded(true)}
       />
-
-      {/* Vouchers */}
-      {vouchers.length > 0 && (
-        <section className="space-y-2">
-          <Heading>// VOUCHERS</Heading>
-          <div className="space-y-2">
-            {vouchers.map((v) => (
-              <VoucherCard key={v._id} voucher={v} />
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* Favorites preview when NOT conference day */}
       {!clock.isConferenceDay && favoriteSlots.length > 0 && (
