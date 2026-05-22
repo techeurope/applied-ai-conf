@@ -1,12 +1,12 @@
 import { withAuth } from "@workos-inc/authkit-nextjs";
 import { ScanLine, Users, Compass, CalendarDays } from "lucide-react";
-import { ScannerHome } from "./components/ScannerHome";
+import { Dashboard } from "./components/Dashboard";
 
-export default async function ConnectHome() {
+export default async function AppHome() {
   const { user } = await withAuth();
 
   if (user) {
-    return <ScannerHome />;
+    return <Dashboard />;
   }
 
   return (

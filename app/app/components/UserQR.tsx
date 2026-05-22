@@ -7,9 +7,18 @@ interface UserQRProps {
   token: string;
   origin?: string;
   size?: number;
+  showUrl?: boolean;
+  /** Override the inner container max-width (defaults to `max-w-xs`). */
+  maxWidthClass?: string;
 }
 
-export function UserQR({ token, origin, size = 320 }: UserQRProps) {
+export function UserQR({
+  token,
+  origin,
+  size = 320,
+  showUrl = true,
+  maxWidthClass = "max-w-xs",
+}: UserQRProps) {
   const [dataUrl, setDataUrl] = useState<string | null>(null);
   const [resolvedOrigin, setResolvedOrigin] = useState(origin);
 
@@ -34,7 +43,9 @@ export function UserQR({ token, origin, size = 320 }: UserQRProps) {
 
   return (
     <div className="space-y-3">
-      <div className="aspect-square w-full max-w-xs mx-auto rounded-2xl border border-white/10 bg-white p-4 flex items-center justify-center">
+      <div
+        className={`aspect-square w-full ${maxWidthClass} mx-auto rounded-2xl border border-white/10 bg-white p-4 flex items-center justify-center`}
+      >
         {dataUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -48,7 +59,7 @@ export function UserQR({ token, origin, size = 320 }: UserQRProps) {
           <div className="font-mono text-xs text-white/40">Generating QR…</div>
         )}
       </div>
-      {resolvedOrigin && (
+      {showUrl && resolvedOrigin && (
         <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/30 text-center break-all">
           {resolvedOrigin}/app/u/{token}
         </p>

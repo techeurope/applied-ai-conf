@@ -22,7 +22,7 @@ const baseURL = (() => {
   }
 })();
 
-// Always land on /app after sign-in. ConnectShell handles the next hop:
+// Always land on /app after sign-in. AppShell handles the next hop:
 // → /app/link-ticket if not verified, → /app/onboarding if profile is
 // still empty, → badge home otherwise. Hardcoding /app/onboarding here
 // trapped already-onboarded users on the setup form after every sign-in.

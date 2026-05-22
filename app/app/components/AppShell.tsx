@@ -4,29 +4,38 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@workos-inc/authkit-nextjs/components";
 import { useMutation, useQuery } from "convex/react";
-import { ScanLine, Users, CalendarDays, Settings, Compass, LogOut, Shield, Briefcase, UtensilsCrossed } from "lucide-react";
+import { ScanLine, Users, CalendarDays, Settings, Compass, LogOut, Shield, Briefcase, UtensilsCrossed, Home } from "lucide-react";
 import { useEffect } from "react";
 import type { ReactNode } from "react";
 import { api } from "@convex/_generated/api";
 import { applyDemoClockFromUrl } from "@/lib/conference-time";
 
-const tabs = [
-  { href: "/app", label: "Scan", icon: ScanLine },
-  { href: "/app/contacts", label: "Contacts", icon: Users },
+type Tab = {
+  href: string;
+  label: string;
+  icon: typeof Home;
+  countKey?: "contacts";
+};
+
+const tabs: Tab[] = [
+  { href: "/app", label: "Home", icon: Home },
+  { href: "/app/scan", label: "Scan", icon: ScanLine },
+  { href: "/app/contacts", label: "Contacts", icon: Users, countKey: "contacts" },
   { href: "/app/agenda", label: "Agenda", icon: CalendarDays },
   { href: "/app/settings", label: "Settings", icon: Settings },
 ];
 
-const adminTab = { href: "/app/admin", label: "Admin", icon: Shield } as const;
-const teamTab = { href: "/app/team", label: "Team", icon: Briefcase } as const;
-const vendorTab = { href: "/app/vendor", label: "Redeem", icon: UtensilsCrossed } as const;
+const adminTab: Tab = { href: "/app/admin", label: "Admin", icon: Shield };
+const teamTab: Tab = { href: "/app/team", label: "Team", icon: Briefcase };
+const vendorTab: Tab = { href: "/app/vendor", label: "Redeem", icon: UtensilsCrossed };
 
-export function ConnectShell({ children }: { children: ReactNode }) {
+export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const auth = useAuth();
   const me = useQuery(api.users.me);
   const myTeam = useQuery(api.partners.myTeam);
+  const contacts = useQuery(api.contacts.list);
   const ensureUser = useMutation(api.users.ensureFromWorkos);
   const hideNav =
     (pathname === "/app" && !auth.user) ||
@@ -82,8 +91,9 @@ export function ConnectShell({ children }: { children: ReactNode }) {
   const visibleTabs = (() => {
     const base = [...tabs];
     if (myTeam?.team) {
-      // Insert team tab after Contacts
-      base.splice(2, 0, teamTab);
+      // Insert team tab after Contacts (index of contacts tab + 1).
+      const contactsIdx = base.findIndex((t) => t.href === "/app/contacts");
+      base.splice(contactsIdx + 1, 0, teamTab);
     }
     if (me?.accessLevel === "vendor" || me?.accessLevel === "admin") {
       base.push(vendorTab);
@@ -91,6 +101,10 @@ export function ConnectShell({ children }: { children: ReactNode }) {
     if (me?.accessLevel === "admin") base.push(adminTab);
     return base;
   })();
+
+  const counts = {
+    contacts: contacts?.length,
+  } as const;
 
   return (
     <div className="min-h-[100dvh] bg-background text-foreground flex flex-col selection:bg-white/20">
@@ -126,12 +140,13 @@ export function ConnectShell({ children }: { children: ReactNode }) {
           {!hideNav && (
             <nav aria-label="Primary" className="-mx-4 sm:-mx-6 border-t border-white/5">
               <ul className="flex overflow-x-auto no-scrollbar px-4 sm:px-6">
-                {visibleTabs.map(({ href, label, icon: Icon }) => {
+                {visibleTabs.map(({ href, label, icon: Icon, countKey }) => {
                   // /app must be an exact match (otherwise it'd light up on every nested route).
                   const active =
                     href === "/app"
                       ? pathname === "/app"
                       : pathname === href || pathname?.startsWith(href + "/");
+                  const count = countKey ? counts[countKey] : undefined;
                   return (
                     <li key={href} className="shrink-0">
                       <Link
@@ -144,6 +159,15 @@ export function ConnectShell({ children }: { children: ReactNode }) {
                       >
                         <Icon className="size-4" strokeWidth={1.75} />
                         <span>{label}</span>
+                        {count !== undefined && count > 0 && (
+                          <span
+                            className={`tabular-nums text-[10px] tracking-normal ${
+                              active ? "text-white/70" : "text-white/30"
+                            }`}
+                          >
+                            · {count}
+                          </span>
+                        )}
                       </Link>
                     </li>
                   );

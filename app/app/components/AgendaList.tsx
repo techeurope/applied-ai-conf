@@ -4,7 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import { Heart } from "lucide-react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
-import { getConferenceClock, isLive } from "@/lib/conference-time";
+import {
+  getConferenceClock,
+  isLive,
+  minutesUntilStart,
+  nextSlotsByStage,
+  timeToMinutes,
+} from "@/lib/conference-time";
 
 type Slot = NonNullable<ReturnType<typeof useQuery<typeof api.agenda.list>>>[number];
 type StageFilter = "all" | "main" | "side";
@@ -24,12 +30,49 @@ export function AgendaList() {
   const [onlyFavorites, setOnlyFavorites] = useState(false);
   const [, setTick] = useState(0);
 
-  // Re-render every 30s so the LIVE indicator stays accurate.
+  // Re-render every 15s so the LIVE indicator + progress bar stay live.
   useEffect(() => {
-    const id = setInterval(() => setTick((n) => n + 1), 30_000);
+    const id = setInterval(() => setTick((n) => n + 1), 15_000);
     return () => clearInterval(id);
   }, []);
   const clock = getConferenceClock();
+
+  const liveSlots = clock.isConferenceDay
+    ? slots.filter((s) => isLive(s, clock.nowMinutes))
+    : [];
+  const liveTalks = liveSlots.filter(
+    (s) => s.format !== "break" && s.format !== "logistics",
+  );
+  const liveVenueRaw = liveSlots.filter(
+    (s) => s.format === "break" || s.format === "logistics",
+  );
+  const liveVenue: typeof liveVenueRaw = [];
+  const seenVenue = new Set<string>();
+  for (const s of liveVenueRaw) {
+    const key = `${s.title}|${s.startTime}`;
+    if (seenVenue.has(key)) continue;
+    seenVenue.add(key);
+    liveVenue.push(s);
+  }
+  const nextByStage = clock.isConferenceDay
+    ? nextSlotsByStage(
+        slots.filter((s) => s.format !== "logistics" && s.format !== "break"),
+        clock.nowMinutes,
+        90,
+      )
+    : {};
+  const upNext = Object.values(nextByStage).filter((s) => !liveTalks.includes(s));
+
+  const scrollToSlot = (slotId: string) => {
+    if (typeof window === "undefined") return;
+    const el = document.getElementById(`agenda-${slotId}`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.classList.add("ring-2", "ring-white/40");
+    window.setTimeout(() => {
+      el.classList.remove("ring-2", "ring-white/40");
+    }, 1500);
+  };
 
   const favSet = useMemo(() => new Set(favorites ?? []), [favorites]);
 
@@ -57,8 +100,113 @@ export function AgendaList() {
     }
   }
 
+  const hasRightNow =
+    clock.isConferenceDay &&
+    (liveTalks.length > 0 || liveVenue.length > 0 || upNext.length > 0);
+
   return (
     <div className="space-y-3">
+      {hasRightNow && (
+        <section className="space-y-2 pb-1">
+          <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
+            // RIGHT NOW · {clock.nowHHMM}
+          </p>
+          <div className="space-y-2">
+            {liveTalks.map((s) => (
+              <button
+                key={s._id}
+                type="button"
+                onClick={() => scrollToSlot(s.id)}
+                className={`w-full text-left rounded-2xl bg-white/[0.03] ring-1 p-4 space-y-2 transition-colors hover:bg-white/[0.05] ${
+                  s.stage === "main"
+                    ? "ring-emerald-300/30"
+                    : "ring-violet-300/30"
+                }`}
+              >
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] px-1.5 py-0.5 rounded-full bg-rose-500/25 text-rose-100 ring-1 ring-rose-400/30">
+                    <span className="size-1.5 rounded-full bg-rose-300 animate-pulse" />
+                    Live
+                  </span>
+                  <span
+                    className={`font-mono text-[10px] uppercase tracking-[0.18em] ${
+                      s.stage === "main" ? "text-emerald-200" : "text-violet-200"
+                    }`}
+                  >
+                    {s.stage}
+                  </span>
+                  <span className="font-mono text-[10px] tracking-widest text-white/50">
+                    {s.startTime}–{s.endTime}
+                  </span>
+                </div>
+                <p className="text-sm sm:text-base text-white leading-snug">{s.title}</p>
+                {s.speakerName && (
+                  <p className="text-xs text-white/60">
+                    <span className="font-mono text-white/30">› </span>
+                    {s.speakerName}
+                  </p>
+                )}
+                <ProgressBar
+                  start={timeToMinutes(s.startTime)}
+                  end={timeToMinutes(s.endTime)}
+                  now={clock.nowMinutes}
+                />
+              </button>
+            ))}
+            {liveVenue.map((s) => (
+              <article
+                key={s._id}
+                className="rounded-2xl bg-amber-500/10 ring-1 ring-amber-400/30 p-4 space-y-1"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-100 ring-1 ring-amber-400/30">
+                    <span className="size-1.5 rounded-full bg-amber-300 animate-pulse" />
+                    Now
+                  </span>
+                  <span className="font-mono text-[10px] tracking-widest text-white/50">
+                    {s.startTime}–{s.endTime}
+                  </span>
+                </div>
+                <p className="text-sm text-white leading-snug">{s.title}</p>
+              </article>
+            ))}
+          </div>
+
+          {upNext.length > 0 && (
+            <div className="pt-1 space-y-1.5">
+              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/40">
+                Up next · in {formatMinutes(minutesUntilStart(upNext[0], clock.nowMinutes))}
+              </p>
+              <ul className="space-y-1">
+                {upNext.map((s) => (
+                  <li key={s._id}>
+                    <button
+                      type="button"
+                      onClick={() => scrollToSlot(s.id)}
+                      className="w-full text-left flex items-baseline gap-2 text-xs hover:text-white transition-colors"
+                    >
+                      <span className="font-mono text-white/30">›</span>
+                      <span
+                        className={`font-mono text-[10px] uppercase tracking-[0.18em] ${
+                          s.stage === "main" ? "text-emerald-200" : "text-violet-200"
+                        }`}
+                      >
+                        {s.stage}
+                      </span>
+                      <span className="font-mono text-white/50">{s.startTime}</span>
+                      <span className="text-white/80 truncate">{s.title}</span>
+                      {s.speakerName && (
+                        <span className="text-white/40 truncate">· {s.speakerName}</span>
+                      )}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
+      )}
+
       <div className="sticky top-[88px] z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 py-2 bg-background/85 backdrop-blur-xl border-b border-white/5">
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
           <FilterPill active={stage === "all"} onClick={() => setStage("all")}>
@@ -104,7 +252,8 @@ export function AgendaList() {
             return (
               <li
                 key={slot.id}
-                className={`glass-card rounded-xl p-4 ${
+                id={`agenda-${slot.id}`}
+                className={`glass-card rounded-xl p-4 transition-shadow ${
                   liveTalk
                     ? "ring-2 ring-rose-400/60"
                     : liveVenue
@@ -167,6 +316,34 @@ export function AgendaList() {
       )}
     </div>
   );
+}
+
+function ProgressBar({
+  start,
+  end,
+  now,
+}: {
+  start: number;
+  end: number;
+  now: number;
+}) {
+  const pct = Math.max(0, Math.min(1, (now - start) / (end - start))) * 100;
+  return (
+    <div className="w-full h-1 rounded-full bg-white/5 overflow-hidden">
+      <div
+        className="h-full bg-rose-400/80 transition-all duration-500"
+        style={{ width: `${pct}%` }}
+      />
+    </div>
+  );
+}
+
+function formatMinutes(min: number): string {
+  if (min < 0) return `${-min} min ago`;
+  if (min < 60) return `${min} min`;
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return `${h}h${m ? ` ${m}m` : ""}`;
 }
 
 function FilterPill({

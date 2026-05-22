@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { AuthKitProvider } from "@workos-inc/authkit-nextjs/components";
 import { withAuth } from "@workos-inc/authkit-nextjs";
 import { ConvexClientProvider } from "./ConvexClientProvider";
-import { ConnectShell } from "./components/ConnectShell";
+import { AppShell } from "./components/AppShell";
 
 export const metadata: Metadata = {
   title: "Applied AI Conf",
@@ -26,7 +26,7 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default async function ConnectLayout({
+export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -37,7 +37,7 @@ export default async function ConnectLayout({
   return (
     <AuthKitProvider initialAuth={initialAuth}>
       <ConvexClientProvider>
-        <ConnectShell>{children}</ConnectShell>
+        <AppShell>{children}</AppShell>
       </ConvexClientProvider>
     </AuthKitProvider>
   );
