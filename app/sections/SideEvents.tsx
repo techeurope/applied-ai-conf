@@ -97,18 +97,18 @@ export default function SideEvents() {
                   href="https://luma.com/applied-ai-conf"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`group relative flex flex-col sm:flex-row sm:min-h-[220px] bg-black border border-white/15 rounded-xl overflow-hidden transition-all duration-500 hover:border-white/30 ${
+                  className={`group relative flex flex-row min-h-[140px] sm:min-h-[220px] bg-black border border-white/15 rounded-xl overflow-hidden transition-all duration-500 hover:border-white/30 ${
                     isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
                   }`}
                   style={{ transitionDelay: `${200 + gi * 100}ms` }}
                 >
-                  <div className="relative w-full aspect-square shrink-0 overflow-hidden sm:w-[180px] sm:aspect-auto sm:self-stretch md:w-[200px] lg:w-[220px]">
+                  <div className="relative w-28 shrink-0 self-stretch overflow-hidden sm:w-[180px] md:w-[200px] lg:w-[220px]">
                     <LidarScapeBackground />
-                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 sm:gap-1 px-3 sm:px-2 text-center pointer-events-none">
-                      <span className="font-mono text-sm sm:text-[10px] md:text-xs tracking-widest text-white">
+                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-1 px-2 text-center pointer-events-none">
+                      <span className="font-mono text-[9px] sm:text-[10px] md:text-xs tracking-widest text-white">
                         {"{"}Tech: Europe{"}"}
                       </span>
-                      <span className="font-mono font-bold text-white text-7xl sm:text-3xl md:text-4xl leading-tight tracking-tight">
+                      <span className="font-mono font-bold text-white text-xl sm:text-3xl md:text-4xl leading-tight tracking-tight">
                         Applied
                         <br />
                         AI Conf
@@ -142,13 +142,13 @@ export default function SideEvents() {
                   href={event.rsvpUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`group relative flex flex-col sm:flex-row sm:min-h-[220px] bg-black border border-white/15 rounded-xl overflow-hidden transition-all duration-500 hover:border-white/30 ${
+                  className={`group relative flex flex-row min-h-[140px] sm:min-h-[220px] bg-black border border-white/15 rounded-xl overflow-hidden transition-all duration-500 hover:border-white/30 ${
                     isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
                   }`}
                   style={{ transitionDelay: `${200 + gi * 100 + i * 60}ms` }}
                 >
                   {event.image && (
-                    <div className="relative w-full aspect-square shrink-0 overflow-hidden sm:w-auto sm:self-stretch">
+                    <div className="relative w-28 shrink-0 self-stretch overflow-hidden sm:w-auto sm:aspect-square">
                       <img
                         src={event.image}
                         alt={event.title}
