@@ -70,7 +70,7 @@ export const getByPublicToken = query({
   },
 });
 
-// Resolves a /connect/u/<x> URL where x is either a publicToken (aac_...)
+// Resolves a /app/u/<x> URL where x is either a publicToken (aac_...)
 // or an old Convex _id. Token match takes precedence.
 export const getByTokenOrId = query({
   args: { value: v.string() },

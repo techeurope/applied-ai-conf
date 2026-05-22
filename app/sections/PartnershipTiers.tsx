@@ -58,15 +58,14 @@ export default function PartnershipTiers() {
                   href={partner.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="relative flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity"
+                  className="relative flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity py-12 px-6 lg:py-20 lg:px-12"
                   style={{
                     width: `${100 / PARTNERS.premium.length}%`,
-                    padding: "80px 48px",
                     borderRight: `1px solid ${borderColor}`,
                   }}
                 >
                   <div
-                    className="relative h-32 w-full"
+                    className="relative h-24 lg:h-32 w-full"
                     style={partner.logoScale ? { transform: `scale(${partner.logoScale})` } : undefined}
                   >
                     <Image
@@ -107,10 +106,7 @@ export default function PartnershipTiers() {
                   const isLastInRow = indexInRow === rowItems - 1;
                   const isFirstRow = rowIndex === 0;
 
-                  const cellStyle: CSSProperties = {
-                    width: "25%",
-                    padding: "48px 32px",
-                  };
+                  const cellStyle: CSSProperties = {};
                   if (isFirstRow) {
                     cellStyle.borderTop = `1px solid ${borderColor}`;
                     cellStyle.borderBottom = `1px solid ${borderColor}`;
@@ -125,11 +121,11 @@ export default function PartnershipTiers() {
                       href={partner.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="relative flex items-center justify-center opacity-70 hover:opacity-100 transition-opacity"
+                      className="relative flex items-center justify-center opacity-70 hover:opacity-100 transition-opacity w-1/2 sm:w-1/3 lg:w-1/4 py-8 px-4 lg:py-12 lg:px-8"
                       style={cellStyle}
                     >
                       <div
-                        className="relative h-16 w-full"
+                        className="relative h-12 lg:h-16 w-full"
                         style={partner.logoScale ? { transform: `scale(${partner.logoScale})` } : undefined}
                       >
                         <Image
@@ -154,41 +150,36 @@ export default function PartnershipTiers() {
               Community
             </span>
             <div
-              className="flex w-full"
+              className="flex flex-wrap w-full"
               style={{
                 borderBottom: `1px solid ${borderColor}`,
                 borderLeft: `1px solid ${borderColor}`,
               }}
             >
-              {(() => {
-                const slotWidth = `${100 / PARTNERS.community.length}%`;
-                return PARTNERS.community.map((partner) => (
-                  <Link
-                    key={partner.name}
-                    href={partner.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="relative flex items-center justify-center opacity-50 hover:opacity-100 transition-opacity"
-                    style={{
-                      width: slotWidth,
-                      padding: "36px 24px",
-                      borderRight: `1px solid ${borderColor}`,
-                    }}
+              {PARTNERS.community.map((partner) => (
+                <Link
+                  key={partner.name}
+                  href={partner.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="relative flex items-center justify-center opacity-50 hover:opacity-100 transition-opacity w-1/2 sm:w-1/4 lg:w-[12.5%] py-6 px-3 lg:py-9 lg:px-6"
+                  style={{
+                    borderRight: `1px solid ${borderColor}`,
+                  }}
+                >
+                  <div
+                    className="relative h-5 lg:h-6 w-full lg:w-[152px]"
+                    style={partner.logoScale ? { transform: `scale(${partner.logoScale})` } : undefined}
                   >
-                    <div
-                      className="relative h-6 w-[152px]"
-                      style={partner.logoScale ? { transform: `scale(${partner.logoScale})` } : undefined}
-                    >
-                      <Image
-                        src={partner.logo}
-                        alt={partner.logoAlt}
-                        fill
-                        className="object-contain"
-                      />
-                    </div>
-                  </Link>
-                ));
-              })()}
+                    <Image
+                      src={partner.logo}
+                      alt={partner.logoAlt}
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
         </div>

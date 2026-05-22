@@ -24,12 +24,12 @@ export const emailClaimCode = action({
       <p style="font-size:14px;color:#444;">${pending.name ? `Hi ${pending.name}, ` : ""}use this code to claim your spot on the conference platform:</p>
       <p style="font-size:32px;letter-spacing:8px;font-weight:700;text-align:center;background:#f3f3f3;padding:16px;border-radius:8px;font-family:ui-monospace,monospace;">${code.code}</p>
       <p style="font-size:14px;color:#444;">
-        1. Sign up at <a href="https://conference.techeurope.io/connect">conference.techeurope.io/connect</a><br>
+        1. Sign up at <a href="https://conference.techeurope.io/app">conference.techeurope.io/app</a><br>
         2. Open Settings (or the verification screen) and paste the code above.
       </p>
       <p style="font-size:12px;color:#888;">If you didn't expect this email, you can ignore it.</p>
     </div>`;
-    const text = `Your Applied AI Conf access code: ${code.code}\n\nSign up at https://conference.techeurope.io/connect, then paste the code on the verification screen or in Settings.`;
+    const text = `Your Applied AI Conf access code: ${code.code}\n\nSign up at https://conference.techeurope.io/app, then paste the code on the verification screen or in Settings.`;
     await ctx.runAction(internal.email.send, {
       to: pending.email,
       subject: "Your Applied AI Conf access code",

@@ -19,7 +19,7 @@ function slugify(s) {
 }
 
 // Only paid tiers get a team / lead pool. Community partners get logo
-// placement on the marketing site but no /connect platform team.
+// placement on the marketing site but no /app platform team.
 const entries = [];
 for (const tier of ["premium", "gold"]) {
   for (const p of PARTNERS[tier] ?? []) {
