@@ -18,7 +18,7 @@ export default function PartnershipTiers() {
 
   return (
     <section id="partners" className="relative overflow-hidden py-16 lg:py-20 min-h-screen flex items-center">
-      <div className="mx-auto w-[90vw] max-w-[90vw] px-6 lg:px-8">
+      <div className="w-full px-6 lg:px-12">
         <h2 className="text-4xl font-mono font-bold tracking-tight text-center sm:text-5xl md:text-6xl mb-16">
           <button
             type="button"
