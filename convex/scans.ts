@@ -79,13 +79,6 @@ export const record = mutation({
       });
     }
 
-    await ctx.db.insert("scannedNotifications", {
-      recipientUserId: scannedUserId,
-      scannerUserId: scanner._id,
-      scanEventId,
-      createdAt: now,
-    });
-
     return { scanEventId, duplicate: false };
   },
 });

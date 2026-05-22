@@ -19,6 +19,7 @@ export default function AdminPartnerDetailPage({
   const invite = useMutation(api.partners.inviteMember);
   const remove = useMutation(api.partners.removeMember);
   const revoke = useMutation(api.partners.revokeInvite);
+  const setRole = useMutation(api.partners.setMemberRole);
 
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<{
@@ -242,39 +243,59 @@ export default function AdminPartnerDetailPage({
       <section className="glass-card rounded-2xl p-5 space-y-3">
         <h3 className="font-mono text-sm font-bold">Members ({team.members.length})</h3>
         <ul className="divide-y divide-white/5">
-          {team.members.map(({ membership, user }) => (
-            <li key={membership._id} className="py-2 flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <div className="font-mono text-sm">{user?.name ?? "Unknown"}</div>
-                <div className="text-xs text-white/50 truncate">{user?.email}</div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">
-                  {membership.role}
-                </span>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    if (!confirm(`Remove ${user?.email}?`)) return;
-                    setBusy("remove");
-                    try {
-                      await remove({
-                        teamId: teamId as Id<"teams">,
-                        userId: membership.userId,
-                      });
-                    } catch (e) {
-                      setError(e instanceof Error ? e.message : "Failed");
-                    } finally {
-                      setBusy(null);
-                    }
-                  }}
-                  className="font-mono text-xs text-white/40 hover:text-red-300 underline"
-                >
-                  remove
-                </button>
-              </div>
-            </li>
-          ))}
+          {team.members.map(({ membership, user }) => {
+            const nextRole = membership.role === "owner" ? "member" : "owner";
+            return (
+              <li key={membership._id} className="py-2 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="font-mono text-sm">{user?.name ?? "Unknown"}</div>
+                  <div className="text-xs text-white/50 truncate">{user?.email}</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">
+                    {membership.role}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        await setRole({
+                          teamId: teamId as Id<"teams">,
+                          userId: membership.userId,
+                          role: nextRole,
+                        });
+                      } catch (e) {
+                        setError(e instanceof Error ? e.message : "Failed");
+                      }
+                    }}
+                    className="font-mono text-xs text-white/50 hover:text-white underline"
+                  >
+                    make {nextRole}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!confirm(`Remove ${user?.email}?`)) return;
+                      setBusy("remove");
+                      try {
+                        await remove({
+                          teamId: teamId as Id<"teams">,
+                          userId: membership.userId,
+                        });
+                      } catch (e) {
+                        setError(e instanceof Error ? e.message : "Failed");
+                      } finally {
+                        setBusy(null);
+                      }
+                    }}
+                    className="font-mono text-xs text-white/40 hover:text-red-300 underline"
+                  >
+                    remove
+                  </button>
+                </div>
+              </li>
+            );
+          })}
           {team.members.length === 0 && (
             <li className="py-2 text-xs text-white/50">No members yet.</li>
           )}

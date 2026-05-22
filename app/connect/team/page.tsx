@@ -10,6 +10,8 @@ export default function TeamDashboardPage() {
   const members = useQuery(api.partners.myTeamMembers);
   const leads = useQuery(api.partners.myTeamLeads);
   const ownerInvite = useMutation(api.partners.ownerInviteMember);
+  const setRole = useMutation(api.partners.setMemberRole);
+  const [roleErr, setRoleErr] = useState<string | null>(null);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteBusy, setInviteBusy] = useState(false);
   const [inviteMsg, setInviteMsg] = useState<string | null>(null);
@@ -80,17 +82,44 @@ export default function TeamDashboardPage() {
       <section className="glass-card rounded-2xl p-5 space-y-3">
         <h2 className="font-mono text-sm font-bold">Team members ({memberCount})</h2>
         <ul className="divide-y divide-white/5">
-          {members?.map(({ membership, user }) => (
-            <li key={membership._id} className="py-2 flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <div className="font-mono text-sm">{user?.name ?? "Unknown"}</div>
-                <div className="text-xs text-white/50 truncate">{user?.email}</div>
-              </div>
-              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">
-                {membership.role}
-              </span>
-            </li>
-          ))}
+          {members?.map(({ membership, user }) => {
+            const canChangeRole = team.role === "owner";
+            const nextRole = membership.role === "owner" ? "member" : "owner";
+            return (
+              <li key={membership._id} className="py-2 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="font-mono text-sm">{user?.name ?? "Unknown"}</div>
+                  <div className="text-xs text-white/50 truncate">{user?.email}</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">
+                    {membership.role}
+                  </span>
+                  {canChangeRole && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        setRoleErr(null);
+                        try {
+                          await setRole({
+                            teamId: team.team._id,
+                            userId: membership.userId,
+                            role: nextRole,
+                          });
+                        } catch (e) {
+                          setRoleErr(e instanceof Error ? e.message : "Failed");
+                        }
+                      }}
+                      className="font-mono text-xs text-white/50 hover:text-white underline"
+                    >
+                      make {nextRole}
+                    </button>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+          {roleErr && <li className="text-xs text-red-300">{roleErr}</li>}
         </ul>
 
         {team.role === "owner" ? (

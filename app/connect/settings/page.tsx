@@ -132,6 +132,20 @@ export default function SettingsPage() {
       </section>
 
       <section className="space-y-3">
+        <h2 className="font-mono text-sm text-foreground">Your data</h2>
+        <p className="text-xs text-zinc-500">
+          Download everything we have about you — profile, scans in/out, contacts,
+          consents, goals, team membership, and audit entries — as JSON.
+        </p>
+        <a
+          href="/api/me/export"
+          className="inline-flex items-center font-mono text-xs underline underline-offset-4 text-white/70 hover:text-white"
+        >
+          Download my data ↓
+        </a>
+      </section>
+
+      <section className="space-y-3">
         <h2 className="font-mono text-sm text-foreground">Danger zone</h2>
         <button
           type="button"

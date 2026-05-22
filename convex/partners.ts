@@ -336,6 +336,58 @@ export const ownerInviteMember = mutation({
   },
 });
 
+// Promote or demote a partner team member. Admin can do this on any team;
+// team owners can do it within their own team. Refuses to demote the last
+// owner to prevent locking the team out.
+export const setMemberRole = mutation({
+  args: {
+    teamId: v.id("teams"),
+    userId: v.id("users"),
+    role: v.union(v.literal("owner"), v.literal("member")),
+  },
+  handler: async (ctx, { teamId, userId, role }) => {
+    const me = await requireActiveUser(ctx);
+    const team = await ctx.db.get(teamId);
+    if (!team || team.kind !== "partner") throw new Error("Team not found");
+
+    const myMembership = await ctx.db
+      .query("partnerMembers")
+      .withIndex("by_team_user", (q) => q.eq("teamId", teamId).eq("userId", me._id))
+      .first();
+    const isAdmin = me.accessLevel === "admin";
+    const isOwner = myMembership?.role === "owner";
+    if (!isAdmin && !isOwner) throw new Error("Only the team owner or admin");
+
+    const target = await ctx.db
+      .query("partnerMembers")
+      .withIndex("by_team_user", (q) => q.eq("teamId", teamId).eq("userId", userId))
+      .first();
+    if (!target) throw new Error("Not a member");
+    if (target.role === role) return target._id;
+
+    // Don't allow demoting the last owner.
+    if (target.role === "owner" && role === "member") {
+      const members = await ctx.db
+        .query("partnerMembers")
+        .withIndex("by_team", (q) => q.eq("teamId", teamId))
+        .collect();
+      const owners = members.filter((m) => m.role === "owner");
+      if (owners.length <= 1) {
+        throw new Error("Can't demote the last owner — promote someone else first.");
+      }
+    }
+
+    await ctx.db.patch(target._id, { role });
+    await writeAudit(ctx, me._id, "partner.set_role", {
+      teamId,
+      userId,
+      newRole: role,
+      previousRole: target.role,
+    });
+    return target._id;
+  },
+});
+
 export const revokeInvite = mutation({
   args: { inviteId: v.id("partnerInvites") },
   handler: async (ctx, { inviteId }) => {

@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Heart } from "lucide-react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { AgendaSlot } from "@/types";
+import { getConferenceClock, isLive } from "@/lib/conference-time";
 
 type StageFilter = "all" | "main" | "side";
 
@@ -24,6 +25,14 @@ export function AgendaList({ slots }: AgendaListProps) {
 
   const [stage, setStage] = useState<StageFilter>("all");
   const [onlyFavorites, setOnlyFavorites] = useState(false);
+  const [, setTick] = useState(0);
+
+  // Re-render every 30s so the LIVE indicator stays accurate.
+  useEffect(() => {
+    const id = setInterval(() => setTick((n) => n + 1), 30_000);
+    return () => clearInterval(id);
+  }, []);
+  const clock = getConferenceClock();
 
   const favSet = useMemo(() => new Set(favorites ?? []), [favorites]);
 
@@ -92,12 +101,24 @@ export function AgendaList({ slots }: AgendaListProps) {
             const fav = favSet.has(slot.id);
             const favoritable = canFavorite(slot);
             const stageClass = STAGE_STYLES[slot.stage] ?? "bg-white/10 text-white/60 ring-white/15";
+            const live = clock.isConferenceDay && isLive(slot, clock.nowMinutes) && favoritable;
             return (
-              <li key={slot.id} className="glass-card rounded-xl p-4">
+              <li
+                key={slot.id}
+                className={`glass-card rounded-xl p-4 ${live ? "ring-2 ring-rose-400/60" : ""}`}
+              >
                 <div className="flex items-center justify-between gap-3 mb-1.5">
-                  <span className="font-mono text-[11px] uppercase tracking-widest text-white/60">
-                    {slot.startTime}–{slot.endTime}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-[11px] uppercase tracking-widest text-white/60">
+                      {slot.startTime}–{slot.endTime}
+                    </span>
+                    {live && (
+                      <span className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.18em] px-1.5 py-0.5 rounded-full bg-rose-500/25 text-rose-100 ring-1 ring-rose-400/30">
+                        <span className="size-1.5 rounded-full bg-rose-300 animate-pulse" />
+                        Live
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-2">
                     <span
                       className={`font-mono text-[10px] uppercase tracking-[0.18em] px-2 py-0.5 rounded-full ring-1 ${stageClass}`}

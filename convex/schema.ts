@@ -151,14 +151,6 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index("by_user_key", ["userId", "key"]),
 
-  scannedNotifications: defineTable({
-    recipientUserId: v.id("users"),
-    scannerUserId: v.id("users"),
-    scanEventId: v.id("scanEvents"),
-    readAt: v.optional(v.number()),
-    createdAt: v.number(),
-  }).index("by_recipient_unread", ["recipientUserId", "readAt"]),
-
   pendingAttendees: defineTable({
     email: v.string(),
     name: v.optional(v.string()),
