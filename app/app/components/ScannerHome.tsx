@@ -17,6 +17,7 @@ import {
 } from "@/lib/conference-time";
 import { QrScanner } from "./QrScanner";
 import { UserQR } from "./UserQR";
+import { VoucherCard } from "./VoucherCard";
 
 function parseConnectUrl(text: string): string | null {
   try {
@@ -38,6 +39,7 @@ export function ScannerHome() {
   const favorites = useQuery(api.favorites.list);
   const myTeam = useQuery(api.partners.myTeam);
   const agenda = useQuery(api.agenda.list) ?? [];
+  const vouchers = useQuery(api.vouchers.myVouchers) ?? [];
 
   const [mode, setMode] = useState<"show" | "camera" | "upload">("show");
   const [status, setStatus] = useState<"idle" | "saving" | "error">("idle");
@@ -203,6 +205,20 @@ export function ScannerHome() {
           <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40 text-center">
             Show this to people you meet.
           </p>
+
+          {/* Vouchers */}
+          {vouchers.length > 0 && (
+            <div className="space-y-2">
+              <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
+                Vouchers
+              </p>
+              <div className="space-y-2">
+                {vouchers.map((v) => (
+                  <VoucherCard key={v._id} voucher={v} />
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Stats */}
           <div className="grid grid-cols-2 gap-2">

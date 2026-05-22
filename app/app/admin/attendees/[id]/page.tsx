@@ -23,6 +23,8 @@ export default function AdminAttendeeDetailPage({
   const manualLink = useMutation(api.admin.manualLinkTicket);
   const unlinkTicket = useMutation(api.admin.unlinkTicket);
   const ticket = useQuery(api.admin.getTicketLink, { userId });
+  const userVouchers = useQuery(api.vouchers.adminListForUser, { userId });
+  const issueVoucher = useMutation(api.vouchers.adminIssueForUser);
 
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
@@ -356,6 +358,45 @@ export default function AdminAttendeeDetailPage({
             </div>
           </form>
         )}
+      </section>
+
+      <section className="glass-card rounded-2xl p-5 space-y-3">
+        <h3 className="font-mono text-sm font-bold">
+          Vouchers ({userVouchers?.length ?? 0})
+        </h3>
+        {userVouchers && userVouchers.length > 0 && (
+          <ul className="divide-y divide-white/5 text-xs">
+            {userVouchers.map((v) => (
+              <li key={v._id} className="py-1.5 flex items-center justify-between gap-2">
+                <span className="font-mono">{v.kind}</span>
+                <span className="text-white/50">
+                  {v.redeemedAt
+                    ? `redeemed ${new Date(v.redeemedAt).toLocaleString()}`
+                    : "unused"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="flex gap-2 flex-wrap">
+          {(["lunch", "coffee"] as const).map((kind) => (
+            <button
+              key={kind}
+              type="button"
+              onClick={async () => {
+                setError(null);
+                try {
+                  await issueVoucher({ userId, kind });
+                } catch (e) {
+                  setError(e instanceof Error ? e.message : "Failed");
+                }
+              }}
+              className="px-3 py-1.5 rounded-full ring-1 ring-white/20 font-mono text-[11px]"
+            >
+              + Issue {kind}
+            </button>
+          ))}
+        </div>
       </section>
 
       <section className="glass-card rounded-2xl p-5 space-y-3">

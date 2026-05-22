@@ -18,7 +18,9 @@ export default defineSchema({
     onboardingCompletedAt: v.optional(v.number()),
     isSpeaker: v.boolean(),
     deletedAt: v.optional(v.number()),
-    accessLevel: v.optional(v.union(v.literal("admin"), v.literal("member"))),
+    accessLevel: v.optional(
+      v.union(v.literal("admin"), v.literal("member"), v.literal("vendor")),
+    ),
     deactivatedAt: v.optional(v.number()),
     deactivatedBy: v.optional(v.id("users")),
     deactivatedReason: v.optional(v.string()),
@@ -201,6 +203,20 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_luma_guest_id", ["lumaGuestId"]),
+
+  vouchers: defineTable({
+    userId: v.id("users"),
+    kind: v.string(), // "lunch", "coffee", "drink", etc.
+    publicToken: v.string(), // vch_xxxxxxxx
+    issuedAt: v.number(),
+    issuedByUserId: v.optional(v.id("users")),
+    redeemedAt: v.optional(v.number()),
+    redeemedByUserId: v.optional(v.id("users")),
+    note: v.optional(v.string()),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_kind", ["userId", "kind"])
+    .index("by_public_token", ["publicToken"]),
 
   sessions: defineTable({
     slug: v.string(),
