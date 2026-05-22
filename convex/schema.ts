@@ -202,6 +202,29 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_luma_guest_id", ["lumaGuestId"]),
 
+  sessions: defineTable({
+    slug: v.string(),
+    title: v.string(),
+    speakerName: v.optional(v.string()),
+    speakerNames: v.optional(v.array(v.string())),
+    startMinutes: v.number(),
+    endMinutes: v.number(),
+    stage: v.union(v.literal("main"), v.literal("side")),
+    format: v.union(
+      v.literal("keynote"),
+      v.literal("talk"),
+      v.literal("workshop"),
+      v.literal("break"),
+      v.literal("logistics"),
+    ),
+    description: v.optional(v.string()),
+    cancelledAt: v.optional(v.number()),
+    cancelledByUserId: v.optional(v.id("users")),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_start", ["startMinutes"])
+    .index("by_stage_start", ["stage", "startMinutes"]),
+
   favoriteSessions: defineTable({
     userId: v.id("users"),
     sessionSlug: v.string(),

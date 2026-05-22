@@ -8,7 +8,6 @@ import { ImageUp, Camera, QrCode, Pencil, Mic, CalendarDays } from "lucide-react
 import Link from "next/link";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
-import { AGENDA } from "@/data/agenda";
 import {
   CONFERENCE_DATE,
   findSpeakerSlots,
@@ -38,6 +37,7 @@ export function ScannerHome() {
   const contacts = useQuery(api.contacts.list);
   const favorites = useQuery(api.favorites.list);
   const myTeam = useQuery(api.partners.myTeam);
+  const agenda = useQuery(api.agenda.list) ?? [];
 
   const [mode, setMode] = useState<"show" | "camera" | "upload">("show");
   const [status, setStatus] = useState<"idle" | "saving" | "error">("idle");
@@ -52,9 +52,9 @@ export function ScannerHome() {
   }, []);
   const clock = getConferenceClock();
 
-  const speakerSlots = me?.isSpeaker ? findSpeakerSlots(AGENDA, me.name ?? "") : [];
+  const speakerSlots = me?.isSpeaker ? findSpeakerSlots(agenda, me.name ?? "") : [];
   const allLive = clock.isConferenceDay
-    ? AGENDA.filter((s) => isLive(s, clock.nowMinutes))
+    ? agenda.filter((s) => isLive(s, clock.nowMinutes))
     : [];
   const liveTalks = allLive.filter((s) => s.format !== "break" && s.format !== "logistics");
   // Breaks/logistics are duplicated per stage with identical title+time. Dedupe.
@@ -71,7 +71,7 @@ export function ScannerHome() {
   }
   const nextByStage = clock.isConferenceDay
     ? nextSlotsByStage(
-        AGENDA.filter((s) => s.format !== "logistics" && s.format !== "break"),
+        agenda.filter((s) => s.format !== "logistics" && s.format !== "break"),
         clock.nowMinutes,
         60,
       )

@@ -4,21 +4,18 @@ import { useEffect, useMemo, useState } from "react";
 import { Heart } from "lucide-react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
-import type { AgendaSlot } from "@/types";
 import { getConferenceClock, isLive } from "@/lib/conference-time";
 
+type Slot = NonNullable<ReturnType<typeof useQuery<typeof api.agenda.list>>>[number];
 type StageFilter = "all" | "main" | "side";
-
-interface AgendaListProps {
-  slots: AgendaSlot[];
-}
 
 const STAGE_STYLES: Record<string, string> = {
   main: "bg-emerald-400/15 text-emerald-200 ring-emerald-300/30",
   side: "bg-violet-400/15 text-violet-200 ring-violet-300/30",
 };
 
-export function AgendaList({ slots }: AgendaListProps) {
+export function AgendaList() {
+  const slots = useQuery(api.agenda.list) ?? [];
   const favorites = useQuery(api.favorites.list);
   const addFavorite = useMutation(api.favorites.add);
   const removeFavorite = useMutation(api.favorites.remove);
@@ -36,7 +33,7 @@ export function AgendaList({ slots }: AgendaListProps) {
 
   const favSet = useMemo(() => new Set(favorites ?? []), [favorites]);
 
-  const canFavorite = (slot: AgendaSlot) =>
+  const canFavorite = (slot: Slot) =>
     slot.format !== "break" && slot.format !== "logistics";
 
   const visible = useMemo(() => {
@@ -52,7 +49,7 @@ export function AgendaList({ slots }: AgendaListProps) {
     [slots, favSet],
   );
 
-  async function toggle(slot: AgendaSlot) {
+  async function toggle(slot: Slot) {
     if (favSet.has(slot.id)) {
       await removeFavorite({ sessionSlug: slot.id });
     } else {

@@ -105,29 +105,39 @@ export function getConferenceClock(now: Date = new Date()): ConferenceClock {
   };
 }
 
-export function isLive(slot: AgendaSlot, nowMinutes: number): boolean {
+// Generic slot shape — works with the static `AgendaSlot` AND the Convex
+// `api.agenda.list` return type (which adds _id, slug, startMinutes, etc).
+type TimedSlot = Pick<AgendaSlot, "startTime" | "endTime" | "stage" | "speakerName">;
+
+export function isLive<S extends Pick<AgendaSlot, "startTime" | "endTime">>(
+  slot: S,
+  nowMinutes: number,
+): boolean {
   return (
     nowMinutes >= timeToMinutes(slot.startTime) &&
     nowMinutes < timeToMinutes(slot.endTime)
   );
 }
 
-export function minutesUntilStart(slot: AgendaSlot, nowMinutes: number): number {
+export function minutesUntilStart<S extends Pick<AgendaSlot, "startTime">>(
+  slot: S,
+  nowMinutes: number,
+): number {
   return timeToMinutes(slot.startTime) - nowMinutes;
 }
 
 // Pick the slot per stage that's currently live (or null).
-export function liveSlots(slots: AgendaSlot[], nowMinutes: number): AgendaSlot[] {
+export function liveSlots<S extends TimedSlot>(slots: S[], nowMinutes: number): S[] {
   return slots.filter((s) => isLive(s, nowMinutes));
 }
 
 // Per stage, the next slot starting > now, optionally within a horizon.
-export function nextSlotsByStage(
-  slots: AgendaSlot[],
+export function nextSlotsByStage<S extends TimedSlot>(
+  slots: S[],
   nowMinutes: number,
   withinMinutes = 999,
-): Record<string, AgendaSlot> {
-  const result: Record<string, AgendaSlot> = {};
+): Record<string, S> {
+  const result: Record<string, S> = {};
   for (const s of slots) {
     const delta = minutesUntilStart(s, nowMinutes);
     if (delta <= 0 || delta > withinMinutes) continue;
@@ -139,7 +149,10 @@ export function nextSlotsByStage(
   return result;
 }
 
-export function findSpeakerSlots(slots: AgendaSlot[], speakerName: string): AgendaSlot[] {
+export function findSpeakerSlots<S extends Pick<AgendaSlot, "speakerName">>(
+  slots: S[],
+  speakerName: string,
+): S[] {
   if (!speakerName) return [];
   const lower = speakerName.toLowerCase().trim();
   return slots.filter((s) => (s.speakerName ?? "").toLowerCase().trim() === lower);
