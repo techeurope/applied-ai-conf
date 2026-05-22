@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Connect — Applied AI Conf",
-    short_name: "Connect",
+    name: "Applied AI Conf",
+    short_name: "Applied AI",
     description:
       "Scan, capture, and keep the people you meet at Applied AI Conf. Works offline.",
     start_url: "/app",

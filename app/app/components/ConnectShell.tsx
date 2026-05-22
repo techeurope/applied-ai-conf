@@ -108,7 +108,7 @@ export function ConnectShell({ children }: { children: ReactNode }) {
                 href="/app"
                 className="font-mono text-xs uppercase tracking-[0.25em] text-white/40 hover:text-white transition-colors"
               >
-                connect
+                app
               </Link>
               {auth.user && (
                 <button

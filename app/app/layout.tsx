@@ -5,7 +5,7 @@ import { ConvexClientProvider } from "./ConvexClientProvider";
 import { ConnectShell } from "./components/ConnectShell";
 
 export const metadata: Metadata = {
-  title: "Connect | Applied AI Conf",
+  title: "Applied AI Conf",
   description:
     "Scan, capture, and keep the people you meet at Applied AI Conf. Works offline.",
   robots: { index: false, follow: false },
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Connect",
+    title: "Applied AI Conf",
   },
 };
 

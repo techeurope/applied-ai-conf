@@ -12,13 +12,13 @@ export default async function ConnectHome() {
   return (
     <div className="space-y-12 pt-8 sm:pt-16">
       <header className="space-y-6 text-center sm:text-left">
-        <h1 className="font-mono font-bold text-5xl sm:text-7xl tracking-tighter leading-[1.05] pb-1 text-glow">
-          connect
+        <h1 className="font-mono font-bold text-4xl sm:text-6xl tracking-tighter leading-[1.05] pb-1 text-glow">
+          The app
         </h1>
         <p className="text-base sm:text-lg text-white/70 leading-relaxed max-w-prose">
-          Scan, capture, and keep the people you meet at Applied AI Conf.
+          Your conference companion: digital badge + QR, the live agenda, your contacts and team leads, vouchers, and partner profiles.
           <br className="hidden sm:block" />
-          Works offline. Everyone scans everyone. No tiers.
+          Works offline. Sign in with the email on your Luma ticket.
         </p>
       </header>
 
@@ -31,7 +31,7 @@ export default async function ConnectHome() {
 
       <section className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-6">
         {[
-          { icon: ScanLine, title: "Scan QR codes", body: "Capture contacts in one tap. The camera reads any Connect QR." },
+          { icon: ScanLine, title: "Scan QR codes", body: "Capture contacts in one tap. The camera reads any attendee QR." },
           { icon: Users, title: "Notes & tags", body: "Add context the moment you meet. Searchable later." },
           { icon: Compass, title: "Browse the room", body: "See who's here, who's interesting, who matches your goals." },
           { icon: CalendarDays, title: "Agenda, offline", body: "The whole schedule in your pocket, even if the wifi dies." },
