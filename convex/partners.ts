@@ -754,3 +754,315 @@ export const publicProfile = query({
     };
   },
 });
+
+// --- self-serve team join codes ---------------------------------------------
+
+// Avoid visually ambiguous chars (0/O, 1/I/L). 8 chars from this alphabet
+// gives ~28 bits of entropy — plenty for a low-stakes shareable code, and
+// short enough to type from a printed badge in a pinch.
+const JOIN_CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+
+function generateJoinCode(): string {
+  let out = "";
+  const bytes = new Uint8Array(8);
+  crypto.getRandomValues(bytes);
+  for (let i = 0; i < 8; i++) {
+    out += JOIN_CODE_ALPHABET[bytes[i] % JOIN_CODE_ALPHABET.length];
+  }
+  return out;
+}
+
+async function requireTeamOwner(
+  ctx: MutationCtx,
+  teamId: Id<"teams">,
+): Promise<{ team: Doc<"teams">; user: Doc<"users"> }> {
+  const user = await requireActiveUser(ctx);
+  const team = await ctx.db.get(teamId);
+  if (!team || team.kind !== "partner") throw new Error("Team not found");
+  if (user.accessLevel !== "admin") {
+    const membership = await ctx.db
+      .query("partnerMembers")
+      .withIndex("by_team_user", (q) =>
+        q.eq("teamId", teamId).eq("userId", user._id),
+      )
+      .first();
+    if (membership?.role !== "owner") {
+      throw new Error("Only the team owner can manage join codes");
+    }
+  }
+  return { team, user };
+}
+
+export const createTeamInviteCode = mutation({
+  args: { teamId: v.id("teams") },
+  handler: async (ctx, { teamId }) => {
+    const { user } = await requireTeamOwner(ctx, teamId);
+    // Revoke any existing active codes — one active code per team keeps the
+    // UX simple (owners don't need to manage a list).
+    const active = await ctx.db
+      .query("teamInviteCodes")
+      .withIndex("by_team", (q) => q.eq("teamId", teamId))
+      .collect();
+    for (const c of active) {
+      if (!c.revokedAt) {
+        await ctx.db.patch(c._id, {
+          revokedAt: Date.now(),
+          revokedByUserId: user._id,
+        });
+      }
+    }
+    // Generate a code, retrying on the (vanishingly rare) collision.
+    let code = generateJoinCode();
+    for (let i = 0; i < 5; i++) {
+      const dup = await ctx.db
+        .query("teamInviteCodes")
+        .withIndex("by_code", (q) => q.eq("code", code))
+        .first();
+      if (!dup) break;
+      code = generateJoinCode();
+    }
+    const id = await ctx.db.insert("teamInviteCodes", {
+      teamId,
+      code,
+      createdByUserId: user._id,
+      createdAt: Date.now(),
+      usesCount: 0,
+    });
+    await writeAudit(ctx, user._id, "partner.join_code_create", { teamId, code });
+    return { _id: id, code };
+  },
+});
+
+export const revokeTeamInviteCode = mutation({
+  args: { codeId: v.id("teamInviteCodes") },
+  handler: async (ctx, { codeId }) => {
+    const row = await ctx.db.get(codeId);
+    if (!row) throw new Error("Code not found");
+    const { user } = await requireTeamOwner(ctx, row.teamId);
+    if (row.revokedAt) return row._id;
+    await ctx.db.patch(row._id, {
+      revokedAt: Date.now(),
+      revokedByUserId: user._id,
+    });
+    await writeAudit(ctx, user._id, "partner.join_code_revoke", {
+      teamId: row.teamId,
+      code: row.code,
+    });
+    return row._id;
+  },
+});
+
+// Returns the currently active code for the caller's team (owners only).
+export const myActiveTeamInviteCode = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_workos_id", (q) => q.eq("workosUserId", identity.subject))
+      .first();
+    if (!user?.teamId) return null;
+    const membership = await ctx.db
+      .query("partnerMembers")
+      .withIndex("by_team_user", (q) =>
+        q.eq("teamId", user.teamId!).eq("userId", user._id),
+      )
+      .first();
+    if (membership?.role !== "owner" && user.accessLevel !== "admin") {
+      return null;
+    }
+    const active = await ctx.db
+      .query("teamInviteCodes")
+      .withIndex("by_team", (q) => q.eq("teamId", user.teamId!))
+      .collect();
+    const live = active.find((c) => !c.revokedAt);
+    return live ?? null;
+  },
+});
+
+// Public-ish: anyone signed in can look up a code to see "Join {team}".
+// Returns the team name + whether the code is still valid.
+export const lookupTeamInviteCode = query({
+  args: { code: v.string() },
+  handler: async (ctx, { code }) => {
+    const normalized = code.toUpperCase().trim();
+    const row = await ctx.db
+      .query("teamInviteCodes")
+      .withIndex("by_code", (q) => q.eq("code", normalized))
+      .first();
+    if (!row) return { valid: false as const, reason: "not_found" as const };
+    if (row.revokedAt) return { valid: false as const, reason: "revoked" as const };
+    const team = await ctx.db.get(row.teamId);
+    if (!team || team.kind !== "partner") {
+      return { valid: false as const, reason: "team_missing" as const };
+    }
+    return {
+      valid: true as const,
+      teamId: team._id,
+      teamName: team.name,
+      teamSlug: team.slug,
+      tier: team.partnerTier,
+    };
+  },
+});
+
+export const redeemTeamInviteCode = mutation({
+  args: { code: v.string() },
+  handler: async (ctx, { code }) => {
+    const user = await requireActiveUser(ctx);
+    const normalized = code.toUpperCase().trim();
+    const row = await ctx.db
+      .query("teamInviteCodes")
+      .withIndex("by_code", (q) => q.eq("code", normalized))
+      .first();
+    if (!row) throw new Error("Join code not found");
+    if (row.revokedAt) throw new Error("Join code has been revoked");
+    const team = await ctx.db.get(row.teamId);
+    if (!team || team.kind !== "partner") throw new Error("Team not found");
+
+    // Already on a team?
+    if (user.teamId && user.teamId !== team._id) {
+      throw new Error(
+        "You're already on a different partner team. Ask your team owner to remove you first.",
+      );
+    }
+    const existing = await ctx.db
+      .query("partnerMembers")
+      .withIndex("by_team_user", (q) =>
+        q.eq("teamId", team._id).eq("userId", user._id),
+      )
+      .first();
+    if (existing) {
+      // Idempotent: re-attach the teamId pointer in case it drifted, count
+      // the use, and treat as success.
+      if (user.teamId !== team._id) {
+        await ctx.db.patch(user._id, { teamId: team._id });
+      }
+      await ctx.db.patch(row._id, { usesCount: row.usesCount + 1 });
+      return { kind: "already_member" as const, teamId: team._id };
+    }
+    await ctx.db.insert("partnerMembers", {
+      teamId: team._id,
+      userId: user._id,
+      role: "member",
+      invitedAt: Date.now(),
+      invitedByUserId: row.createdByUserId,
+      joinedAt: Date.now(),
+    });
+    const patch: Record<string, unknown> = { teamId: team._id };
+    if (!user.ticketLinkedAt) patch.ticketLinkedAt = Date.now();
+    await ctx.db.patch(user._id, patch);
+    await ctx.db.patch(row._id, { usesCount: row.usesCount + 1 });
+    await writeAudit(ctx, user._id, "partner.join_code_redeem", {
+      teamId: team._id,
+      code: row.code,
+    });
+    return { kind: "joined" as const, teamId: team._id, teamName: team.name };
+  },
+});
+
+// --- per-partner analytics ---------------------------------------------------
+
+export const myTeamAnalytics = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const me = await ctx.db
+      .query("users")
+      .withIndex("by_workos_id", (q) => q.eq("workosUserId", identity.subject))
+      .first();
+    if (!me?.teamId) return null;
+    const teamId = me.teamId;
+
+    // Members.
+    const memberRows = await ctx.db
+      .query("partnerMembers")
+      .withIndex("by_team", (q) => q.eq("teamId", teamId))
+      .collect();
+    const memberIds = memberRows.map((m) => m.userId);
+    const memberById = new Map<string, Doc<"users">>();
+    for (const m of memberRows) {
+      const u = await ctx.db.get(m.userId);
+      if (u) memberById.set(u._id, u);
+    }
+
+    // Team-owned contacts (= unique leads).
+    const contacts = await ctx.db
+      .query("contacts")
+      .withIndex("by_owner", (q) =>
+        q.eq("ownerType", "team").eq("ownerId", teamId as string),
+      )
+      .collect();
+
+    // Lead-status histogram (treat undefined as "unset").
+    const leadStatus = { hot: 0, warm: 0, cold: 0, junk: 0, unset: 0 };
+    for (const c of contacts) {
+      const s = c.leadStatus ?? "unset";
+      leadStatus[s] += 1;
+    }
+
+    // Scan events by team members.
+    const scansPerMember = new Map<string, { total: number; unique: Set<string> }>();
+    const scansByHour = new Map<number, number>(); // hour-of-day in conf TZ → count
+    const totalScans = await Promise.all(
+      memberIds.map(async (uid) => {
+        const events = await ctx.db
+          .query("scanEvents")
+          .withIndex("by_scanner", (q) => q.eq("scannerUserId", uid))
+          .collect();
+        const bucket = { total: events.length, unique: new Set<string>() };
+        for (const e of events) {
+          bucket.unique.add(e.scannedUserId as unknown as string);
+          // Bucket by hour in Europe/Berlin. Doing tz math server-side keeps
+          // the client free of date wrangling.
+          const dt = new Date(e.ts);
+          const hourStr = new Intl.DateTimeFormat("en-GB", {
+            timeZone: "Europe/Berlin",
+            hour: "2-digit",
+            hour12: false,
+          }).format(dt);
+          const h = parseInt(hourStr, 10);
+          scansByHour.set(h, (scansByHour.get(h) ?? 0) + 1);
+        }
+        scansPerMember.set(uid as unknown as string, bucket);
+        return events.length;
+      }),
+    ).then((arr) => arr.reduce((sum, n) => sum + n, 0));
+
+    const leaderboard = memberRows
+      .map((m) => {
+        const u = memberById.get(m.userId as unknown as string);
+        const bucket = scansPerMember.get(m.userId as unknown as string) ?? {
+          total: 0,
+          unique: new Set<string>(),
+        };
+        return {
+          userId: m.userId,
+          name: u?.name ?? "Unknown",
+          role: m.role,
+          totalScans: bucket.total,
+          uniqueLeads: bucket.unique.size,
+        };
+      })
+      .sort((a, b) => b.uniqueLeads - a.uniqueLeads || b.totalScans - a.totalScans);
+
+    const activeScanners = leaderboard.filter((m) => m.totalScans > 0).length;
+
+    const hourSeries = Array.from({ length: 24 }, (_, h) => ({
+      hour: h,
+      count: scansByHour.get(h) ?? 0,
+    }));
+
+    return {
+      totalLeads: contacts.length,
+      totalScans,
+      activeScanners,
+      memberCount: memberRows.length,
+      leadStatus,
+      hourSeries,
+      leaderboard,
+    };
+  },
+});

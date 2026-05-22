@@ -27,14 +27,6 @@
 ## 🟡 Still open (smaller polish)
 
 - **Profile photo upload** — schema has `imageStorageId`, no UI yet.
-- **Partner logo upload** — schema has `logoStorageId` AND seeded
-  `logoUrl`; the static path approach works for now, no manual upload
-  needed unless a partner sends a new logo.
-- **Per-partner analytics dashboard** — scans/day, hot lead conversion.
-  Out of scope for May 28.
-- **Self-serve partner join code** — today only the team owner or
-  conference admin invites; no "share this code with your colleagues"
-  flow. Manual invite scales fine for our team count.
 - **Cron-based partner attach** — deliberately not on a cron. Run
   `scripts/sync-partner-teams.mjs` manually after new partner staff get
   Luma tickets.
@@ -57,7 +49,15 @@
   the top mirroring the dashboard, with tap-to-scroll to matching list
   rows. Replaces the previous "buried LIVE pill" UX.
 - **Nav refresh** — Home / Scan / Contacts (with live count) / Agenda /
-  Settings; admin/team/vendor tabs unchanged.
+  Settings; admin/team/vendor tabs unchanged. Vendor tab relabeled from
+  "Redeem" → "Vendor" (the role name, not a confusing verb).
+- **Self-serve team join code** — `teamInviteCodes` table, one active
+  shareable 8-char code per team. Owners generate / copy / rotate /
+  revoke on `/app/team`. Anyone visits `/app/team/join/<code>` to join.
+- **Per-partner analytics** — `/app/team/analytics`: unique leads,
+  total scans, active scanners / member count, hot-lead conversion
+  rate, lead-status stacked bar, scans-by-hour bar chart, per-member
+  leaderboard. Powered by a single `myTeamAnalytics` Convex query.
 
 ## How to issue vouchers before the event
 

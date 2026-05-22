@@ -76,6 +76,21 @@ export default defineSchema({
     .index("by_team", ["teamId"])
     .index("by_email", ["email"]),
 
+  // Shareable team join codes. One owner-generated code per team can be
+  // distributed (link + 8-char code) to teammates so they self-attach
+  // without the owner needing to know every email up front.
+  teamInviteCodes: defineTable({
+    teamId: v.id("teams"),
+    code: v.string(),
+    createdByUserId: v.id("users"),
+    createdAt: v.number(),
+    revokedAt: v.optional(v.number()),
+    revokedByUserId: v.optional(v.id("users")),
+    usesCount: v.number(),
+  })
+    .index("by_code", ["code"])
+    .index("by_team", ["teamId"]),
+
   profiles: defineTable({
     userId: v.id("users"),
     vertical: v.optional(v.string()),

@@ -27,7 +27,7 @@ const tabs: Tab[] = [
 
 const adminTab: Tab = { href: "/app/admin", label: "Admin", icon: Shield };
 const teamTab: Tab = { href: "/app/team", label: "Team", icon: Briefcase };
-const vendorTab: Tab = { href: "/app/vendor", label: "Redeem", icon: UtensilsCrossed };
+const vendorTab: Tab = { href: "/app/vendor", label: "Vendor", icon: UtensilsCrossed };
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -48,7 +48,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     pathname?.startsWith("/app/link-ticket") ||
     pathname?.startsWith("/app/settings") ||
     pathname?.startsWith("/app/u/") ||
-    pathname?.startsWith("/app/consent-details");
+    pathname?.startsWith("/app/consent-details") ||
+    pathname?.startsWith("/app/team/join/");
 
   useEffect(() => {
     applyDemoClockFromUrl();

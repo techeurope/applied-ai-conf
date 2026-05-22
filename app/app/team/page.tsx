@@ -1,20 +1,32 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
+import { BarChart3, Copy, RotateCw } from "lucide-react";
 
 export default function TeamDashboardPage() {
   const team = useQuery(api.partners.myTeam);
   const members = useQuery(api.partners.myTeamMembers);
   const leads = useQuery(api.partners.myTeamLeads);
+  const activeCode = useQuery(api.partners.myActiveTeamInviteCode);
   const ownerInvite = useMutation(api.partners.ownerInviteMember);
   const setRole = useMutation(api.partners.setMemberRole);
+  const createCode = useMutation(api.partners.createTeamInviteCode);
+  const revokeCode = useMutation(api.partners.revokeTeamInviteCode);
   const [roleErr, setRoleErr] = useState<string | null>(null);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteBusy, setInviteBusy] = useState(false);
   const [inviteMsg, setInviteMsg] = useState<string | null>(null);
+  const [codeBusy, setCodeBusy] = useState(false);
+  const [copied, setCopied] = useState<"code" | "link" | null>(null);
+
+  useEffect(() => {
+    if (!copied) return;
+    const id = window.setTimeout(() => setCopied(null), 1500);
+    return () => window.clearTimeout(id);
+  }, [copied]);
 
   if (team === undefined) return <p className="text-xs font-mono text-white/40">Loading…</p>;
   if (team === null) {
@@ -58,7 +70,7 @@ export default function TeamDashboardPage() {
         <Stat label="Booth" value={team.team.partnerBoothLocation ?? "—"} small />
       </section>
 
-      <section className="grid grid-cols-2 gap-2">
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         <Link
           href="/app/team/leads"
           className="glass-card rounded-2xl px-4 py-4 hover:bg-white/10 flex flex-col gap-1"
@@ -67,6 +79,16 @@ export default function TeamDashboardPage() {
             Shared leads →
           </span>
           <span className="text-sm">View and edit notes on every scan from your team.</span>
+        </Link>
+        <Link
+          href="/app/team/analytics"
+          className="glass-card rounded-2xl px-4 py-4 hover:bg-white/10 flex flex-col gap-1"
+        >
+          <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/60 inline-flex items-center gap-1.5">
+            <BarChart3 className="size-3.5" strokeWidth={1.75} />
+            Analytics →
+          </span>
+          <span className="text-sm">Scan timeline, lead status, and per-member leaderboard.</span>
         </Link>
         <Link
           href={`/app/partner/${team.team.slug}`}
@@ -78,6 +100,79 @@ export default function TeamDashboardPage() {
           <span className="text-sm">See how attendees see your booth page.</span>
         </Link>
       </section>
+
+      {team.role === "owner" && (
+        <section className="glass-card rounded-2xl p-5 space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="font-mono text-sm font-bold">Share join code</h2>
+            {activeCode && (
+              <button
+                type="button"
+                disabled={codeBusy}
+                onClick={async () => {
+                  if (!confirm("Revoke this code? Anyone with the link won't be able to join until you generate a new one.")) return;
+                  setCodeBusy(true);
+                  try {
+                    await revokeCode({ codeId: activeCode._id });
+                  } finally {
+                    setCodeBusy(false);
+                  }
+                }}
+                className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/40 hover:text-rose-200"
+              >
+                Revoke
+              </button>
+            )}
+          </div>
+          <p className="text-xs text-white/60 leading-relaxed">
+            Anyone on your team can paste this link to join — no email
+            invite needed.
+          </p>
+
+          {activeCode ? (
+            <ShareCodeBlock
+              code={activeCode.code}
+              uses={activeCode.usesCount}
+              onCopyCode={async () => {
+                await navigator.clipboard.writeText(activeCode.code);
+                setCopied("code");
+              }}
+              onCopyLink={async () => {
+                const url = `${window.location.origin}/app/team/join/${activeCode.code}`;
+                await navigator.clipboard.writeText(url);
+                setCopied("link");
+              }}
+              copied={copied}
+              onRotate={async () => {
+                if (!confirm("Generate a new code? The current code will stop working.")) return;
+                setCodeBusy(true);
+                try {
+                  await createCode({ teamId: team.team._id });
+                } finally {
+                  setCodeBusy(false);
+                }
+              }}
+              rotating={codeBusy}
+            />
+          ) : (
+            <button
+              type="button"
+              disabled={codeBusy}
+              onClick={async () => {
+                setCodeBusy(true);
+                try {
+                  await createCode({ teamId: team.team._id });
+                } finally {
+                  setCodeBusy(false);
+                }
+              }}
+              className="px-4 py-2 rounded-full bg-white text-black font-mono text-xs disabled:opacity-50"
+            >
+              {codeBusy ? "Generating…" : "Generate join code"}
+            </button>
+          )}
+        </section>
+      )}
 
       <section className="glass-card rounded-2xl p-5 space-y-3">
         <h2 className="font-mono text-sm font-bold">Team members ({memberCount})</h2>
@@ -182,6 +277,74 @@ export default function TeamDashboardPage() {
           </p>
         )}
       </section>
+    </div>
+  );
+}
+
+function ShareCodeBlock({
+  code,
+  uses,
+  onCopyCode,
+  onCopyLink,
+  copied,
+  onRotate,
+  rotating,
+}: {
+  code: string;
+  uses: number;
+  onCopyCode: () => void;
+  onCopyLink: () => void;
+  copied: "code" | "link" | null;
+  onRotate: () => void;
+  rotating: boolean;
+}) {
+  return (
+    <div className="space-y-3">
+      <div className="rounded-xl bg-white/[0.03] ring-1 ring-white/10 px-4 py-3 flex items-center justify-between gap-3">
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
+            Code
+          </p>
+          <p className="font-mono text-2xl tracking-[0.2em] text-white">
+            {code}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onCopyCode}
+          className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-white/60 hover:text-white px-3 py-1.5 rounded-full ring-1 ring-white/10 hover:ring-white/30 transition-colors"
+        >
+          <Copy className="size-3.5" strokeWidth={1.75} />
+          {copied === "code" ? "Copied" : "Copy"}
+        </button>
+      </div>
+      <button
+        type="button"
+        onClick={onCopyLink}
+        className="w-full text-left rounded-xl bg-white/[0.02] ring-1 ring-white/10 px-4 py-3 flex items-center justify-between gap-3 hover:bg-white/[0.04] transition-colors"
+      >
+        <span className="font-mono text-xs text-white/70 truncate">
+          /app/team/join/{code}
+        </span>
+        <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-white/60">
+          <Copy className="size-3.5" strokeWidth={1.75} />
+          {copied === "link" ? "Copied" : "Copy link"}
+        </span>
+      </button>
+      <div className="flex items-center justify-between gap-2">
+        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/40">
+          {uses} use{uses === 1 ? "" : "s"} so far
+        </p>
+        <button
+          type="button"
+          onClick={onRotate}
+          disabled={rotating}
+          className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-white/40 hover:text-white disabled:opacity-50"
+        >
+          <RotateCw className="size-3" strokeWidth={1.75} />
+          {rotating ? "Rotating…" : "Rotate"}
+        </button>
+      </div>
     </div>
   );
 }
