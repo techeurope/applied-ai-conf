@@ -8,6 +8,7 @@ import type { ReactNode } from "react";
 
 const subTabs = [
   { href: "/app/admin", label: "Overview" },
+  { href: "/app/admin/agenda", label: "Agenda" },
   { href: "/app/admin/attendees", label: "Attendees" },
   { href: "/app/admin/luma", label: "Luma" },
   { href: "/app/admin/partners", label: "Partners" },
