@@ -101,21 +101,35 @@ export function AgendaList({ slots }: AgendaListProps) {
             const fav = favSet.has(slot.id);
             const favoritable = canFavorite(slot);
             const stageClass = STAGE_STYLES[slot.stage] ?? "bg-white/10 text-white/60 ring-white/15";
-            const live = clock.isConferenceDay && isLive(slot, clock.nowMinutes) && favoritable;
+            const live = clock.isConferenceDay && isLive(slot, clock.nowMinutes);
+            const liveTalk = live && favoritable;
+            const liveVenue = live && !favoritable;
             return (
               <li
                 key={slot.id}
-                className={`glass-card rounded-xl p-4 ${live ? "ring-2 ring-rose-400/60" : ""}`}
+                className={`glass-card rounded-xl p-4 ${
+                  liveTalk
+                    ? "ring-2 ring-rose-400/60"
+                    : liveVenue
+                      ? "ring-2 ring-amber-400/40"
+                      : ""
+                }`}
               >
                 <div className="flex items-center justify-between gap-3 mb-1.5">
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-[11px] uppercase tracking-widest text-white/60">
                       {slot.startTime}–{slot.endTime}
                     </span>
-                    {live && (
+                    {liveTalk && (
                       <span className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.18em] px-1.5 py-0.5 rounded-full bg-rose-500/25 text-rose-100 ring-1 ring-rose-400/30">
                         <span className="size-1.5 rounded-full bg-rose-300 animate-pulse" />
                         Live
+                      </span>
+                    )}
+                    {liveVenue && (
+                      <span className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.18em] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-100 ring-1 ring-amber-400/30">
+                        <span className="size-1.5 rounded-full bg-amber-300 animate-pulse" />
+                        Now
                       </span>
                     )}
                   </div>

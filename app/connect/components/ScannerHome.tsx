@@ -51,9 +51,22 @@ export function ScannerHome() {
   const clock = getConferenceClock();
 
   const speakerSlots = me?.isSpeaker ? findSpeakerSlots(AGENDA, me.name ?? "") : [];
-  const liveNow = clock.isConferenceDay
-    ? AGENDA.filter((s) => isLive(s, clock.nowMinutes) && s.format !== "logistics" && s.format !== "break")
+  const allLive = clock.isConferenceDay
+    ? AGENDA.filter((s) => isLive(s, clock.nowMinutes))
     : [];
+  const liveTalks = allLive.filter((s) => s.format !== "break" && s.format !== "logistics");
+  // Breaks/logistics are duplicated per stage with identical title+time. Dedupe.
+  const liveVenueEventsRaw = allLive.filter(
+    (s) => s.format === "break" || s.format === "logistics",
+  );
+  const liveVenueEvents: typeof liveVenueEventsRaw = [];
+  const seenVenue = new Set<string>();
+  for (const s of liveVenueEventsRaw) {
+    const key = `${s.title}|${s.startTime}|${s.endTime}`;
+    if (seenVenue.has(key)) continue;
+    seenVenue.add(key);
+    liveVenueEvents.push(s);
+  }
   const nextByStage = clock.isConferenceDay
     ? nextSlotsByStage(
         AGENDA.filter((s) => s.format !== "logistics" && s.format !== "break"),
@@ -204,32 +217,38 @@ export function ScannerHome() {
           </div>
 
           {/* Live agenda strip */}
-          {clock.isConferenceDay && (liveNow.length > 0 || Object.keys(nextByStage).length > 0) && (
-            <div className="rounded-2xl ring-1 ring-white/10 p-4 space-y-3">
-              <div className="flex items-center justify-between gap-3">
-                <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
-                  On stage now
-                </p>
-                <Link
-                  href="/connect/agenda"
-                  className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/60 hover:text-white"
-                >
-                  full agenda →
-                </Link>
-              </div>
-              {liveNow.length === 0 && (
-                <p className="text-xs text-white/50">Between sessions.</p>
-              )}
-              {liveNow.map((slot) => (
-                <AgendaCard key={slot.id} slot={slot} kind="live" />
-              ))}
-              {Object.values(nextByStage)
-                .filter((s) => !liveNow.includes(s))
-                .map((slot) => (
-                  <AgendaCard key={slot.id} slot={slot} kind="next" />
+          {clock.isConferenceDay &&
+            (liveTalks.length > 0 ||
+              liveVenueEvents.length > 0 ||
+              Object.keys(nextByStage).length > 0) && (
+              <div className="rounded-2xl ring-1 ring-white/10 p-4 space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
+                    Right now
+                  </p>
+                  <Link
+                    href="/connect/agenda"
+                    className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/60 hover:text-white"
+                  >
+                    full agenda →
+                  </Link>
+                </div>
+                {liveTalks.length === 0 && liveVenueEvents.length === 0 && (
+                  <p className="text-xs text-white/50">Between sessions.</p>
+                )}
+                {liveTalks.map((slot) => (
+                  <AgendaCard key={slot.id} slot={slot} kind="live" />
                 ))}
-            </div>
-          )}
+                {liveVenueEvents.map((slot) => (
+                  <AgendaCard key={slot.id} slot={slot} kind="venue" />
+                ))}
+                {Object.values(nextByStage)
+                  .filter((s) => !liveTalks.includes(s))
+                  .map((slot) => (
+                    <AgendaCard key={slot.id} slot={slot} kind="next" />
+                  ))}
+              </div>
+            )}
           {!clock.isConferenceDay && clock.daysUntil > 0 && (
             <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40 text-center">
               Conference starts in {clock.daysUntil} {clock.daysUntil === 1 ? "day" : "days"} · {CONFERENCE_DATE}
@@ -325,24 +344,38 @@ function AgendaCard({
   slot,
   kind,
 }: {
-  slot: { id: string; title: string; speakerName?: string; stage: string; startTime: string; endTime: string };
-  kind: "live" | "next";
+  slot: {
+    id: string;
+    title: string;
+    speakerName?: string;
+    stage: string;
+    startTime: string;
+    endTime: string;
+  };
+  kind: "live" | "next" | "venue";
 }) {
   return (
     <div className="rounded-xl bg-white/[0.03] ring-1 ring-white/5 p-3 space-y-1">
       <div className="flex items-center gap-2">
-        {kind === "live" ? (
+        {kind === "live" && (
           <span className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.18em] px-1.5 py-0.5 rounded-full bg-rose-500/25 text-rose-100 ring-1 ring-rose-400/30">
             <span className="size-1.5 rounded-full bg-rose-300 animate-pulse" />
             Live
           </span>
-        ) : (
+        )}
+        {kind === "next" && (
           <span className="font-mono text-[10px] uppercase tracking-[0.18em] px-1.5 py-0.5 rounded-full bg-white/10 text-white/70">
             Up next
           </span>
         )}
+        {kind === "venue" && (
+          <span className="font-mono text-[10px] uppercase tracking-[0.18em] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-100 ring-1 ring-amber-400/30">
+            Now
+          </span>
+        )}
         <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">
-          {slot.startTime} · {slot.stage}
+          {slot.startTime}–{slot.endTime}
+          {kind !== "venue" ? ` · ${slot.stage}` : ""}
         </span>
       </div>
       <p className="text-sm text-white leading-snug">{slot.title}</p>
