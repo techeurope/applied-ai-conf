@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Heart, Mic, Split } from "lucide-react";
+import { Heart, Mic } from "lucide-react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { SPEAKERS } from "@/data/speakers";
@@ -23,6 +23,31 @@ const STAGE_STYLES: Record<string, string> = {
   side: "bg-violet-400/15 text-violet-200 ring-violet-300/30",
   expo: "bg-amber-400/15 text-amber-200 ring-amber-300/30",
 };
+
+// Distinct hues cycled per conflict group so paired cards share a color
+// at a glance. Solid stripe + translucent pill keep dark-bg cohesion.
+const CONFLICT_COLORS = [
+  {
+    stripe: "bg-amber-400",
+    pill: "bg-amber-500/30 text-amber-50 ring-amber-300/60 hover:bg-amber-500/50",
+  },
+  {
+    stripe: "bg-cyan-400",
+    pill: "bg-cyan-500/30 text-cyan-50 ring-cyan-300/60 hover:bg-cyan-500/50",
+  },
+  {
+    stripe: "bg-fuchsia-400",
+    pill: "bg-fuchsia-500/30 text-fuchsia-50 ring-fuchsia-300/60 hover:bg-fuchsia-500/50",
+  },
+  {
+    stripe: "bg-lime-400",
+    pill: "bg-lime-500/30 text-lime-50 ring-lime-300/60 hover:bg-lime-500/50",
+  },
+  {
+    stripe: "bg-orange-400",
+    pill: "bg-orange-500/30 text-orange-50 ring-orange-300/60 hover:bg-orange-500/50",
+  },
+] as const;
 
 const SCROLL_KEY = "agenda:last-opened-slot";
 
@@ -159,6 +184,53 @@ export function AgendaList() {
     return out;
   }, [slots, favSet]);
 
+  // Assign a hue per *conflict group* (connected component) so two cards
+  // that clash share the same color and the eye can pair them while
+  // scrolling. Groups are computed deterministically by start-time so
+  // toggling an unrelated favorite doesn't reshuffle existing colors.
+  const conflictColorBySlot = useMemo(() => {
+    const out = new Map<string, (typeof CONFLICT_COLORS)[number]>();
+    const competing = slots
+      .filter(
+        (s) => favSet.has(s.id) && s.format !== "break" && s.format !== "logistics",
+      )
+      .sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
+    const adj = new Map<string, string[]>();
+    for (const s of competing) adj.set(s.id, []);
+    for (let i = 0; i < competing.length; i++) {
+      for (let j = i + 1; j < competing.length; j++) {
+        const a = competing[i];
+        const b = competing[j];
+        const aStart = timeToMinutes(a.startTime);
+        const aEnd = timeToMinutes(a.endTime);
+        const bStart = timeToMinutes(b.startTime);
+        const bEnd = timeToMinutes(b.endTime);
+        if (aStart < bEnd && bStart < aEnd) {
+          adj.get(a.id)!.push(b.id);
+          adj.get(b.id)!.push(a.id);
+        }
+      }
+    }
+    const seen = new Set<string>();
+    let groupIdx = 0;
+    for (const s of competing) {
+      if (seen.has(s.id) || adj.get(s.id)!.length === 0) continue;
+      const color = CONFLICT_COLORS[groupIdx % CONFLICT_COLORS.length];
+      const queue = [s.id];
+      while (queue.length > 0) {
+        const id = queue.shift()!;
+        if (seen.has(id)) continue;
+        seen.add(id);
+        out.set(id, color);
+        for (const next of adj.get(id) ?? []) {
+          if (!seen.has(next)) queue.push(next);
+        }
+      }
+      groupIdx++;
+    }
+    return out;
+  }, [slots, favSet]);
+
   async function toggle(slot: Slot) {
     if (favSet.has(slot.id)) {
       await removeFavorite({ sessionSlug: slot.id });
@@ -251,14 +323,19 @@ export function AgendaList() {
                 </div>
                 <p className="text-sm sm:text-base text-white leading-snug">{s.title}</p>
                 {speaker && (
-                  <div className="grid grid-cols-[3fr_2fr] gap-3 items-baseline text-xs">
+                  <div className="flex items-baseline gap-1.5 text-xs min-w-0">
                     <span className="truncate text-white/70 min-w-0">
                       <span className="font-mono text-white/30">› </span>
                       {speaker}
                     </span>
-                    <span className="truncate text-white/50 min-w-0 text-right">
-                      {company}
-                    </span>
+                    {company && (
+                      <>
+                        <span className="text-white/30 shrink-0">·</span>
+                        <span className="truncate text-white/50 min-w-0">
+                          {company}
+                        </span>
+                      </>
+                    )}
                   </div>
                 )}
                 <ProgressBar
@@ -368,6 +445,7 @@ export function AgendaList() {
             const liveVenue = live && isVenueFormat;
             const { speaker, company } = speakerLines(slot);
             const slotConflicts = fav ? conflicts.get(slot.id) : undefined;
+            const conflictColor = fav ? conflictColorBySlot.get(slot.id) : undefined;
             return (
               <li
                 key={slot.id}
@@ -392,6 +470,45 @@ export function AgendaList() {
                   className="absolute inset-0 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
                   aria-label={`Open ${slot.title}`}
                 />
+
+                {/* Conflict signals — absolute, no layout impact. The stripe
+                    ties paired cards together; the pill is the explicit label
+                    and click target. Both share one color per conflict group. */}
+                {conflictColor && (
+                  <>
+                    <span
+                      aria-hidden
+                      className={`absolute left-0 top-3 bottom-3 w-1 rounded-r ${conflictColor.stripe}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const partner = slotConflicts?.[0];
+                        if (partner) scrollToSlot(partner.id);
+                      }}
+                      title={
+                        slotConflicts
+                          ? `Clashes with: ${slotConflicts.map((c) => c.title).join(" · ")}`
+                          : "Conflict"
+                      }
+                      aria-label={
+                        slotConflicts
+                          ? `Clashes with ${slotConflicts.length} favorited session${slotConflicts.length > 1 ? "s" : ""}`
+                          : "Conflict"
+                      }
+                      className={`absolute z-20 -top-2 left-4 inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-mono text-[10px] uppercase tracking-[0.18em] ring-1 transition-colors cursor-pointer ${conflictColor.pill}`}
+                    >
+                      Conflict
+                      {slotConflicts && slotConflicts.length > 1 && (
+                        <span className="font-mono text-[10px] leading-none tabular-nums">
+                          {slotConflicts.length}
+                        </span>
+                      )}
+                    </button>
+                  </>
+                )}
+
                 <div className="flex items-center justify-between gap-3 mb-2">
                   <div className="flex items-baseline gap-2.5 min-w-0">
                     <span className="font-mono text-base sm:text-lg font-semibold tabular-nums leading-none text-white">
@@ -418,25 +535,6 @@ export function AgendaList() {
                     >
                       {slot.stage}
                     </span>
-                    {slotConflicts && slotConflicts.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          scrollToSlot(slotConflicts[0].id);
-                        }}
-                        title={`Clashes with: ${slotConflicts.map((c) => c.title).join(" · ")}`}
-                        aria-label={`Clashes with ${slotConflicts.length} favorited session${slotConflicts.length > 1 ? "s" : ""}`}
-                        className="relative z-10 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-200 ring-1 ring-amber-400/30 hover:bg-amber-500/30 hover:text-amber-100 transition-colors"
-                      >
-                        <Split className="size-3" strokeWidth={2.25} />
-                        {slotConflicts.length > 1 && (
-                          <span className="font-mono text-[10px] leading-none tabular-nums">
-                            {slotConflicts.length}
-                          </span>
-                        )}
-                      </button>
-                    )}
                     {me === null ? (
                       <a
                         href={`/api/auth/sign-in?return_to=${encodeURIComponent("/app/agenda")}`}
@@ -466,15 +564,20 @@ export function AgendaList() {
                     )}
                   </div>
                 </div>
-                <div className="font-mono text-sm text-foreground leading-snug">
+                <div className="text-base sm:text-lg font-medium text-white leading-snug">
                   {slot.title}
                 </div>
                 {speaker && (
-                  <div className="mt-1.5 grid grid-cols-[3fr_2fr] gap-3 items-baseline text-xs">
+                  <div className="mt-1.5 flex items-baseline gap-1.5 text-xs min-w-0">
                     <span className="truncate text-zinc-300 min-w-0">{speaker}</span>
-                    <span className="truncate text-zinc-500 min-w-0 text-right">
-                      {company}
-                    </span>
+                    {company && (
+                      <>
+                        <span className="text-zinc-600 shrink-0">·</span>
+                        <span className="truncate text-zinc-500 min-w-0">
+                          {company}
+                        </span>
+                      </>
+                    )}
                   </div>
                 )}
               </li>
