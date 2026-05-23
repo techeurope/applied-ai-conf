@@ -85,10 +85,15 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!auth.user || !me) return;
+    // A user with a pending partner-team invite never needs to verify a
+    // ticket first — accepting the invite sets ticketLinkedAt for them.
+    // So we skip the link-ticket gate in that case and let the
+    // pending-invite redirect (below) route them to the accept page.
+    if (pendingTeamInvite) return;
     if (!verified && !onGateBypassPath) {
       router.replace("/app/link-ticket");
     }
-  }, [auth.user, me, verified, onGateBypassPath, router]);
+  }, [auth.user, me, verified, onGateBypassPath, pendingTeamInvite, router]);
 
   useEffect(() => {
     if (!auth.user || !me?.onboardingRequired || hideNav) return;
@@ -105,17 +110,16 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [auth, me?.deactivatedAt]);
 
   // Newly-signed-in invitee with a pending team invite → route them to the
-  // explicit Accept / Decline page. Once they answer, the invite leaves
-  // pending and this effect no-ops.
+  // explicit Accept / Decline page. Takes precedence over the verified
+  // gate: accepting the invite sets ticketLinkedAt, so a Luma ticket isn't
+  // a prerequisite here.
   useEffect(() => {
     if (!auth.user) return;
     if (!pendingTeamInvite) return;
-    if (verified === false) return; // ticket-link gate takes precedence
     if (pathname?.startsWith("/app/team/accept/")) return;
     if (pathname?.startsWith("/app/onboarding")) return;
-    if (pathname?.startsWith("/app/link-ticket")) return;
     router.replace(`/app/team/accept/${pendingTeamInvite.inviteId}`);
-  }, [auth.user, pendingTeamInvite, verified, pathname, router]);
+  }, [auth.user, pendingTeamInvite, pathname, router]);
 
   // If a signed-out visitor lands on an account-bound route, bounce them to
   // sign-in and bring them back here after auth.

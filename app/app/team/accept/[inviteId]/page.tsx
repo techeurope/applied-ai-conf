@@ -49,6 +49,7 @@ export default function TeamInviteAcceptPage({
   // Most invitees don't have an account; this is the common path.
   if (!signedIn) {
     const returnTo = encodeURIComponent(`/app/team/accept/${inviteId}`);
+    const loginHint = encodeURIComponent(invite.email);
     return (
       <div className="space-y-5 pt-6 max-w-md">
         <header className="space-y-1">
@@ -73,7 +74,7 @@ export default function TeamInviteAcceptPage({
           </p>
           <p className="font-mono text-base text-white">{invite.email}</p>
           <a
-            href={`/api/auth/sign-in?return_to=${returnTo}`}
+            href={`/api/auth/sign-in?returnTo=${returnTo}&loginHint=${loginHint}`}
             className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-black font-mono text-sm hover:scale-[1.02] transition-transform"
           >
             <LogIn className="size-3.5" strokeWidth={2} />
