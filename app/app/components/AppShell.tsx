@@ -39,12 +39,17 @@ export function AppShell({ children }: { children: ReactNode }) {
   const vouchers = useQuery(api.vouchers.myVouchers);
   const pendingTeamInvite = useQuery(api.partners.myPendingTeamInvite);
   const ensureUser = useMutation(api.users.ensureFromWorkos);
-  // Routes that don't require authentication. The landing and the public
-  // agenda views work for anyone — signed-in or not.
+  // Routes that don't require authentication. The landing + public agenda
+  // are obviously public. The team accept/join pages are also reachable
+  // signed-out — they render their own sign-in CTA — so we must NOT
+  // auto-redirect to /api/auth/sign-in from there, or the user never gets
+  // to see what they were invited to.
   const isPublicAppPath =
     pathname === "/app" ||
     pathname === "/app/agenda" ||
-    pathname?.startsWith("/app/agenda/");
+    pathname?.startsWith("/app/agenda/") ||
+    pathname?.startsWith("/app/team/accept/") ||
+    pathname?.startsWith("/app/team/join/");
 
   const hideNav =
     !auth.user ||
