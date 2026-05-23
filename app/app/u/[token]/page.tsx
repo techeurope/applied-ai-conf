@@ -1,10 +1,11 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 
 export default function ProfileViewPage({
   params,
@@ -14,9 +15,30 @@ export default function ProfileViewPage({
   const { token } = use(params);
   const router = useRouter();
   const user = useQuery(api.users.getByTokenOrId, { value: token });
+  const me = useQuery(api.users.me);
   const contacts = useQuery(api.contacts.list);
   const addContact = useMutation(api.contacts.add);
+  const recordScan = useMutation(api.scans.record);
   const [saving, setSaving] = useState(false);
+
+  // Camera-app path: when an authenticated, ticket-linked viewer lands on a
+  // profile by scanning the QR with their phone camera, record a scanEvent so
+  // it shows up in their analytics — same as if they'd used the in-app scanner.
+  // Dedupe per browser session per (viewer, scanned) pair via sessionStorage.
+  useEffect(() => {
+    if (!me || !user) return;
+    if (me._id === user._id) return;
+    if (!me.ticketLinkedAt && me.accessLevel !== "admin") return;
+    const key = `connect:scanned:${me._id}:${user._id}`;
+    if (typeof sessionStorage === "undefined") return;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+    const clientId = `view-${me._id}-${user._id}-${Date.now()}`;
+    recordScan({ scannedUserId: user._id as Id<"users">, clientId }).catch(() => {
+      // visibility opt-outs, race conditions, etc. — fail silently
+      sessionStorage.removeItem(key);
+    });
+  }, [me, user, recordScan]);
 
   if (user === undefined) {
     return <p className="font-mono text-xs text-white/40">Loading…</p>;

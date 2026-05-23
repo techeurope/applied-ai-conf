@@ -1,4 +1,4 @@
-export type Stage = 'main' | 'side';
+export type Stage = 'main' | 'side' | 'expo';
 export type SessionFormat = 'keynote' | 'talk' | 'workshop' | 'break' | 'logistics';
 
 export interface AgendaSlot {

@@ -100,6 +100,165 @@ export const bootstrapSetAccessLevel = internalMutation({
   },
 });
 
+// Mint a claim code from CLI without needing admin auth. Used to provision a
+// code for a non-Luma test account so we can exercise the /app/link-ticket
+// flow. The first existing admin is used as the audit actor.
+export const bootstrapCreateClaimCode = internalMutation({
+  args: {
+    email: v.string(),
+    name: v.optional(v.string()),
+    kind: v.optional(
+      v.union(
+        v.literal("speaker"),
+        v.literal("walkin"),
+        v.literal("guest"),
+        v.literal("staff"),
+      ),
+    ),
+    note: v.optional(v.string()),
+    expiresInDays: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const admin = await ctx.db
+      .query("users")
+      .withIndex("by_access_level", (q) => q.eq("accessLevel", "admin"))
+      .first();
+    if (!admin) throw new Error("No admin user exists yet.");
+    const normalizedEmail = args.email.toLowerCase().trim();
+    const pendingId = await ctx.db.insert("pendingAttendees", {
+      email: normalizedEmail,
+      name: args.name,
+      kind: args.kind ?? "guest",
+      note: args.note,
+      createdByUserId: admin._id,
+      createdAt: Date.now(),
+    });
+    // 8-char alphanumeric, ambiguous chars skipped.
+    const ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+    const make = () => {
+      const b = new Uint8Array(8);
+      crypto.getRandomValues(b);
+      let out = "";
+      for (let i = 0; i < 8; i++) out += ALPHABET[b[i] % ALPHABET.length];
+      return out;
+    };
+    let code = make();
+    for (let i = 0; i < 5; i++) {
+      const clash = await ctx.db
+        .query("claimCodes")
+        .withIndex("by_code", (q) => q.eq("code", code))
+        .first();
+      if (!clash) break;
+      code = make();
+    }
+    const codeId = await ctx.db.insert("claimCodes", {
+      code,
+      pendingAttendeeId: pendingId,
+      createdByUserId: admin._id,
+      createdAt: Date.now(),
+      expiresAt: args.expiresInDays
+        ? Date.now() + args.expiresInDays * 86_400_000
+        : undefined,
+    });
+    return { code, codeId, pendingAttendeeId: pendingId };
+  },
+});
+
+// Promote a freshly-created user to admin if there's an unconsumed
+// `adminInvites` row matching their email. Called from ensureFromWorkos
+// after every sign-in.
+export async function consumeAdminInviteIfAny(
+  ctx: MutationCtx,
+  user: Doc<"users">,
+): Promise<void> {
+  if (!user.email) return;
+  if (user.accessLevel === "admin") return;
+  const invite = await ctx.db
+    .query("adminInvites")
+    .withIndex("by_email", (q) => q.eq("email", user.email))
+    .filter((q) => q.eq(q.field("consumedAt"), undefined))
+    .first();
+  if (!invite) return;
+  await ctx.db.patch(user._id, { accessLevel: "admin" });
+  await ctx.db.patch(invite._id, {
+    consumedAt: Date.now(),
+    consumedByUserId: user._id,
+  });
+  await ctx.db.insert("auditLog", {
+    actorUserId: user._id,
+    action: ADMIN_ACTIONS.grantAdmin,
+    targetUserId: user._id,
+    metadata: JSON.stringify({ via: "admin_invite", inviteId: invite._id }),
+    createdAt: Date.now(),
+  });
+}
+
+// Queue an admin grant by email. If the user already exists, promotes
+// immediately and skips the invite row. Returns the state so the caller
+// can decide whether to fire an email (always — even for immediate
+// promotions, since the recipient may not realise yet).
+export const bootstrapQueueAdminInvite = internalMutation({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    const normalized = email.toLowerCase().trim();
+    if (!normalized) throw new Error("Empty email");
+    const existing = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", normalized))
+      .first();
+    if (existing) {
+      if (existing.accessLevel !== "admin") {
+        await ctx.db.patch(existing._id, { accessLevel: "admin" });
+        await ctx.db.insert("auditLog", {
+          actorUserId: existing._id,
+          action: ADMIN_ACTIONS.grantAdmin,
+          targetUserId: existing._id,
+          metadata: JSON.stringify({ via: "bootstrap_queue_immediate" }),
+          createdAt: Date.now(),
+        });
+      }
+      return {
+        outcome: "granted_existing_user" as const,
+        email: normalized,
+        userId: existing._id,
+      };
+    }
+    // Skip if already queued.
+    const dup = await ctx.db
+      .query("adminInvites")
+      .withIndex("by_email", (q) => q.eq("email", normalized))
+      .filter((q) => q.eq(q.field("consumedAt"), undefined))
+      .first();
+    if (dup) {
+      return { outcome: "already_queued" as const, email: normalized, inviteId: dup._id };
+    }
+    const inviteId = await ctx.db.insert("adminInvites", {
+      email: normalized,
+      createdAt: Date.now(),
+    });
+    return { outcome: "queued" as const, email: normalized, inviteId };
+  },
+});
+
+const ADMIN_INVITE_REVOKE_ACTION = "admin.invite_revoke";
+
+// Pull an unclaimed invite (e.g. typo). No-op if already consumed.
+export const bootstrapRevokeAdminInvite = internalMutation({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    const normalized = email.toLowerCase().trim();
+    const rows = await ctx.db
+      .query("adminInvites")
+      .withIndex("by_email", (q) => q.eq("email", normalized))
+      .filter((q) => q.eq(q.field("consumedAt"), undefined))
+      .collect();
+    for (const r of rows) await ctx.db.delete(r._id);
+    return { removed: rows.length };
+  },
+});
+
+void ADMIN_INVITE_REVOKE_ACTION;
+
 export const bootstrapRevokeByEmail = internalMutation({
   args: { email: v.string() },
   handler: async (ctx, { email }) => {

@@ -240,7 +240,7 @@ export default defineSchema({
     speakerNames: v.optional(v.array(v.string())),
     startMinutes: v.number(),
     endMinutes: v.number(),
-    stage: v.union(v.literal("main"), v.literal("side")),
+    stage: v.union(v.literal("main"), v.literal("side"), v.literal("expo")),
     format: v.union(
       v.literal("keynote"),
       v.literal("talk"),
@@ -288,6 +288,19 @@ export default defineSchema({
   })
     .index("by_luma_guest_id", ["lumaGuestId"])
     .index("by_email", ["email"]),
+
+  // Pre-grant admin to an email before they've signed in. ensureFromWorkos
+  // consumes a matching row on first auth and promotes the user. Set by the
+  // existing admin via the bootstrap mutation.
+  adminInvites: defineTable({
+    email: v.string(),
+    createdByUserId: v.optional(v.id("users")),
+    createdAt: v.number(),
+    consumedAt: v.optional(v.number()),
+    consumedByUserId: v.optional(v.id("users")),
+  })
+    .index("by_email", ["email"])
+    .index("by_consumed", ["consumedAt"]),
 
   auditLog: defineTable({
     actorUserId: v.id("users"),

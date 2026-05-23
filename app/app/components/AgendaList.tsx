@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { Heart } from "lucide-react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
+import { Mic } from "lucide-react";
 import {
+  findSpeakerSlots,
   getConferenceClock,
   isLive,
   minutesUntilStart,
@@ -18,11 +21,15 @@ type StageFilter = "all" | "main" | "side";
 const STAGE_STYLES: Record<string, string> = {
   main: "bg-emerald-400/15 text-emerald-200 ring-emerald-300/30",
   side: "bg-violet-400/15 text-violet-200 ring-violet-300/30",
+  expo: "bg-amber-400/15 text-amber-200 ring-amber-300/30",
 };
+
+const SCROLL_KEY = "agenda:last-opened-slot";
 
 export function AgendaList() {
   const slots = useQuery(api.agenda.list) ?? [];
   const favorites = useQuery(api.favorites.list);
+  const me = useQuery(api.users.me);
   const addFavorite = useMutation(api.favorites.add);
   const removeFavorite = useMutation(api.favorites.remove);
 
@@ -76,21 +83,66 @@ export function AgendaList() {
 
   const favSet = useMemo(() => new Set(favorites ?? []), [favorites]);
 
-  const canFavorite = (slot: Slot) =>
-    slot.format !== "break" && slot.format !== "logistics";
-
   const visible = useMemo(() => {
     return slots.filter((s) => {
-      if (stage !== "all" && s.stage !== stage) return false;
+      // expo events (breaks, lunch, registration) are venue-wide — they show
+      // regardless of which stage filter is active.
+      if (stage !== "all" && s.stage !== stage && s.stage !== "expo") {
+        return false;
+      }
       if (onlyFavorites && !favSet.has(s.id)) return false;
       return true;
     });
   }, [slots, stage, onlyFavorites, favSet]);
 
+  // Restore scroll position to the last-opened session when we come back to
+  // this page from /app/agenda/[slug]. Stash the slug on click below, then
+  // scroll it into view (centered) once Convex data has loaded.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (slots.length === 0) return;
+    let raw: string | null = null;
+    try {
+      raw = window.sessionStorage.getItem(SCROLL_KEY);
+    } catch {
+      return;
+    }
+    if (!raw) return;
+    const el = document.getElementById(`agenda-${raw}`);
+    if (!el) return;
+    el.scrollIntoView({ block: "center" });
+    try {
+      window.sessionStorage.removeItem(SCROLL_KEY);
+    } catch {
+      /* ignore */
+    }
+  }, [slots]);
+
   const favoritesCount = useMemo(
-    () => slots.filter((s) => canFavorite(s) && favSet.has(s.id)).length,
+    () => slots.filter((s) => favSet.has(s.id)).length,
     [slots, favSet],
   );
+
+  // Map of slot.id -> other favorited slots that overlap in time. Breaks /
+  // logistics never count as conflicts (venue-wide, not a choice).
+  const conflicts = useMemo(() => {
+    const out = new Map<string, Slot[]>();
+    const competing = slots.filter(
+      (s) => favSet.has(s.id) && s.format !== "break" && s.format !== "logistics",
+    );
+    for (const a of competing) {
+      const aStart = timeToMinutes(a.startTime);
+      const aEnd = timeToMinutes(a.endTime);
+      const overlaps = competing.filter((b) => {
+        if (b.id === a.id) return false;
+        const bStart = timeToMinutes(b.startTime);
+        const bEnd = timeToMinutes(b.endTime);
+        return aStart < bEnd && bStart < aEnd;
+      });
+      if (overlaps.length > 0) out.set(a.id, overlaps);
+    }
+    return out;
+  }, [slots, favSet]);
 
   async function toggle(slot: Slot) {
     if (favSet.has(slot.id)) {
@@ -104,8 +156,49 @@ export function AgendaList() {
     clock.isConferenceDay &&
     (liveTalks.length > 0 || liveVenue.length > 0 || upNext.length > 0);
 
+  // Speaker callout: if the signed-in user is a speaker with a talk live now
+  // or starting within 2h, surface it above everything else.
+  const upcomingSpeakerSlot = (() => {
+    if (!me?.isSpeaker || !clock.isConferenceDay) return null;
+    const mine = findSpeakerSlots(slots, me.name ?? "").sort(
+      (a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime),
+    );
+    if (mine.length === 0) return null;
+    const liveOne = mine.find((s) => isLive(s, clock.nowMinutes));
+    if (liveOne) return liveOne;
+    const next = mine.find((s) => minutesUntilStart(s, clock.nowMinutes) > 0);
+    return next ?? null;
+  })();
+  const speakerMinutesUntil = upcomingSpeakerSlot
+    ? minutesUntilStart(upcomingSpeakerSlot, clock.nowMinutes)
+    : null;
+  const showSpeakerCallout =
+    upcomingSpeakerSlot !== null &&
+    speakerMinutesUntil !== null &&
+    speakerMinutesUntil <= 120;
+
   return (
     <div className="space-y-3">
+      {showSpeakerCallout && upcomingSpeakerSlot && (
+        <Link
+          href={`/app/agenda/${upcomingSpeakerSlot.id}`}
+          className="block rounded-2xl bg-emerald-400/10 ring-1 ring-emerald-300/40 p-4 space-y-2 [box-shadow:0_0_40px_-12px_rgba(52,211,153,0.45)] hover:bg-emerald-400/15 transition-colors"
+        >
+          <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-emerald-200 flex items-center gap-1.5">
+            <Mic className="size-3" strokeWidth={2.25} />
+            {speakerMinutesUntil! <= 0
+              ? "You're speaking right now"
+              : `You're speaking in ${formatMinutes(speakerMinutesUntil!)}`}
+          </p>
+          <p className="text-base sm:text-lg text-white font-medium leading-snug">
+            {upcomingSpeakerSlot.title}
+          </p>
+          <p className="text-xs text-white/70">
+            {upcomingSpeakerSlot.startTime}–{upcomingSpeakerSlot.endTime} · {upcomingSpeakerSlot.stage} stage
+          </p>
+        </Link>
+      )}
+
       {hasRightNow && (
         <section className="space-y-2 pb-1">
           <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
@@ -244,16 +337,17 @@ export function AgendaList() {
         <ol className="space-y-3">
           {visible.map((slot) => {
             const fav = favSet.has(slot.id);
-            const favoritable = canFavorite(slot);
+            const isVenueFormat =
+              slot.format === "break" || slot.format === "logistics";
             const stageClass = STAGE_STYLES[slot.stage] ?? "bg-white/10 text-white/60 ring-white/15";
             const live = clock.isConferenceDay && isLive(slot, clock.nowMinutes);
-            const liveTalk = live && favoritable;
-            const liveVenue = live && !favoritable;
+            const liveTalk = live && !isVenueFormat;
+            const liveVenue = live && isVenueFormat;
             return (
               <li
                 key={slot.id}
                 id={`agenda-${slot.id}`}
-                className={`glass-card rounded-xl p-4 transition-shadow ${
+                className={`glass-card rounded-xl p-4 transition-shadow relative ${
                   liveTalk
                     ? "ring-2 ring-rose-400/60"
                     : liveVenue
@@ -261,6 +355,18 @@ export function AgendaList() {
                       : ""
                 }`}
               >
+                <Link
+                  href={`/app/agenda/${slot.id}`}
+                  onClick={() => {
+                    try {
+                      window.sessionStorage.setItem(SCROLL_KEY, slot.id);
+                    } catch {
+                      /* ignore */
+                    }
+                  }}
+                  className="absolute inset-0 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+                  aria-label={`Open ${slot.title}`}
+                />
                 <div className="flex items-center justify-between gap-3 mb-1.5">
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-[11px] uppercase tracking-widest text-white/60">
@@ -285,12 +391,21 @@ export function AgendaList() {
                     >
                       {slot.stage}
                     </span>
-                    {favoritable && (
+                    {me === null ? (
+                      <a
+                        href={`/api/auth/sign-in?return_to=${encodeURIComponent("/app/agenda")}`}
+                        title="Sign in to favorite"
+                        className="relative z-10 p-1 rounded-full text-white/20 hover:text-white/60 transition-colors"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Heart className="size-4" strokeWidth={1.75} />
+                      </a>
+                    ) : (
                       <button
                         type="button"
                         onClick={() => toggle(slot)}
                         aria-label={fav ? "Remove from my agenda" : "Add to my agenda"}
-                        className={`p-1 rounded-full transition-colors ${
+                        className={`relative z-10 p-1 rounded-full transition-colors ${
                           fav
                             ? "text-rose-400 hover:text-rose-300"
                             : "text-white/30 hover:text-white/70"
@@ -308,6 +423,17 @@ export function AgendaList() {
                 <div className="font-mono text-sm text-foreground">{slot.title}</div>
                 {slot.speakerName && (
                   <div className="text-xs text-zinc-400 mt-1">{slot.speakerName}</div>
+                )}
+                {fav && conflicts.has(slot.id) && (
+                  <div className="mt-2 flex items-start gap-1.5 text-[11px] text-amber-200">
+                    <span aria-hidden>⚠</span>
+                    <span className="leading-snug">
+                      Overlaps with{" "}
+                      {conflicts.get(slot.id)!
+                        .map((c) => c.title)
+                        .join(" · ")}
+                    </span>
+                  </div>
                 )}
               </li>
             );

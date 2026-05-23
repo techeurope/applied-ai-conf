@@ -4,6 +4,7 @@ import type { Doc, Id } from "./_generated/dataModel";
 import { generatePublicToken } from "./_tokens";
 import { tryAutoLink } from "./ticket";
 import { consumePartnerInviteIfAny } from "./partners";
+import { consumeAdminInviteIfAny } from "./admin";
 
 async function ensureUniquePublicToken(ctx: any): Promise<string> {
   for (let attempt = 0; attempt < 8; attempt++) {
@@ -117,6 +118,7 @@ export const ensureFromWorkos = mutation({
       if (Object.keys(patch).length > 0) await ctx.db.patch(existing._id, patch);
       const refreshed = (await ctx.db.get(existing._id))!;
       await consumePartnerInviteIfAny(ctx, refreshed);
+      await consumeAdminInviteIfAny(ctx, refreshed);
       const after = (await ctx.db.get(existing._id))!;
       await tryAutoLink(ctx, after);
       return existing._id;
@@ -132,9 +134,45 @@ export const ensureFromWorkos = mutation({
     });
     const fresh = (await ctx.db.get(userId))!;
     await consumePartnerInviteIfAny(ctx, fresh);
+    await consumeAdminInviteIfAny(ctx, fresh);
     const afterInvite = (await ctx.db.get(userId))!;
     await tryAutoLink(ctx, afterInvite);
     return userId;
+  },
+});
+
+// Reset a user back to "just signed in for the first time" — for QA only.
+// Wipes ticketLinks + onboarding state by email. If the user has a matching
+// approved row in lumaAttendees, the next sign-in will silently auto-link
+// again and they'll only see /app/onboarding (not /app/link-ticket). To see
+// /app/link-ticket you need a user whose email isn't in lumaAttendees.
+export const bootstrapResetForOnboardingTest = internalMutation({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    const normalized = email.toLowerCase().trim();
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", normalized))
+      .first();
+    if (!user) throw new Error(`No user with email ${normalized}`);
+    const links = await ctx.db
+      .query("ticketLinks")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+    for (const l of links) {
+      await ctx.db.delete(l._id);
+    }
+    await ctx.db.patch(user._id, {
+      ticketLinkedAt: undefined,
+      lumaGuestId: undefined,
+      onboardingRequired: true,
+      onboardingCompletedAt: undefined,
+    });
+    return {
+      userId: user._id,
+      email: normalized,
+      ticketLinksRemoved: links.length,
+    };
   },
 });
 

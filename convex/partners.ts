@@ -406,6 +406,279 @@ export const revokeInvite = mutation({
 
 // --- bootstrap: idempotent seed for known sponsor teams --------------------
 
+// QA helper: move an existing user from whatever partner team they're on
+// today onto a freshly-created "Tech Europe" team (creating it if missing)
+// as an owner. Used so the internal team can exercise team features without
+// polluting real partner team data.
+export const bootstrapMoveUserToTechEurope = internalMutation({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    const normalized = email.toLowerCase().trim();
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", normalized))
+      .first();
+    if (!user) throw new Error(`No user with email ${normalized}`);
+
+    // 1. Find or create the Tech Europe team.
+    const slug = "tech-europe";
+    let team = await ctx.db
+      .query("teams")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    let createdTeam = false;
+    if (!team) {
+      const now = Date.now();
+      const teamId = await ctx.db.insert("teams", {
+        name: "Tech Europe",
+        slug,
+        createdByUserId: user._id,
+        kind: "partner",
+        partnerTier: "internal",
+        partnerWebsite: "https://techeurope.io",
+        partnerVerifiedAt: now,
+        partnerVerifiedByUserId: user._id,
+      });
+      team = (await ctx.db.get(teamId))!;
+      createdTeam = true;
+    }
+
+    // 2. Remove user's existing partnerMember rows on OTHER teams.
+    const removedFrom: string[] = [];
+    const memberships = await ctx.db
+      .query("partnerMembers")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+    for (const m of memberships) {
+      if (m.teamId === team._id) continue;
+      const otherTeam = await ctx.db.get(m.teamId);
+      await ctx.db.delete(m._id);
+      if (otherTeam) removedFrom.push(otherTeam.name);
+    }
+
+    // 3. Insert membership on Tech Europe as owner (if not already there).
+    const existing = await ctx.db
+      .query("partnerMembers")
+      .withIndex("by_team_user", (q) =>
+        q.eq("teamId", team._id).eq("userId", user._id),
+      )
+      .first();
+    if (existing) {
+      if (existing.role !== "owner") {
+        await ctx.db.patch(existing._id, { role: "owner" });
+      }
+    } else {
+      const now = Date.now();
+      await ctx.db.insert("partnerMembers", {
+        teamId: team._id,
+        userId: user._id,
+        role: "owner",
+        invitedAt: now,
+        invitedByUserId: user._id,
+        joinedAt: now,
+      });
+    }
+
+    // 4. Point user.teamId at Tech Europe.
+    await ctx.db.patch(user._id, { teamId: team._id });
+
+    return {
+      teamId: team._id,
+      teamCreated: createdTeam,
+      removedFrom,
+      userId: user._id,
+    };
+  },
+});
+
+// QA helper: pull the internal {Tech: Europe} crew onto the Tech Europe
+// partner team so Tim can scan their QRs from his phone for end-to-end
+// testing. Matches each input string against:
+//   1. existing Convex user (by email OR case-insensitive name contains)
+//   2. lumaAttendees (by email OR name contains, approved only)
+// If matched in users, adds them as partnerMembers and points teamId.
+// If matched only in luma (no Convex user yet), creates a partnerInvites
+// row so they auto-attach on first sign-in. Idempotent.
+// Diagnostic: list every user + Luma attendee with a techeurope.io email so
+// we can pick the right ones for the internal crew add.
+// Cleanup: delete a specific email's partnerInvite from Tech Europe (used
+// after fuzzy-match mistakes).
+export const bootstrapRemoveTechEuropeInvite = internalMutation({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    const team = await ctx.db
+      .query("teams")
+      .withIndex("by_slug", (q) => q.eq("slug", "tech-europe"))
+      .first();
+    if (!team) throw new Error("Tech Europe team not found");
+    const normalized = email.toLowerCase().trim();
+    const invites = await ctx.db
+      .query("partnerInvites")
+      .withIndex("by_email", (q) => q.eq("email", normalized))
+      .filter((q) => q.eq(q.field("teamId"), team._id))
+      .collect();
+    for (const inv of invites) {
+      await ctx.db.delete(inv._id);
+    }
+    return { removed: invites.length };
+  },
+});
+
+export const bootstrapListTechEuropeContacts = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const users = await ctx.db.query("users").collect();
+    const luma = await ctx.db.query("lumaAttendees").collect();
+    return {
+      users: users
+        .filter((u) => (u.email ?? "").endsWith("@techeurope.io"))
+        .map((u) => ({
+          name: u.name,
+          email: u.email,
+          publicToken: u.publicToken,
+          teamId: u.teamId,
+        })),
+      luma: luma
+        .filter((l) => (l.email ?? "").endsWith("@techeurope.io"))
+        .map((l) => ({
+          name: l.name,
+          email: l.email,
+          approvalStatus: l.approvalStatus,
+        })),
+    };
+  },
+});
+
+export const bootstrapAddTechEuropeCrew = internalMutation({
+  args: { names: v.array(v.string()) },
+  handler: async (ctx, { names }) => {
+    const team = await ctx.db
+      .query("teams")
+      .withIndex("by_slug", (q) => q.eq("slug", "tech-europe"))
+      .first();
+    if (!team) {
+      throw new Error("Tech Europe team not found. Run bootstrapMoveUserToTechEurope first.");
+    }
+
+    const result: Array<{
+      query: string;
+      outcome:
+        | "added_user"
+        | "already_member"
+        | "invited_via_luma"
+        | "luma_no_match"
+        | "no_match";
+      detail?: string;
+      publicToken?: string;
+      lumaEmail?: string;
+    }> = [];
+
+    for (const raw of names) {
+      const needle = raw.toLowerCase().trim();
+      if (!needle) {
+        result.push({ query: raw, outcome: "no_match" });
+        continue;
+      }
+
+      // 1) Existing Convex user — email exact OR name contains.
+      const allUsers = await ctx.db.query("users").collect();
+      const user = allUsers.find(
+        (u) =>
+          u.email === needle ||
+          (u.name ?? "").toLowerCase().includes(needle),
+      );
+
+      if (user) {
+        const existing = await ctx.db
+          .query("partnerMembers")
+          .withIndex("by_team_user", (q) =>
+            q.eq("teamId", team._id).eq("userId", user._id),
+          )
+          .first();
+        if (existing) {
+          result.push({
+            query: raw,
+            outcome: "already_member",
+            detail: user.name,
+            publicToken: user.publicToken,
+          });
+          continue;
+        }
+        // Remove from other partner teams first.
+        const otherMemberships = await ctx.db
+          .query("partnerMembers")
+          .withIndex("by_user", (q) => q.eq("userId", user._id))
+          .collect();
+        for (const m of otherMemberships) {
+          if (m.teamId !== team._id) await ctx.db.delete(m._id);
+        }
+        const now = Date.now();
+        await ctx.db.insert("partnerMembers", {
+          teamId: team._id,
+          userId: user._id,
+          role: "member",
+          invitedAt: now,
+          invitedByUserId: team.createdByUserId,
+          joinedAt: now,
+        });
+        await ctx.db.patch(user._id, { teamId: team._id });
+        result.push({
+          query: raw,
+          outcome: "added_user",
+          detail: user.name,
+          publicToken: user.publicToken,
+        });
+        continue;
+      }
+
+      // 2) Luma row — make a partnerInvite by email so they auto-attach.
+      const lumaRows = await ctx.db.query("lumaAttendees").collect();
+      const luma = lumaRows.find(
+        (l) =>
+          l.email === needle ||
+          (l.name ?? "").toLowerCase().includes(needle),
+      );
+      if (luma) {
+        if (luma.approvalStatus !== "approved") {
+          result.push({
+            query: raw,
+            outcome: "luma_no_match",
+            detail: `Found in Luma but status=${luma.approvalStatus}`,
+            lumaEmail: luma.email,
+          });
+          continue;
+        }
+        const dupInvite = await ctx.db
+          .query("partnerInvites")
+          .withIndex("by_email", (q) => q.eq("email", luma.email))
+          .filter((q) => q.eq(q.field("teamId"), team._id))
+          .filter((q) => q.eq(q.field("consumedAt"), undefined))
+          .first();
+        if (!dupInvite) {
+          await ctx.db.insert("partnerInvites", {
+            teamId: team._id,
+            email: luma.email,
+            role: "member",
+            invitedAt: Date.now(),
+            invitedByUserId: team.createdByUserId,
+          });
+        }
+        result.push({
+          query: raw,
+          outcome: "invited_via_luma",
+          detail: luma.name ?? luma.email,
+          lumaEmail: luma.email,
+        });
+        continue;
+      }
+
+      result.push({ query: raw, outcome: "no_match" });
+    }
+
+    return result;
+  },
+});
+
 export const bootstrapSeedPartners = internalMutation({
   args: {
     entries: v.array(

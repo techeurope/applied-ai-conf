@@ -64,7 +64,7 @@ const sessionPatchArgs = {
   speakerNames: v.optional(v.array(v.string())),
   startTime: v.optional(v.string()), // "HH:MM"
   endTime: v.optional(v.string()),
-  stage: v.optional(v.union(v.literal("main"), v.literal("side"))),
+  stage: v.optional(v.union(v.literal("main"), v.literal("side"), v.literal("expo"))),
   format: v.optional(
     v.union(
       v.literal("keynote"),
@@ -97,7 +97,7 @@ export const create = mutation({
     title: v.string(),
     startTime: v.string(),
     endTime: v.string(),
-    stage: v.union(v.literal("main"), v.literal("side")),
+    stage: v.union(v.literal("main"), v.literal("side"), v.literal("expo")),
     format: v.union(
       v.literal("keynote"),
       v.literal("talk"),
@@ -201,6 +201,70 @@ export const setCancelled = mutation({
 
 // ---- bootstrap -------------------------------------------------------------
 
+// Collapses duplicated per-stage break rows down to a single expo-hall row.
+// Idempotent: deletes any `*-side` break/lunch dupes, patches the surviving
+// primary row to stage="expo". Re-runnable safely. Audited.
+export const collapseExpoBreaks = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const removed: string[] = [];
+    const promoted: string[] = [];
+    const all = await ctx.db.query("sessions").collect();
+    // Group by (title, startMinutes) — venue events share both.
+    const groups = new Map<string, Doc<"sessions">[]>();
+    for (const s of all) {
+      if (s.format !== "break" && s.format !== "logistics") continue;
+      const key = `${s.title}|${s.startMinutes}|${s.endMinutes}`;
+      const arr = groups.get(key) ?? [];
+      arr.push(s);
+      groups.set(key, arr);
+    }
+    for (const [, rows] of groups) {
+      // Only collapse if there's an actual duplicate. Solo logistics rows
+      // (Opening Remarks, Closing Remarks) genuinely happen on the main
+      // stage, so leave them alone.
+      if (rows.length < 2) continue;
+      // Pick the row to keep: shortest slug (e.g. "break-1" over
+      // "break-1-side"). Drop the rest, promote the survivor to expo.
+      rows.sort((a, b) => a.slug.length - b.slug.length);
+      const keep = rows[0];
+      const drop = rows.slice(1);
+      for (const d of drop) {
+        await ctx.db.delete(d._id);
+        removed.push(d.slug);
+      }
+      if (keep.stage !== "expo") {
+        await ctx.db.patch(keep._id, { stage: "expo" });
+        promoted.push(keep.slug);
+      }
+    }
+    return { removed, promoted };
+  },
+});
+
+// One-shot fix for the over-eager initial run of collapseExpoBreaks: it
+// promoted solo logistics rows to "expo" by mistake. This puts Opening +
+// Closing Remarks back on the main stage. Idempotent.
+export const fixSoloLogisticsStage = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const fixed: string[] = [];
+    const all = await ctx.db.query("sessions").collect();
+    for (const s of all) {
+      if (s.format !== "logistics") continue;
+      // "Doors Open · Registration & Coffee" actually IS venue-wide (the
+      // foyer / expo floor), so leave that as expo. Anything else logistics
+      // belongs on main.
+      if (s.slug === "doors") continue;
+      if (s.stage !== "main") {
+        await ctx.db.patch(s._id, { stage: "main" });
+        fixed.push(s.slug);
+      }
+    }
+    return { fixed };
+  },
+});
+
 export const bootstrapSeed = internalMutation({
   args: {
     entries: v.array(
@@ -210,7 +274,7 @@ export const bootstrapSeed = internalMutation({
         speakerName: v.optional(v.string()),
         startTime: v.string(),
         endTime: v.string(),
-        stage: v.union(v.literal("main"), v.literal("side")),
+        stage: v.union(v.literal("main"), v.literal("side"), v.literal("expo")),
         format: v.union(
           v.literal("keynote"),
           v.literal("talk"),

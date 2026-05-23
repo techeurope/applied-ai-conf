@@ -6,20 +6,20 @@ import { useAuth } from "@workos-inc/authkit-nextjs/components";
 import { api } from "@convex/_generated/api";
 import { useState } from "react";
 
-type ConsentKey =
-  | "visible_when_scanned"
-  | "directory_listing"
-  | "ai_fit_scoring"
-  | "conference_updates"
-  | "team_sharing";
+type ConsentKey = "visible_when_scanned" | "conference_updates";
 
-const CONSENT_LABELS: Record<ConsentKey, string> = {
-  visible_when_scanned: "Show my profile when scanned",
-  directory_listing: "List me in the attendee directory",
-  ai_fit_scoring: "Use my profile for fit-scoring",
-  conference_updates: "Email me conference updates",
-  team_sharing: "Team sharing (auto-pool with my team)",
-};
+const CONSENT_ITEMS: { key: ConsentKey; label: string; hint: string }[] = [
+  {
+    key: "visible_when_scanned",
+    label: "Show my profile when scanned",
+    hint: "Without this your QR can't do anything.",
+  },
+  {
+    key: "conference_updates",
+    label: "Email me conference updates",
+    hint: "Schedule changes, post-event recap, transactional only. No marketing.",
+  },
+];
 
 export default function SettingsPage() {
   const auth = useAuth();
@@ -86,34 +86,42 @@ export default function SettingsPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="font-mono text-sm text-foreground">Privacy preferences</h2>
+        <h2 className="font-mono text-sm text-foreground">Preferences</h2>
         <p className="text-xs text-zinc-500">
           <Link href="/app/consent-details" className="underline">
-            What does each do?
+            Full explanation
           </Link>
         </p>
         <ul className="space-y-2">
-          {(Object.keys(CONSENT_LABELS) as ConsentKey[]).map((key) => {
-            const c = consents?.find((x) => x.key === key);
+          {CONSENT_ITEMS.map((item) => {
+            const c = consents?.find((x) => x.key === item.key);
             const granted = c?.granted ?? false;
             return (
-              <li key={key} className="flex items-center gap-3 glass-card rounded-md px-3 py-2">
-                <span className="text-sm flex-1">{CONSENT_LABELS[key]}</span>
-                <button
-                  type="button"
-                  onClick={() => setConsent({ key, granted: !granted })}
-                  className={`font-mono text-[10px] uppercase px-2 py-1 rounded ${
-                    granted
-                      ? "bg-foreground/15 text-foreground"
-                      : "bg-zinc-800 text-zinc-500"
-                  }`}
-                >
-                  {granted ? "on" : "off"}
-                </button>
+              <li key={item.key}>
+                <label className="flex items-start gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={granted}
+                    onChange={(e) =>
+                      setConsent({ key: item.key, granted: e.target.checked })
+                    }
+                    className="mt-0.5 size-4 accent-white shrink-0"
+                  />
+                  <span className="block leading-snug">
+                    <span className="block text-sm text-white/80">{item.label}</span>
+                    <span className="block text-[11px] text-white/40">{item.hint}</span>
+                  </span>
+                </label>
               </li>
             );
           })}
         </ul>
+        {me?.teamId && (
+          <p className="text-[11px] text-white/40">
+            You&apos;re on a partner team — scans are automatically shared with your
+            team. That can&apos;t be disabled.
+          </p>
+        )}
       </section>
 
       <ClaimCodeSection alreadyClaimed={!!me?.claimCodeId} />
