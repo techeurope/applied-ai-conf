@@ -553,7 +553,7 @@ export const SPEAKERS = [
     bio: '',
     vertical: 'Workplace AI',
     building: 'AI-powered workplace communication for teams',
-    talkTitle: '',
+    talkTitle: 'Always Be Committing: The Scalable LLM Eval Loop',
     initial: 'CB',
     accent: 'from-cyan-400/40 via-blue-400/30 to-indigo-500/40',
     image: '/speakers/carl_brenssell_fullbody_square.png',

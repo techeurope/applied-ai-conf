@@ -22,11 +22,10 @@ export const AGENDA: AgendaSlot[] = [
 
   // ── 10:10–10:30 ──────────────────────────────────────────────
   { id: 'main-2', startTime: '10:10', endTime: '10:30', title: 'Beyond Benchmarks: How Evaluations Ensure Safety at Scale in LLM Applications', speakerName: 'Clara Matos', stage: 'main', format: 'talk' },
-  { id: 'side-2', startTime: '10:10', endTime: '10:30', title: 'TBA', speakerName: 'Carl Brenssell', stage: 'side', format: 'talk' },
+  { id: 'side-2', startTime: '10:10', endTime: '10:30', title: 'Always Be Committing: The Scalable LLM Eval Loop', speakerName: 'Carl Brenssell', stage: 'side', format: 'talk' },
 
   // ── Coffee Break (10:30–10:50) ────────────────────────────────
-  { id: 'break-1', startTime: '10:30', endTime: '10:50', title: 'Coffee Break', stage: 'main', format: 'break' },
-  { id: 'break-1-side', startTime: '10:30', endTime: '10:50', title: 'Coffee Break', stage: 'side', format: 'break' },
+  { id: 'break-1', startTime: '10:30', endTime: '10:50', title: 'Coffee Break', stage: 'expo', format: 'break' },
 
   // ── 10:50–11:10 ──────────────────────────────────────────────
   { id: 'main-3', startTime: '10:50', endTime: '11:10', title: 'Building an AI learning companion: the architecture behind millions of daily interactions', speakerName: 'Lucas Hild', stage: 'main', format: 'talk' },
@@ -51,8 +50,7 @@ export const AGENDA: AgendaSlot[] = [
   { id: 'side-6', startTime: '12:05', endTime: '12:25', title: 'MCP vs Skills', speakerName: 'Rachel Nabors', stage: 'side', format: 'talk' },
 
   // ── Lunch Break (12:30–13:30) ─────────────────────────────────
-  { id: 'lunch', startTime: '12:30', endTime: '13:30', title: 'Lunch Break', stage: 'main', format: 'break' },
-  { id: 'lunch-side', startTime: '12:30', endTime: '13:30', title: 'Lunch Break', stage: 'side', format: 'break' },
+  { id: 'lunch', startTime: '12:30', endTime: '13:30', title: 'Lunch Break', stage: 'expo', format: 'break' },
 
   // ── Post-lunch: Main stage (4 × 20 min) ────────────────────────
   { id: 'main-7', startTime: '13:30', endTime: '13:50', title: 'Building Sandcastles for Agents: Safe Execution at Production Scale', speakerName: 'Simon Edwardsson', stage: 'main', format: 'talk' },
@@ -66,8 +64,7 @@ export const AGENDA: AgendaSlot[] = [
   { id: 'side-9', startTime: '14:40', endTime: '15:10', title: 'Inference Without the Wait: A Live Demo of Instant-On Model Deployment', speakerName: 'Emmett Fear', stage: 'side', format: 'talk' },
 
   // ── Coffee Break (15:10–15:30) ────────────────────────────────
-  { id: 'break-2', startTime: '15:10', endTime: '15:30', title: 'Coffee Break', stage: 'main', format: 'break' },
-  { id: 'break-2-side', startTime: '15:10', endTime: '15:30', title: 'Coffee Break', stage: 'side', format: 'break' },
+  { id: 'break-2', startTime: '15:10', endTime: '15:30', title: 'Coffee Break', stage: 'expo', format: 'break' },
 
   // ── Post-coffee2: Both stages aligned (3 × 20 min) ───────────
   { id: 'main-11', startTime: '15:30', endTime: '15:50', title: 'Building a Universal Agent for Legal', speakerNames: ['Zino Kader', 'Jakob Emmerling'], stage: 'main', format: 'talk' },
@@ -80,8 +77,7 @@ export const AGENDA: AgendaSlot[] = [
   { id: 'side-12', startTime: '16:20', endTime: '16:40', title: 'Building the Missing Infrastructure Layer for Agents and Distributed Applications', speakerNames: ['Giselle van Dongen', 'Igal Shilman'], stage: 'side', format: 'talk' },
 
   // ── Coffee Break (16:40–17:00) ────────────────────────────────
-  { id: 'break-3', startTime: '16:40', endTime: '17:00', title: 'Coffee Break', stage: 'main', format: 'break' },
-  { id: 'break-3-side', startTime: '16:40', endTime: '17:00', title: 'Coffee Break', stage: 'side', format: 'break' },
+  { id: 'break-3', startTime: '16:40', endTime: '17:00', title: 'Coffee Break', stage: 'expo', format: 'break' },
 
   // ── Post-coffee3: Both stages aligned (2 × 20 min) ───────────
   { id: 'main-14', startTime: '17:00', endTime: '17:20', title: 'AI-Empowered Engineering Through Collaborative Tooling', speakerName: 'Łukasz Sągol', stage: 'main', format: 'talk' },
