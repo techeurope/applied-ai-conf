@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Heart } from "lucide-react";
+import { Heart, Mic, Split } from "lucide-react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
-import { Mic } from "lucide-react";
+import { SPEAKERS } from "@/data/speakers";
 import {
   findSpeakerSlots,
   getConferenceClock,
@@ -25,6 +25,21 @@ const STAGE_STYLES: Record<string, string> = {
 };
 
 const SCROLL_KEY = "agenda:last-opened-slot";
+
+// Derive `Speaker Name(s)` and `Company` strings for a slot. Company comes
+// from the last speaker in SPEAKERS (matches the marketing site behavior).
+function speakerLines(slot: Pick<Slot, "speakerName" | "speakerNames">): {
+  speaker: string;
+  company: string;
+} {
+  const names = slot.speakerNames ?? (slot.speakerName ? [slot.speakerName] : []);
+  if (names.length === 0) return { speaker: "", company: "" };
+  const last = SPEAKERS.find((s) => s.name === names[names.length - 1]);
+  return {
+    speaker: names.join(" & "),
+    company: last?.company ?? "",
+  };
+}
 
 export function AgendaList() {
   const slots = useQuery(api.agenda.list) ?? [];
@@ -205,7 +220,9 @@ export function AgendaList() {
             // RIGHT NOW · {clock.nowHHMM}
           </p>
           <div className="space-y-2">
-            {liveTalks.map((s) => (
+            {liveTalks.map((s) => {
+              const { speaker, company } = speakerLines(s);
+              return (
               <button
                 key={s._id}
                 type="button"
@@ -233,11 +250,16 @@ export function AgendaList() {
                   </span>
                 </div>
                 <p className="text-sm sm:text-base text-white leading-snug">{s.title}</p>
-                {s.speakerName && (
-                  <p className="text-xs text-white/60">
-                    <span className="font-mono text-white/30">› </span>
-                    {s.speakerName}
-                  </p>
+                {speaker && (
+                  <div className="grid grid-cols-[3fr_2fr] gap-3 items-baseline text-xs">
+                    <span className="truncate text-white/70 min-w-0">
+                      <span className="font-mono text-white/30">› </span>
+                      {speaker}
+                    </span>
+                    <span className="truncate text-white/50 min-w-0 text-right">
+                      {company}
+                    </span>
+                  </div>
                 )}
                 <ProgressBar
                   start={timeToMinutes(s.startTime)}
@@ -245,7 +267,8 @@ export function AgendaList() {
                   now={clock.nowMinutes}
                 />
               </button>
-            ))}
+              );
+            })}
             {liveVenue.map((s) => (
               <article
                 key={s._id}
@@ -343,6 +366,8 @@ export function AgendaList() {
             const live = clock.isConferenceDay && isLive(slot, clock.nowMinutes);
             const liveTalk = live && !isVenueFormat;
             const liveVenue = live && isVenueFormat;
+            const { speaker, company } = speakerLines(slot);
+            const slotConflicts = fav ? conflicts.get(slot.id) : undefined;
             return (
               <li
                 key={slot.id}
@@ -367,10 +392,12 @@ export function AgendaList() {
                   className="absolute inset-0 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
                   aria-label={`Open ${slot.title}`}
                 />
-                <div className="flex items-center justify-between gap-3 mb-1.5">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-[11px] uppercase tracking-widest text-white/60">
-                      {slot.startTime}–{slot.endTime}
+                <div className="flex items-center justify-between gap-3 mb-2">
+                  <div className="flex items-baseline gap-2.5 min-w-0">
+                    <span className="font-mono text-base sm:text-lg font-semibold tabular-nums leading-none text-white">
+                      {slot.startTime}
+                      <span className="text-white/30 mx-0.5">–</span>
+                      {slot.endTime}
                     </span>
                     {liveTalk && (
                       <span className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.18em] px-1.5 py-0.5 rounded-full bg-rose-500/25 text-rose-100 ring-1 ring-rose-400/30">
@@ -385,12 +412,31 @@ export function AgendaList() {
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 shrink-0">
                     <span
                       className={`font-mono text-[10px] uppercase tracking-[0.18em] px-2 py-0.5 rounded-full ring-1 ${stageClass}`}
                     >
                       {slot.stage}
                     </span>
+                    {slotConflicts && slotConflicts.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          scrollToSlot(slotConflicts[0].id);
+                        }}
+                        title={`Clashes with: ${slotConflicts.map((c) => c.title).join(" · ")}`}
+                        aria-label={`Clashes with ${slotConflicts.length} favorited session${slotConflicts.length > 1 ? "s" : ""}`}
+                        className="relative z-10 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-200 ring-1 ring-amber-400/30 hover:bg-amber-500/30 hover:text-amber-100 transition-colors"
+                      >
+                        <Split className="size-3" strokeWidth={2.25} />
+                        {slotConflicts.length > 1 && (
+                          <span className="font-mono text-[10px] leading-none tabular-nums">
+                            {slotConflicts.length}
+                          </span>
+                        )}
+                      </button>
+                    )}
                     {me === null ? (
                       <a
                         href={`/api/auth/sign-in?return_to=${encodeURIComponent("/app/agenda")}`}
@@ -420,18 +466,14 @@ export function AgendaList() {
                     )}
                   </div>
                 </div>
-                <div className="font-mono text-sm text-foreground">{slot.title}</div>
-                {slot.speakerName && (
-                  <div className="text-xs text-zinc-400 mt-1">{slot.speakerName}</div>
-                )}
-                {fav && conflicts.has(slot.id) && (
-                  <div className="mt-2 flex items-start gap-1.5 text-[11px] text-amber-200">
-                    <span aria-hidden>⚠</span>
-                    <span className="leading-snug">
-                      Overlaps with{" "}
-                      {conflicts.get(slot.id)!
-                        .map((c) => c.title)
-                        .join(" · ")}
+                <div className="font-mono text-sm text-foreground leading-snug">
+                  {slot.title}
+                </div>
+                {speaker && (
+                  <div className="mt-1.5 grid grid-cols-[3fr_2fr] gap-3 items-baseline text-xs">
+                    <span className="truncate text-zinc-300 min-w-0">{speaker}</span>
+                    <span className="truncate text-zinc-500 min-w-0 text-right">
+                      {company}
                     </span>
                   </div>
                 )}
