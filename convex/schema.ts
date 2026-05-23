@@ -72,6 +72,12 @@ export default defineSchema({
     invitedByUserId: v.id("users"),
     consumedAt: v.optional(v.number()),
     consumedByUserId: v.optional(v.id("users")),
+    // Last time the owner kicked off an email to the invitee. Used to
+    // throttle re-sends and to display "sent 2 min ago" on the UI.
+    lastEmailedAt: v.optional(v.number()),
+    // Recipient declined the invite. Owner can flip them back to active by
+    // hitting "Send again" (clears declinedAt, bumps lastEmailedAt).
+    declinedAt: v.optional(v.number()),
   })
     .index("by_team", ["teamId"])
     .index("by_email", ["email"]),

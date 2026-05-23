@@ -7,6 +7,7 @@ import {
 } from "./_generated/server";
 import { requireAdmin } from "./admin";
 import { requireActiveUser } from "./_auth";
+import { internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
 
 function slugify(s: string) {
@@ -283,11 +284,13 @@ export const ownerInviteMember = mutation({
     if (!isOwner && !isAdmin) throw new Error("Only the team owner can invite");
 
     const normalized = email.toLowerCase().trim();
+
+    // Reject the obvious "they're already in" case so the owner gets a clean
+    // error instead of a useless invite.
     const existingUser = await ctx.db
       .query("users")
       .withIndex("by_email", (q) => q.eq("email", normalized))
       .first();
-
     if (existingUser) {
       const existingMember = await ctx.db
         .query("partnerMembers")
@@ -296,41 +299,42 @@ export const ownerInviteMember = mutation({
         )
         .first();
       if (existingMember) throw new Error("Already a member");
-      await ctx.db.insert("partnerMembers", {
-        teamId,
-        userId: existingUser._id,
-        role,
-        invitedAt: Date.now(),
-        invitedByUserId: me._id,
-        joinedAt: Date.now(),
-      });
-      const userPatch: Record<string, unknown> = { teamId };
-      if (!existingUser.ticketLinkedAt) userPatch.ticketLinkedAt = Date.now();
-      await ctx.db.patch(existingUser._id, userPatch);
-      await writeAudit(ctx, me._id, "partner.owner_member_add", {
-        teamId,
-        userId: existingUser._id,
-      });
-      return { kind: "attached" as const, userId: existingUser._id };
     }
 
+    // Existing pending invite? Refuse — owner should hit "Send again" on the
+    // team page instead, which calls resendTeamInvite and bumps lastEmailedAt
+    // without inserting a duplicate row.
     const dupInvite = await ctx.db
       .query("partnerInvites")
       .withIndex("by_email", (q) => q.eq("email", normalized))
       .filter((q) => q.eq(q.field("teamId"), teamId))
       .filter((q) => q.eq(q.field("consumedAt"), undefined))
       .first();
-    if (dupInvite) throw new Error("Already invited");
+    if (dupInvite) {
+      throw new Error(
+        dupInvite.declinedAt
+          ? "They previously declined. Hit Send again on the pending invite."
+          : "Already invited — hit Send again on the pending invite to remind them.",
+      );
+    }
     const inviteId = await ctx.db.insert("partnerInvites", {
       teamId,
       email: normalized,
       role,
       invitedAt: Date.now(),
       invitedByUserId: me._id,
+      lastEmailedAt: Date.now(),
     });
     await writeAudit(ctx, me._id, "partner.owner_invite", {
       teamId,
       email: normalized,
+    });
+    // Fire the email (best-effort — schedule, don't block).
+    await ctx.scheduler.runAfter(0, internal.admin_email.sendTeamInvite, {
+      email: normalized,
+      inviteId: inviteId as unknown as string,
+      teamName: team.name,
+      inviterName: me.name,
     });
     return { kind: "invited" as const, inviteId, teamName: team.name };
   },
@@ -498,16 +502,50 @@ export const bootstrapAddTechEuropeByEmails = internalMutation({
         out.push({ email, outcome: "invite_existed" });
         continue;
       }
-      await ctx.db.insert("partnerInvites", {
+      const inviteId = await ctx.db.insert("partnerInvites", {
         teamId: team._id,
         email,
         role: "member",
         invitedAt: Date.now(),
         invitedByUserId: team.createdByUserId,
+        lastEmailedAt: Date.now(),
+      });
+      await ctx.scheduler.runAfter(0, internal.admin_email.sendTeamInvite, {
+        email,
+        inviteId: inviteId as unknown as string,
+        teamName: team.name,
+        inviterName: undefined,
       });
       out.push({ email, outcome: "invite_queued" });
     }
     return out;
+  },
+});
+
+// Internal helper: email every pending invite that hasn't been emailed yet
+// (lastEmailedAt undefined). Used to retroactively notify invites created
+// before the email pipeline existed. Idempotent.
+export const bootstrapEmailUnemailedInvites = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const invites = await ctx.db.query("partnerInvites").collect();
+    const emailed: Array<{ email: string; team: string }> = [];
+    for (const inv of invites) {
+      if (inv.consumedAt) continue;
+      if (inv.lastEmailedAt) continue;
+      const team = await ctx.db.get(inv.teamId);
+      if (!team) continue;
+      const inviter = await ctx.db.get(inv.invitedByUserId);
+      await ctx.db.patch(inv._id, { lastEmailedAt: Date.now() });
+      await ctx.scheduler.runAfter(0, internal.admin_email.sendTeamInvite, {
+        email: inv.email,
+        inviteId: inv._id as unknown as string,
+        teamName: team.name,
+        inviterName: inviter?.name,
+      });
+      emailed.push({ email: inv.email, team: team.name });
+    }
+    return emailed;
   },
 });
 
@@ -983,8 +1021,15 @@ export const bootstrapPurgeTeamsByTier = internalMutation({
   },
 });
 
-// --- consumed by ensureFromWorkos to auto-attach a signed-up invitee --------
-
+// Called by ensureFromWorkos on first sign-in. We DON'T auto-add the user to
+// the team anymore — instead we leave the partnerInvites row pending so the
+// AppShell can redirect them to /app/team/accept/<id> where they explicitly
+// click Accept (or Decline). That gives the invitee a consent moment + lets
+// the owner see who hasn't responded yet.
+//
+// The function is kept around (and exported) so callers that previously
+// relied on it can still ask "does this user have a pending invite?" — they
+// just get the invite back instead of an auto-joined state.
 export async function consumePartnerInviteIfAny(ctx: MutationCtx, user: Doc<"users">) {
   if (!user.email) return null;
   if (user.teamId) return null;
@@ -992,25 +1037,207 @@ export async function consumePartnerInviteIfAny(ctx: MutationCtx, user: Doc<"use
     .query("partnerInvites")
     .withIndex("by_email", (q) => q.eq("email", user.email))
     .filter((q) => q.eq(q.field("consumedAt"), undefined))
+    .filter((q) => q.eq(q.field("declinedAt"), undefined))
     .first();
-  if (!invite) return null;
-  await ctx.db.patch(invite._id, {
-    consumedAt: Date.now(),
-    consumedByUserId: user._id,
-  });
-  await ctx.db.insert("partnerMembers", {
-    teamId: invite.teamId,
-    userId: user._id,
-    role: invite.role,
-    invitedAt: invite.invitedAt,
-    invitedByUserId: invite.invitedByUserId,
-    joinedAt: Date.now(),
-  });
-  const patch: Record<string, unknown> = { teamId: invite.teamId };
-  if (!user.ticketLinkedAt) patch.ticketLinkedAt = Date.now();
-  await ctx.db.patch(user._id, patch);
-  return invite.teamId;
+  return invite?.teamId ?? null;
 }
+
+// Explicit accept — called from the /app/team/accept/[inviteId] page.
+export const acceptTeamInvite = mutation({
+  args: { inviteId: v.id("partnerInvites") },
+  handler: async (ctx, { inviteId }) => {
+    const user = await requireActiveUser(ctx);
+    const invite = await ctx.db.get(inviteId);
+    if (!invite) throw new Error("Invite not found");
+    if (invite.consumedAt) throw new Error("Invite already used");
+    if (invite.declinedAt) throw new Error("Invite was declined — ask the owner to send a new one");
+    if (invite.email !== (user.email ?? "").toLowerCase().trim()) {
+      throw new Error("This invite is for a different email");
+    }
+    if (user.teamId && user.teamId !== invite.teamId) {
+      throw new Error("You're already on a different partner team");
+    }
+    const existing = await ctx.db
+      .query("partnerMembers")
+      .withIndex("by_team_user", (q) =>
+        q.eq("teamId", invite.teamId).eq("userId", user._id),
+      )
+      .first();
+    const now = Date.now();
+    if (!existing) {
+      await ctx.db.insert("partnerMembers", {
+        teamId: invite.teamId,
+        userId: user._id,
+        role: invite.role,
+        invitedAt: invite.invitedAt,
+        invitedByUserId: invite.invitedByUserId,
+        joinedAt: now,
+      });
+    }
+    const patch: Record<string, unknown> = { teamId: invite.teamId };
+    if (!user.ticketLinkedAt) patch.ticketLinkedAt = now;
+    await ctx.db.patch(user._id, patch);
+    await ctx.db.patch(invite._id, {
+      consumedAt: now,
+      consumedByUserId: user._id,
+    });
+    return { teamId: invite.teamId };
+  },
+});
+
+// Explicit decline — owner can re-issue by hitting "Send again".
+export const declineTeamInvite = mutation({
+  args: { inviteId: v.id("partnerInvites") },
+  handler: async (ctx, { inviteId }) => {
+    const user = await requireActiveUser(ctx);
+    const invite = await ctx.db.get(inviteId);
+    if (!invite) throw new Error("Invite not found");
+    if (invite.consumedAt) throw new Error("Invite already used");
+    if (invite.email !== (user.email ?? "").toLowerCase().trim()) {
+      throw new Error("This invite is for a different email");
+    }
+    await ctx.db.patch(invite._id, { declinedAt: Date.now() });
+    return { teamId: invite.teamId };
+  },
+});
+
+// Lookup a pending invite by id — used by the accept page.
+export const teamInviteForAccept = query({
+  args: { inviteId: v.id("partnerInvites") },
+  handler: async (ctx, { inviteId }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const me = await ctx.db
+      .query("users")
+      .withIndex("by_workos_id", (q) => q.eq("workosUserId", identity.subject))
+      .first();
+    const invite = await ctx.db.get(inviteId);
+    if (!invite) return null;
+    const team = await ctx.db.get(invite.teamId);
+    if (!team) return null;
+    const emailMatches =
+      invite.email === (me?.email ?? "").toLowerCase().trim();
+    return {
+      invite: {
+        _id: invite._id,
+        email: invite.email,
+        role: invite.role,
+        consumedAt: invite.consumedAt,
+        declinedAt: invite.declinedAt,
+      },
+      team: {
+        _id: team._id,
+        name: team.name,
+        slug: team.slug,
+        tier: team.partnerTier,
+      },
+      emailMatches,
+      myEmail: me?.email ?? null,
+    };
+  },
+});
+
+// First pending invite (consumedAt=undefined, declinedAt=undefined) for the
+// signed-in user's email — used by AppShell to redirect a newly-arrived
+// invitee to the accept page automatically on first sign-in.
+export const myPendingTeamInvite = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const me = await ctx.db
+      .query("users")
+      .withIndex("by_workos_id", (q) => q.eq("workosUserId", identity.subject))
+      .first();
+    if (!me?.email) return null;
+    if (me.teamId) return null;
+    const invite = await ctx.db
+      .query("partnerInvites")
+      .withIndex("by_email", (q) => q.eq("email", me.email))
+      .filter((q) => q.eq(q.field("consumedAt"), undefined))
+      .filter((q) => q.eq(q.field("declinedAt"), undefined))
+      .first();
+    if (!invite) return null;
+    const team = await ctx.db.get(invite.teamId);
+    return { inviteId: invite._id, teamName: team?.name ?? "a team" };
+  },
+});
+
+// Lists pending + declined invites for the current owner's team — drives the
+// "Pending invites" section on /app/team.
+export const myTeamPendingInvites = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+    const me = await ctx.db
+      .query("users")
+      .withIndex("by_workos_id", (q) => q.eq("workosUserId", identity.subject))
+      .first();
+    if (!me?.teamId) return [];
+    const membership = await ctx.db
+      .query("partnerMembers")
+      .withIndex("by_team_user", (q) =>
+        q.eq("teamId", me.teamId!).eq("userId", me._id),
+      )
+      .first();
+    if (membership?.role !== "owner" && me.accessLevel !== "admin") return [];
+    const rows = await ctx.db
+      .query("partnerInvites")
+      .withIndex("by_team", (q) => q.eq("teamId", me.teamId!))
+      .collect();
+    return rows
+      .filter((r) => !r.consumedAt)
+      .map((r) => ({
+        _id: r._id,
+        email: r.email,
+        role: r.role,
+        invitedAt: r.invitedAt,
+        lastEmailedAt: r.lastEmailedAt,
+        declinedAt: r.declinedAt,
+      }));
+  },
+});
+
+// Resend the invite email (or send it for the first time). Also clears
+// declinedAt so the invitee can accept on the next attempt.
+export const resendTeamInvite = mutation({
+  args: { inviteId: v.id("partnerInvites") },
+  handler: async (ctx, { inviteId }) => {
+    const me = await requireActiveUser(ctx);
+    const invite = await ctx.db.get(inviteId);
+    if (!invite) throw new Error("Invite not found");
+    if (invite.consumedAt) throw new Error("Invite already consumed");
+    const team = await ctx.db.get(invite.teamId);
+    if (!team) throw new Error("Team missing");
+    // Owner or admin only.
+    const membership = await ctx.db
+      .query("partnerMembers")
+      .withIndex("by_team_user", (q) =>
+        q.eq("teamId", invite.teamId).eq("userId", me._id),
+      )
+      .first();
+    if (membership?.role !== "owner" && me.accessLevel !== "admin") {
+      throw new Error("Only the team owner or admin can resend invites");
+    }
+    await ctx.db.patch(invite._id, {
+      lastEmailedAt: Date.now(),
+      declinedAt: undefined,
+    });
+    await ctx.scheduler.runAfter(0, internal.admin_email.sendTeamInvite, {
+      email: invite.email,
+      inviteId: invite._id as unknown as string,
+      teamName: team.name,
+      inviterName: me.name,
+    });
+    return {
+      inviteId: invite._id,
+      email: invite.email,
+      teamName: team.name,
+      inviterName: me.name,
+    };
+  },
+});
 
 // --- partner-member-facing queries -------------------------------------------
 

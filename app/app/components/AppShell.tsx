@@ -37,6 +37,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const myTeam = useQuery(api.partners.myTeam);
   const contacts = useQuery(api.contacts.list);
   const vouchers = useQuery(api.vouchers.myVouchers);
+  const pendingTeamInvite = useQuery(api.partners.myPendingTeamInvite);
   const ensureUser = useMutation(api.users.ensureFromWorkos);
   // Routes that don't require authentication. The landing and the public
   // agenda views work for anyone — signed-in or not.
@@ -57,7 +58,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     pathname?.startsWith("/app/settings") ||
     pathname?.startsWith("/app/u/") ||
     pathname?.startsWith("/app/consent-details") ||
-    pathname?.startsWith("/app/team/join/");
+    pathname?.startsWith("/app/team/join/") ||
+    pathname?.startsWith("/app/team/accept/");
 
   useEffect(() => {
     applyDemoClockFromUrl();
@@ -96,6 +98,19 @@ export function AppShell({ children }: { children: ReactNode }) {
       auth.signOut({ returnTo: "/app?kicked=1" });
     }
   }, [auth, me?.deactivatedAt]);
+
+  // Newly-signed-in invitee with a pending team invite → route them to the
+  // explicit Accept / Decline page. Once they answer, the invite leaves
+  // pending and this effect no-ops.
+  useEffect(() => {
+    if (!auth.user) return;
+    if (!pendingTeamInvite) return;
+    if (verified === false) return; // ticket-link gate takes precedence
+    if (pathname?.startsWith("/app/team/accept/")) return;
+    if (pathname?.startsWith("/app/onboarding")) return;
+    if (pathname?.startsWith("/app/link-ticket")) return;
+    router.replace(`/app/team/accept/${pendingTeamInvite.inviteId}`);
+  }, [auth.user, pendingTeamInvite, verified, pathname, router]);
 
   // If a signed-out visitor lands on an account-bound route, bounce them to
   // sign-in and bring them back here after auth.
