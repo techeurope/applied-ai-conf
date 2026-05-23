@@ -1,9 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAction, useQuery } from "convex/react";
 import { RefreshCw } from "lucide-react";
 import { api } from "@convex/_generated/api";
+
+function relativeTime(ts: number | undefined, now: number): string {
+  if (!ts) return "never";
+  const diff = Math.max(0, now - ts);
+  if (diff < 30_000) return "just now";
+  if (diff < 60_000) return `${Math.floor(diff / 1000)}s ago`;
+  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
+  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
+  return `${Math.floor(diff / 86_400_000)}d ago`;
+}
 
 export default function AdminLumaPage() {
   const [search, setSearch] = useState("");
@@ -17,6 +27,13 @@ export default function AdminLumaPage() {
   const triggerSync = useAction(api.luma.adminTriggerSync);
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState<string | null>(null);
+
+  // Tick every 15s so the "Xm ago" label stays current.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 15_000);
+    return () => clearInterval(id);
+  }, []);
 
   async function handleRefresh() {
     if (syncing) return;
@@ -47,11 +64,17 @@ export default function AdminLumaPage() {
         <Stat label="Total cached" value={stats?.total ?? "—"} />
         <Stat
           label="Last sync"
-          value={
+          value={relativeTime(stats?.lastSynced, now)}
+          subtitle={
             stats?.lastSynced
-              ? new Date(stats.lastSynced).toLocaleString()
-              : "—"
+              ? new Date(stats.lastSynced).toLocaleTimeString(undefined, {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
+                })
+              : undefined
           }
+          small
         />
       </section>
 
@@ -124,13 +147,34 @@ export default function AdminLumaPage() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: number | string }) {
+function Stat({
+  label,
+  value,
+  subtitle,
+  small,
+}: {
+  label: string;
+  value: number | string;
+  subtitle?: string;
+  small?: boolean;
+}) {
   return (
     <div className="glass-card rounded-2xl px-4 py-3">
       <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
         {label}
       </div>
-      <div className="font-mono text-2xl font-bold text-white">{value}</div>
+      <div
+        className={`font-mono font-bold text-white tabular-nums ${
+          small ? "text-base" : "text-2xl"
+        }`}
+      >
+        {value}
+      </div>
+      {subtitle && (
+        <div className="font-mono text-[10px] tabular-nums text-white/40 mt-0.5">
+          {subtitle}
+        </div>
+      )}
     </div>
   );
 }
