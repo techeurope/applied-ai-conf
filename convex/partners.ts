@@ -1101,22 +1101,29 @@ export const declineTeamInvite = mutation({
   },
 });
 
-// Lookup a pending invite by id — used by the accept page.
+// Lookup a pending invite by id — used by the accept page. Returns team +
+// invite info even for an unauthenticated visitor (those bits aren't
+// sensitive and the visitor needs to see them in order to decide whether
+// to sign up). User-specific bits (emailMatches, myEmail, signedIn) are
+// only populated once the caller has an authenticated identity.
 export const teamInviteForAccept = query({
   args: { inviteId: v.id("partnerInvites") },
   handler: async (ctx, { inviteId }) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return null;
-    const me = await ctx.db
-      .query("users")
-      .withIndex("by_workos_id", (q) => q.eq("workosUserId", identity.subject))
-      .first();
     const invite = await ctx.db.get(inviteId);
     if (!invite) return null;
     const team = await ctx.db.get(invite.teamId);
     if (!team) return null;
+    const identity = await ctx.auth.getUserIdentity();
+    let myEmail: string | null = null;
+    if (identity) {
+      const me = await ctx.db
+        .query("users")
+        .withIndex("by_workos_id", (q) => q.eq("workosUserId", identity.subject))
+        .first();
+      myEmail = me?.email ?? null;
+    }
     const emailMatches =
-      invite.email === (me?.email ?? "").toLowerCase().trim();
+      !!myEmail && invite.email === myEmail.toLowerCase().trim();
     return {
       invite: {
         _id: invite._id,
@@ -1131,8 +1138,9 @@ export const teamInviteForAccept = query({
         slug: team.slug,
         tier: team.partnerTier,
       },
+      signedIn: !!identity,
+      myEmail,
       emailMatches,
-      myEmail: me?.email ?? null,
     };
   },
 });

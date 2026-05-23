@@ -4,6 +4,7 @@ import { use, useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
+import { LogIn } from "lucide-react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 
@@ -42,7 +43,51 @@ export default function TeamInviteAcceptPage({
     );
   }
 
-  const { invite, team, emailMatches, myEmail } = data;
+  const { invite, team, emailMatches, myEmail, signedIn } = data;
+
+  // Not signed in yet → invite them to sign up using the invited email.
+  // Most invitees don't have an account; this is the common path.
+  if (!signedIn) {
+    const returnTo = encodeURIComponent(`/app/team/accept/${inviteId}`);
+    return (
+      <div className="space-y-5 pt-6 max-w-md">
+        <header className="space-y-1">
+          <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
+            // TEAM INVITE
+          </p>
+          <p className="text-sm text-white/60">You&apos;ve been invited to join</p>
+          <h1 className="font-mono text-3xl font-bold tracking-tighter">
+            {team.name}
+          </h1>
+          {team.tier && (
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-violet-200">
+              {team.tier} partner team
+            </p>
+          )}
+        </header>
+
+        <div className="rounded-2xl ring-1 ring-emerald-300/40 bg-emerald-400/[0.06] p-5 space-y-3">
+          <p className="text-sm text-white/85 leading-relaxed">
+            Create your account (or sign in) to accept the invite. Use the
+            email it was sent to:
+          </p>
+          <p className="font-mono text-base text-white">{invite.email}</p>
+          <a
+            href={`/api/auth/sign-in?return_to=${returnTo}`}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-black font-mono text-sm hover:scale-[1.02] transition-transform"
+          >
+            <LogIn className="size-3.5" strokeWidth={2} />
+            Sign in or sign up
+          </a>
+        </div>
+
+        <p className="text-xs text-white/50 leading-relaxed">
+          If you sign up with a different email, the invite won&apos;t match —
+          ask the team owner to send you a new one.
+        </p>
+      </div>
+    );
+  }
 
   // Already decided?
   if (invite.consumedAt) {
