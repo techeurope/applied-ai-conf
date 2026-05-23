@@ -32,6 +32,40 @@ function generateSixDigit(): string {
 
 // --- helper: attempt auto-link based on user's email ------------------------
 
+// QA helper — peek at the auto-link state for a specific email on prod.
+export const bootstrapInspectByEmail = internalQuery({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    const normalized = email.toLowerCase().trim();
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", normalized))
+      .first();
+    const luma = await ctx.db
+      .query("lumaAttendees")
+      .withIndex("by_email", (q) => q.eq("email", normalized))
+      .first();
+    return {
+      user: user
+        ? {
+            _creationTime: user._creationTime,
+            email: user.email,
+            ticketLinkedAt: user.ticketLinkedAt,
+            accessLevel: user.accessLevel,
+          }
+        : null,
+      luma: luma
+        ? {
+            _creationTime: luma._creationTime,
+            email: luma.email,
+            approvalStatus: luma.approvalStatus,
+            syncedAt: luma.syncedAt,
+          }
+        : null,
+    };
+  },
+});
+
 export async function tryAutoLink(ctx: MutationCtx, user: Doc<"users">) {
   if (user.ticketLinkedAt) return null;
   if (!user.email) return null;
@@ -113,10 +147,25 @@ export const requestEmailCode = action({
     if (!identity) throw new Error("Not authenticated");
     const normalized = lumaEmail.toLowerCase().trim();
 
-    const found: { matched: boolean; approved: boolean; user: Doc<"users"> | null } = await ctx.runQuery(
+    let found: { matched: boolean; approved: boolean; user: Doc<"users"> | null } = await ctx.runQuery(
       internal.ticket._lookupForRequest,
       { lumaEmail: normalized },
     );
+
+    // Cache miss (or not approved) — hit Luma directly for the freshest
+    // state on just this email. Faster than waiting for the cron tick.
+    if (!found.matched || !found.approved) {
+      const live = await ctx.runAction(internal.luma.lookupOneByEmail, {
+        email: normalized,
+      });
+      if (live.status === "found") {
+        // The action already upserted into lumaAttendees; re-run the lookup
+        // so we pick up the matching Convex user (if any).
+        found = await ctx.runQuery(internal.ticket._lookupForRequest, {
+          lumaEmail: normalized,
+        });
+      }
+    }
 
     if (!found.matched || !found.approved) {
       return { status: "not_found" };

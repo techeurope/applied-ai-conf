@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAction, useMutation, useQuery } from "convex/react";
@@ -21,9 +21,48 @@ export default function LinkTicketPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const [autoChecking, setAutoChecking] = useState(true);
+
+  // On mount: try once to live-resolve the user's own sign-in email against
+  // Luma. Catches the "I just signed up before the 5-min cron caught up"
+  // case automatically — no sign-out-and-back-in required. If their Luma
+  // email is the same as their WorkOS email and they're approved, this
+  // auto-links them and we redirect away. Otherwise we drop through to the
+  // manual form below.
+  const triedAutoRef = useRef(false);
+  useEffect(() => {
+    if (triedAutoRef.current) return;
+    if (!me?.email) return;
+    if (status?.linked) return;
+    triedAutoRef.current = true;
+    (async () => {
+      try {
+        const res = await requestEmailCode({ lumaEmail: me.email });
+        if (res.status === "auto_linked") {
+          router.push("/app");
+          return;
+        }
+        // status === "not_found" or "code_sent" — drop into manual flow.
+        if (res.status === "not_found") {
+          setLumaEmail(me.email);
+        }
+      } catch {
+        /* fall through to manual */
+      } finally {
+        setAutoChecking(false);
+      }
+    })();
+  }, [me?.email, status?.linked, requestEmailCode, router]);
 
   if (me === undefined || status === undefined) {
     return <p className="font-mono text-xs text-white/40">Loading…</p>;
+  }
+  if (autoChecking && !status?.linked) {
+    return (
+      <p className="font-mono text-xs text-white/40 pt-6 animate-pulse">
+        Checking your ticket with Luma…
+      </p>
+    );
   }
   if (status?.linked) {
     return (
@@ -61,7 +100,7 @@ export default function LinkTicketPage() {
       }
       if (res.status === "not_found") {
         setError(
-          "We can't find that email on the Luma guest list. Try the email you used on Luma, or visit the help desk to verify in person.",
+          "Not on the guest list for that email. If you just registered, Luma may take a moment — wait 30 seconds and try again. Otherwise paste the email you actually used on Luma, or use a desk claim code below.",
         );
         return;
       }

@@ -153,6 +153,65 @@ export const findByEmail = internalQuery({
   },
 });
 
+// Direct single-guest lookup against Luma's API by email. Used during the
+// /app/link-ticket flow so we don't have to wait for the next 5-min cron
+// tick when someone has *just* been added/approved on Luma.
+//
+// Returns whatever Luma says; the caller decides what to do with the
+// result. Always upserts into our lumaAttendees cache when a row is found
+// so subsequent reads from the cache see the freshest state.
+export const lookupOneByEmail = internalAction({
+  args: { email: v.string() },
+  handler: async (
+    ctx,
+    { email },
+  ): Promise<
+    | { status: "not_found" }
+    | {
+        status: "found";
+        approvalStatus: string;
+        lumaGuestId: string;
+        name?: string;
+        ticketType?: string;
+      }
+  > => {
+    const normalized = email.toLowerCase().trim();
+    if (!normalized) return { status: "not_found" };
+    const key = process.env.LUMA_API_KEY;
+    if (!key) throw new Error("LUMA_API_KEY not set on this Convex deployment");
+    const url = new URL(`${LUMA_API_BASE}/v1/event/get-guest`);
+    // Luma accepts an email in the `email` query parameter (per docs).
+    url.searchParams.set("email", normalized);
+    url.searchParams.set("event_api_id", LUMA_EVENT_API_ID);
+    const res = await fetch(url, { headers: { "x-luma-api-key": key } });
+    if (res.status === 404) return { status: "not_found" };
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Luma get-guest ${res.status}: ${body.slice(0, 200)}`);
+    }
+    const json = (await res.json()) as { guest?: LumaGuest } & LumaGuest;
+    const g: LumaGuest = (json.guest ?? json) as LumaGuest;
+    if (!g?.api_id) return { status: "not_found" };
+    const guestEmail = pickEmail(g) ?? normalized;
+    await ctx.runMutation(internal.luma.upsertOne, {
+      lumaGuestId: g.api_id,
+      email: guestEmail,
+      name: pickName(g),
+      ticketType: g.event_ticket?.name,
+      registeredAt: g.registered_at ? Date.parse(g.registered_at) : 0,
+      approvalStatus: g.approval_status ?? "unknown",
+      checkedInAt: g.checked_in_at ? Date.parse(g.checked_in_at) : undefined,
+    });
+    return {
+      status: "found",
+      approvalStatus: g.approval_status ?? "unknown",
+      lumaGuestId: g.api_id,
+      name: pickName(g),
+      ticketType: g.event_ticket?.name,
+    };
+  },
+});
+
 // --- full sync (callable from CLI or cron) -----------------------------------
 
 // Admin-callable trigger so the admin Luma page can refresh on demand. Runs
