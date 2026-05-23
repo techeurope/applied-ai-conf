@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "convex/react";
+import { useAction, useQuery } from "convex/react";
+import { RefreshCw } from "lucide-react";
 import { api } from "@convex/_generated/api";
 
 export default function AdminLumaPage() {
@@ -13,6 +14,26 @@ export default function AdminLumaPage() {
     limit: 500,
     includeUnapproved,
   });
+  const triggerSync = useAction(api.luma.adminTriggerSync);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState<string | null>(null);
+
+  async function handleRefresh() {
+    if (syncing) return;
+    setSyncing(true);
+    setSyncMsg(null);
+    try {
+      const result = await triggerSync({});
+      setSyncMsg(
+        `✓ Synced — ${result.upserted} attendee rows across ${result.pages} page${result.pages === 1 ? "" : "s"}.`,
+      );
+    } catch (e) {
+      setSyncMsg(e instanceof Error ? e.message : "Sync failed");
+    } finally {
+      setSyncing(false);
+      window.setTimeout(() => setSyncMsg(null), 6000);
+    }
+  }
 
   return (
     <div className="space-y-5">
@@ -34,13 +55,27 @@ export default function AdminLumaPage() {
         />
       </section>
 
-      <p className="text-xs text-white/50">
-        Cache of Luma attendees for the conference event. Re-sync from CLI:{" "}
-        <code className="font-mono text-white/70">
-          node scripts/sync-luma-attendees.mjs
-        </code>{" "}
-        (add <code>--prod</code> for production).
-      </p>
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={handleRefresh}
+          disabled={syncing}
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white text-black font-mono text-xs disabled:opacity-50"
+        >
+          <RefreshCw
+            className={`size-3.5 ${syncing ? "animate-spin" : ""}`}
+            strokeWidth={2}
+          />
+          {syncing ? "Syncing…" : "Refresh now"}
+        </button>
+        <p className="text-xs text-white/50">
+          Auto-sync runs every 5 min. This pulls fresh data from Luma
+          immediately (one full paginated walk, ~3 requests for ~300 attendees).
+        </p>
+      </div>
+      {syncMsg && (
+        <p className="font-mono text-xs text-emerald-200">{syncMsg}</p>
+      )}
 
       <div className="flex flex-col sm:flex-row gap-2">
         <input

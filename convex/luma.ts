@@ -1,11 +1,12 @@
 import { v } from "convex/values";
 import {
+  action,
   internalAction,
   internalMutation,
   internalQuery,
   query,
 } from "./_generated/server";
-import { internal } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import { requireAdmin } from "./admin";
 
 const LUMA_EVENT_API_ID = "evt-EFJJfPGbyKg7PYU"; // Applied AI Conf | Berlin 28 May 2026
@@ -153,6 +154,34 @@ export const findByEmail = internalQuery({
 });
 
 // --- full sync (callable from CLI or cron) -----------------------------------
+
+// Admin-callable trigger so the admin Luma page can refresh on demand. Runs
+// the same internal sync action under the hood; rate-limits self to one
+// active sync per deployment by re-using the cron's idempotent path.
+export const adminTriggerSync = action({
+  args: {},
+  handler: async (ctx): Promise<{ pages: number; upserted: number }> => {
+    // Auth guard via a query the action can call.
+    const ok: boolean = await ctx.runQuery(api.luma.isAdminCaller, {});
+    if (!ok) throw new Error("Admin only");
+    return await ctx.runAction(internal.luma.sync, {});
+  },
+});
+
+// Tiny helper query so adminTriggerSync (an action, no db access) can still
+// enforce admin auth via a runQuery hop.
+export const isAdminCaller = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return false;
+    const me = await ctx.db
+      .query("users")
+      .withIndex("by_workos_id", (q) => q.eq("workosUserId", identity.subject))
+      .first();
+    return me?.accessLevel === "admin";
+  },
+});
 
 export const sync = internalAction({
   args: {},
