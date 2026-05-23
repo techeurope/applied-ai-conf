@@ -4,7 +4,6 @@ import { useState } from "react";
 import {
   Map as MapIcon,
   Mic,
-  Coffee,
   UtensilsCrossed,
   Users,
   DoorOpen,
@@ -21,7 +20,6 @@ type ZoneId =
   | "food"
   | "tables"
   | "registration"
-  | "lounge"
   | "toilets"
   | "entrance";
 
@@ -126,19 +124,6 @@ const ZONES: Zone[] = [
     accent: "orange",
   },
   {
-    id: "lounge",
-    label: "Speaker Lounge",
-    short: "Speakers & green room",
-    description:
-      "Quiet rooms for speakers to prep. Attendees: please leave these rooms to the speakers.",
-    x: 10,
-    y: 5,
-    w: 215,
-    h: 160,
-    icon: Coffee,
-    accent: "violet",
-  },
-  {
     id: "toilets",
     label: "Toilets",
     short: "Restrooms",
@@ -174,7 +159,6 @@ const PATHS: Record<ZoneId, string> = {
   food: `M ${ENTRANCE.x} ${ENTRANCE.y} L 400 590 L 400 50 L 550 50`,
   tables: `M ${ENTRANCE.x} ${ENTRANCE.y} L 355 590 L 355 220`,
   registration: `M ${ENTRANCE.x} ${ENTRANCE.y} L 400 590 L 400 145 L 785 145`,
-  lounge: `M ${ENTRANCE.x} ${ENTRANCE.y} L 120 590 L 120 85`,
   toilets: `M ${ENTRANCE.x} ${ENTRANCE.y} L 300 590 L 300 510`,
   entrance: `M ${ENTRANCE.x} ${ENTRANCE.y} L ${ENTRANCE.x} ${ENTRANCE.y}`,
 };

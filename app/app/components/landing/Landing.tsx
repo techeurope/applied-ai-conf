@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { CONFERENCE_DATE, getConferenceClock } from "@/lib/conference-time";
 import { AuthRibbon } from "./AuthRibbon";
-import { FloorPlan } from "./FloorPlan";
 import { HelpCard } from "./HelpCard";
 import { LunchCard } from "./LunchCard";
 import { RightNowWidget } from "./RightNowWidget";
@@ -65,7 +64,6 @@ export function Landing({ initialSignedIn: _signedIn }: { initialSignedIn: boole
 
       {/* Venue cards */}
       <WifiCard />
-      <FloorPlan />
 
       <div className="grid sm:grid-cols-2 gap-5">
         <LunchCard />
