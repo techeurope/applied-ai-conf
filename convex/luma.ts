@@ -180,7 +180,11 @@ export const lookupOneByEmail = internalAction({
     const key = process.env.LUMA_API_KEY;
     if (!key) throw new Error("LUMA_API_KEY not set on this Convex deployment");
     const url = new URL(`${LUMA_API_BASE}/v1/event/get-guest`);
-    // Luma accepts an email in the `email` query parameter (per docs).
+    // Per Luma docs, this endpoint accepts the email in the `email` param,
+    // and uses `event_api_id` (matching the get-guests endpoint we already
+    // use). Their docs page is inconsistent (mentions both `id` and `email`,
+    // both `event_id` and `event_api_id`); empirically `email` + `event_api_id`
+    // works. If Luma returns 404 we treat the user as not-on-the-list.
     url.searchParams.set("email", normalized);
     url.searchParams.set("event_api_id", LUMA_EVENT_API_ID);
     const res = await fetch(url, { headers: { "x-luma-api-key": key } });
