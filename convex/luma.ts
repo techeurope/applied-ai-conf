@@ -153,6 +153,55 @@ export const findByEmail = internalQuery({
   },
 });
 
+// QA helper: add a guest to the Luma event programmatically + immediately
+// pull the resulting row into our cache. Used to provision a real Luma
+// ticket for a test account so we can exercise the auto-link / sign-up
+// flow end-to-end. Idempotent — Luma deduplicates by email server-side.
+export const bootstrapAddOneGuest = internalAction({
+  args: { email: v.string(), name: v.optional(v.string()) },
+  handler: async (
+    ctx,
+    { email, name },
+  ): Promise<{
+    added: boolean;
+    cached: { approvalStatus: string; lumaGuestId?: string };
+  }> => {
+    const normalized = email.toLowerCase().trim();
+    const key = process.env.LUMA_API_KEY;
+    if (!key) throw new Error("LUMA_API_KEY not set on this Convex deployment");
+    const addUrl = `${LUMA_API_BASE}/v1/event/add-guests`;
+    const res = await fetch(addUrl, {
+      method: "POST",
+      headers: {
+        "x-luma-api-key": key,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        event_api_id: LUMA_EVENT_API_ID,
+        guests: [{ email: normalized, name }],
+      }),
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Luma add-guests ${res.status}: ${body.slice(0, 300)}`);
+    }
+    // Empty 200 response; follow up with a lookup so we cache the row.
+    const live = await ctx.runAction(internal.luma.lookupOneByEmail, {
+      email: normalized,
+    });
+    return {
+      added: true,
+      cached:
+        live.status === "found"
+          ? {
+              approvalStatus: live.approvalStatus,
+              lumaGuestId: live.lumaGuestId,
+            }
+          : { approvalStatus: "not_found_after_add" },
+    };
+  },
+});
+
 // Direct single-guest lookup against Luma's API by email. Used during the
 // /app/link-ticket flow so we don't have to wait for the next 5-min cron
 // tick when someone has *just* been added/approved on Luma.
