@@ -410,6 +410,107 @@ export const revokeInvite = mutation({
 // today onto a freshly-created "Tech Europe" team (creating it if missing)
 // as an owner. Used so the internal team can exercise team features without
 // polluting real partner team data.
+// Add a list of emails to Tech Europe. Each email is handled by exact match:
+//   - If a Convex user already exists → add (or upgrade) partnerMember row +
+//     set their teamId. Already-an-owner stays owner.
+//   - Otherwise → create a partnerInvites row keyed by email so the existing
+//     consumePartnerInviteIfAny path auto-attaches them on first sign-in.
+// Idempotent — won't duplicate memberships or invites.
+export const bootstrapAddTechEuropeByEmails = internalMutation({
+  args: { emails: v.array(v.string()) },
+  handler: async (ctx, { emails }) => {
+    const team = await ctx.db
+      .query("teams")
+      .withIndex("by_slug", (q) => q.eq("slug", "tech-europe"))
+      .first();
+    if (!team) throw new Error("Tech Europe team not found");
+
+    const out: Array<{
+      email: string;
+      outcome:
+        | "added_user"
+        | "already_member"
+        | "invite_queued"
+        | "invite_existed";
+      detail?: string;
+    }> = [];
+
+    for (const raw of emails) {
+      const email = raw.toLowerCase().trim();
+      if (!email) continue;
+
+      // 1) Existing Convex user?
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", email))
+        .first();
+
+      if (user) {
+        const existing = await ctx.db
+          .query("partnerMembers")
+          .withIndex("by_team_user", (q) =>
+            q.eq("teamId", team._id).eq("userId", user._id),
+          )
+          .first();
+        if (existing) {
+          out.push({
+            email,
+            outcome: "already_member",
+            detail: user.name,
+          });
+          continue;
+        }
+        // Remove any membership on other partner teams first.
+        const otherMemberships = await ctx.db
+          .query("partnerMembers")
+          .withIndex("by_user", (q) => q.eq("userId", user._id))
+          .collect();
+        for (const m of otherMemberships) {
+          if (m.teamId !== team._id) await ctx.db.delete(m._id);
+        }
+        const now = Date.now();
+        await ctx.db.insert("partnerMembers", {
+          teamId: team._id,
+          userId: user._id,
+          role: "member",
+          invitedAt: now,
+          invitedByUserId: team.createdByUserId,
+          joinedAt: now,
+        });
+        await ctx.db.patch(user._id, { teamId: team._id });
+        out.push({
+          email,
+          outcome: "added_user",
+          detail: user.name,
+        });
+        continue;
+      }
+
+      // 2) No user yet → queue a partnerInvite. consumePartnerInviteIfAny in
+      // users.ensureFromWorkos picks it up on first sign-in.
+      const dup = await ctx.db
+        .query("partnerInvites")
+        .withIndex("by_email", (q) => q.eq("email", email))
+        .filter((q) => q.eq(q.field("teamId"), team._id))
+        .filter((q) => q.eq(q.field("consumedAt"), undefined))
+        .first();
+      if (dup) {
+        out.push({ email, outcome: "invite_existed" });
+        continue;
+      }
+      await ctx.db.insert("partnerInvites", {
+        teamId: team._id,
+        email,
+        role: "member",
+        invitedAt: Date.now(),
+        invitedByUserId: team.createdByUserId,
+      });
+      out.push({ email, outcome: "invite_queued" });
+    }
+    return out;
+  },
+});
+
 export const bootstrapMoveUserToTechEurope = internalMutation({
   args: { email: v.string() },
   handler: async (ctx, { email }) => {
