@@ -201,6 +201,42 @@ export const setCancelled = mutation({
 
 // ---- bootstrap -------------------------------------------------------------
 
+// Patch speakerNames (the joint-talk array field) onto existing session
+// rows by slug. bootstrapSeed didn't take speakerNames, so joint talks
+// imported with both speakerName + speakerNames undefined — which made
+// them render with no name + no cover image. Idempotent: only patches
+// rows where the array isn't already set.
+export const bootstrapPatchSpeakerNames = internalMutation({
+  args: {
+    entries: v.array(
+      v.object({
+        slug: v.string(),
+        speakerNames: v.array(v.string()),
+      }),
+    ),
+  },
+  handler: async (ctx, { entries }) => {
+    const summary: Array<{ slug: string; outcome: "patched" | "not_found" | "already_set" }> = [];
+    for (const e of entries) {
+      const row = await ctx.db
+        .query("sessions")
+        .withIndex("by_slug", (q) => q.eq("slug", e.slug))
+        .first();
+      if (!row) {
+        summary.push({ slug: e.slug, outcome: "not_found" });
+        continue;
+      }
+      if (row.speakerNames && row.speakerNames.length > 0) {
+        summary.push({ slug: e.slug, outcome: "already_set" });
+        continue;
+      }
+      await ctx.db.patch(row._id, { speakerNames: e.speakerNames });
+      summary.push({ slug: e.slug, outcome: "patched" });
+    }
+    return summary;
+  },
+});
+
 // Collapses duplicated per-stage break rows down to a single expo-hall row.
 // Idempotent: deletes any `*-side` break/lunch dupes, patches the surviving
 // primary row to stage="expo". Re-runnable safely. Audited.
