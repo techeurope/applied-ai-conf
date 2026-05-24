@@ -56,13 +56,10 @@ function classify() {
     const isFullWidth =
       s.format === "logistics" ||
       s.format === "keynote" ||
-      (s.format === "break" && s.stage === "main");
+      s.format === "break";
 
     if (isFullWidth) {
       fullWidth.push(s);
-    } else if (s.format === "break") {
-      // Side-stage break duplicates are skipped (main break already full-width)
-      continue;
     } else if (s.stage === "main") {
       main.push(s);
     } else {
@@ -80,7 +77,7 @@ function buildTimeLabels(fullWidth: AgendaSlot[]) {
 
   // Collect unique start times per stage (excluding full-width events)
   const stageSlots = AGENDA.filter(
-    (s) => s.format !== "logistics" && s.format !== "keynote" && !(s.format === "break" && s.stage === "main")
+    (s) => s.format !== "logistics" && s.format !== "keynote" && s.format !== "break"
   );
 
   const mainStarts = new Set(stageSlots.filter((s) => s.stage === "main").map((s) => s.startTime));
@@ -358,7 +355,7 @@ function DesktopGrid({ isVisible }: { isVisible: boolean }) {
 function MobileView({ activeStage, isVisible }: { activeStage: "main" | "side"; isVisible: boolean }) {
   const rows = useMemo(() => {
     const slots = AGENDA.filter(
-      (s) => s.stage === activeStage || (s.stage === "main" && (s.format === "logistics" || s.format === "keynote" || s.format === "break"))
+      (s) => s.stage === activeStage || s.format === "logistics" || s.format === "keynote" || s.format === "break"
     ).sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
 
     const seen = new Set<string>();
