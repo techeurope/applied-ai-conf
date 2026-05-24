@@ -21,6 +21,7 @@ export default function AdminAttendeeDetailPage({
   const createCode = useMutation(api.admin.createClaimCode);
   const rotateToken = useMutation(api.admin.rotateUserToken);
   const manualLink = useMutation(api.admin.manualLinkTicket);
+  const transferTicket = useMutation(api.admin.transferTicket);
   const unlinkTicket = useMutation(api.admin.unlinkTicket);
   const ticket = useQuery(api.admin.getTicketLink, { userId });
   const userVouchers = useQuery(api.vouchers.adminListForUser, { userId });
@@ -145,6 +146,38 @@ export default function AdminAttendeeDetailPage({
     try {
       await manualLink({ userId, lumaEmail: manualLumaEmail });
       setManualLumaEmail("");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function handleForceTransfer() {
+    if (!manualLumaEmail.trim()) return;
+    const reason = prompt(
+      "Why are you force-transferring this ticket? (logged in audit)",
+    );
+    if (reason === null) return;
+    if (
+      !confirm(
+        `Force-transfer the Luma ticket for ${manualLumaEmail} from its current account to ${user?.email}? Unredeemed vouchers move with it.`,
+      )
+    ) {
+      return;
+    }
+    setBusy("transfer");
+    setError(null);
+    try {
+      const res = await transferTicket({
+        toUserId: userId,
+        lumaEmail: manualLumaEmail,
+        reason: reason || undefined,
+      });
+      setManualLumaEmail("");
+      if (res.movedVouchers > 0) {
+        alert(`Transferred. ${res.movedVouchers} unredeemed voucher(s) moved.`);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed");
     } finally {
@@ -356,6 +389,16 @@ export default function AdminAttendeeDetailPage({
                 {busy === "link" ? "…" : "Link"}
               </button>
             </div>
+            <button
+              type="button"
+              onClick={handleForceTransfer}
+              disabled={busy === "transfer" || !manualLumaEmail.trim()}
+              className="text-[11px] font-mono text-amber-200 underline disabled:opacity-40"
+            >
+              {busy === "transfer"
+                ? "Transferring…"
+                : "Force-transfer if linked to another account →"}
+            </button>
           </form>
         )}
       </section>

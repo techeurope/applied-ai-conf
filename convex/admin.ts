@@ -9,6 +9,7 @@ import {
 } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
 import { generatePublicToken } from "./_tokens";
+import { performTransfer } from "./ticket";
 
 const ADMIN_ACTIONS = {
   grantAdmin: "admin.grant",
@@ -629,6 +630,66 @@ export const manualLinkTicket = mutation({
       lumaGuestId: luma.lumaGuestId,
     });
     return { linkId };
+  },
+});
+
+// Admin-only force transfer. Bypasses holder approval — used when the
+// current holder can't be reached (lost inbox, left the company, etc.).
+// Atomic swap, moves unredeemed vouchers, audits both sides.
+export const transferTicket = mutation({
+  args: {
+    toUserId: v.id("users"),
+    lumaEmail: v.string(),
+    reason: v.optional(v.string()),
+  },
+  handler: async (ctx, { toUserId, lumaEmail, reason }) => {
+    const admin = await requireAdmin(ctx);
+    const target = await ctx.db.get(toUserId);
+    if (!target) throw new Error("Destination user not found");
+    if (target.deactivatedAt) throw new Error("Destination account deactivated");
+
+    const normalized = lumaEmail.toLowerCase().trim();
+    const luma = await ctx.db
+      .query("lumaAttendees")
+      .withIndex("by_email", (q) => q.eq("email", normalized))
+      .first();
+    if (!luma) throw new Error("No Luma attendee with that email in the cache");
+    if (luma.approvalStatus !== "approved") {
+      throw new Error(
+        `That Luma attendee is "${luma.approvalStatus}", not approved.`,
+      );
+    }
+
+    const existing = await ctx.db
+      .query("ticketLinks")
+      .withIndex("by_luma_guest_id", (q) => q.eq("lumaGuestId", luma.lumaGuestId))
+      .first();
+    if (!existing) {
+      throw new Error(
+        "This Luma guest isn't linked to any account — use the normal Link button instead.",
+      );
+    }
+    if (existing.userId === toUserId) {
+      throw new Error("Destination user already holds this ticket");
+    }
+
+    const fromUserId = existing.userId;
+    const { movedVoucherIds } = await performTransfer(ctx, {
+      fromUserId,
+      toUserId,
+      lumaGuestId: luma.lumaGuestId,
+      method: "admin_link",
+      verifiedByUserId: admin._id,
+    });
+
+    await writeAudit(ctx, admin, "ticket.transfer_admin", toUserId, undefined, {
+      fromUserId,
+      lumaEmail: luma.email,
+      lumaGuestId: luma.lumaGuestId,
+      movedVouchers: movedVoucherIds.length,
+      reason,
+    });
+    return { ok: true, movedVouchers: movedVoucherIds.length };
   },
 });
 

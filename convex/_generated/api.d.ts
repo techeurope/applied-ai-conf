@@ -27,6 +27,7 @@ import type * as partners from "../partners.js";
 import type * as scans from "../scans.js";
 import type * as seed from "../seed.js";
 import type * as ticket from "../ticket.js";
+import type * as transfer_test from "../transfer_test.js";
 import type * as users from "../users.js";
 import type * as vouchers from "../vouchers.js";
 
@@ -56,6 +57,7 @@ declare const fullApi: ApiFromModules<{
   scans: typeof scans;
   seed: typeof seed;
   ticket: typeof ticket;
+  transfer_test: typeof transfer_test;
   users: typeof users;
   vouchers: typeof vouchers;
 }>;

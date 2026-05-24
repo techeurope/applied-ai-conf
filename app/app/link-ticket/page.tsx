@@ -14,7 +14,9 @@ export default function LinkTicketPage() {
   const verifyEmailCode = useMutation(api.ticket.verifyEmailCode);
   const redeemClaim = useMutation(api.claim.redeem);
 
-  const [step, setStep] = useState<"start" | "code" | "claim">("start");
+  const [step, setStep] = useState<"start" | "code" | "claim" | "transfer_pending">(
+    "start",
+  );
   const [lumaEmail, setLumaEmail] = useState("");
   const [code, setCode] = useState("");
   const [claimCode, setClaimCode] = useState("");
@@ -22,6 +24,9 @@ export default function LinkTicketPage() {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [autoChecking, setAutoChecking] = useState(true);
+  const [transferNotifiedEmail, setTransferNotifiedEmail] = useState<string | null>(
+    null,
+  );
 
   // On mount: try once to live-resolve the user's own sign-in email against
   // Luma. Catches the "I just signed up before the 5-min cron caught up"
@@ -118,7 +123,13 @@ export default function LinkTicketPage() {
     setBusy(true);
     setError(null);
     try {
-      await verifyEmailCode({ lumaEmail, code });
+      const res = await verifyEmailCode({ lumaEmail, code });
+      if (res.status === "transfer_pending") {
+        setTransferNotifiedEmail(res.notifiedEmail);
+        setStep("transfer_pending");
+        setInfo(null);
+        return;
+      }
       router.push("/app");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed");
@@ -196,6 +207,29 @@ export default function LinkTicketPage() {
             {busy ? "Checking…" : "Continue"}
           </button>
         </form>
+      )}
+
+      {step === "transfer_pending" && (
+        <section className="space-y-3 rounded-xl bg-amber-500/5 ring-1 ring-amber-400/30 px-4 py-4">
+          <h2 className="font-mono text-sm font-bold text-amber-200">
+            Awaiting approval from the current ticket holder
+          </h2>
+          <p className="text-sm text-white/80 leading-relaxed">
+            This ticket is currently attached to another Applied AI Conf
+            account. We&apos;ve emailed{" "}
+            <span className="font-mono text-white">{transferNotifiedEmail}</span>{" "}
+            with an Approve / Decline link.
+          </p>
+          <p className="text-sm text-white/60 leading-relaxed">
+            Once they approve, the ticket — plus any unredeemed vouchers — will
+            move to this account. Refresh this page after they confirm. The
+            link expires in 24 hours.
+          </p>
+          <p className="text-xs text-white/40">
+            If the holder&apos;s inbox isn&apos;t reachable (e.g. they changed
+            jobs), visit the help desk and we&apos;ll move it manually.
+          </p>
+        </section>
       )}
 
       {step === "code" && (
