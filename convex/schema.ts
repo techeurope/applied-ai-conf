@@ -227,6 +227,11 @@ export default defineSchema({
 
   vouchers: defineTable({
     userId: v.id("users"),
+    // Snapshot of the user's email at issue time. Used by
+    // bootstrapIssueForVerifiedAttendees to dedupe across delete + re-signup
+    // (which would otherwise issue a second voucher for the same person).
+    // Optional for backfill of pre-existing rows.
+    email: v.optional(v.string()),
     kind: v.string(), // "lunch", "coffee", "drink", etc.
     publicToken: v.string(), // vch_xxxxxxxx
     issuedAt: v.number(),
@@ -237,6 +242,7 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_user_kind", ["userId", "kind"])
+    .index("by_email_kind", ["email", "kind"])
     .index("by_public_token", ["publicToken"]),
 
   sessions: defineTable({

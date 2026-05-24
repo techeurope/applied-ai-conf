@@ -1,4 +1,9 @@
-import { mutation, query, internalMutation } from "./_generated/server";
+import {
+  mutation,
+  query,
+  internalMutation,
+  type MutationCtx,
+} from "./_generated/server";
 import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import { generatePublicToken } from "./_tokens";
@@ -225,6 +230,165 @@ export const completeOnboarding = mutation({
   },
 });
 
+// Full cascade for a user record. Used by deleteAccount and by internal
+// test/admin tooling that needs to wipe a user without going through the
+// WorkOS identity gate. Caller is responsible for any auth checks.
+async function cascadeDeleteUser(
+  ctx: MutationCtx,
+  user: Doc<"users">,
+  actorUserId: Doc<"users">["_id"],
+  reason: "self_delete" | "admin_purge",
+): Promise<void> {
+  // Snapshot the email before any deletes so by-email cascades can run +
+  // the audit log knows who this was.
+  const email = (user.email ?? "").toLowerCase().trim();
+
+  // Write the audit row first — referencing the user._id while the row
+  // still exists. Convex Ids don't enforce referential integrity, so the
+  // entry survives the subsequent deletion as a frozen record.
+  await ctx.db.insert("auditLog", {
+    actorUserId,
+    action: reason === "self_delete" ? "user.self_delete" : "user.admin_purge",
+    targetUserId: user._id,
+    metadata: JSON.stringify({
+      email: email || null,
+      name: user.name,
+      wasAdmin: user.accessLevel === "admin",
+      hadTeam: !!user.teamId,
+    }),
+    createdAt: Date.now(),
+  });
+
+  // --- per-userId cascades --------------------------------------------------
+    const profiles = await ctx.db
+      .query("profiles")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+    for (const p of profiles) await ctx.db.delete(p._id);
+
+    const goals = await ctx.db
+      .query("goals")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+    for (const g of goals) await ctx.db.delete(g._id);
+
+    const consents = await ctx.db
+      .query("consents")
+      .withIndex("by_user_key", (q) => q.eq("userId", user._id))
+      .collect();
+    for (const c of consents) await ctx.db.delete(c._id);
+
+    // Contacts where this user is the subject (partner / individual leads on them).
+    const contactsAsSubject = await ctx.db
+      .query("contacts")
+      .withIndex("by_contacted", (q) => q.eq("contactedUserId", user._id))
+      .collect();
+    for (const c of contactsAsSubject) await ctx.db.delete(c._id);
+
+    // Contacts owned by this user (their own contact list, when not on a team).
+    const contactsAsOwner = await ctx.db
+      .query("contacts")
+      .withIndex("by_owner", (q) =>
+        q.eq("ownerType", "user").eq("ownerId", user._id as string),
+      )
+      .collect();
+    for (const c of contactsAsOwner) await ctx.db.delete(c._id);
+
+    const scansAsScanner = await ctx.db
+      .query("scanEvents")
+      .withIndex("by_scanner", (q) => q.eq("scannerUserId", user._id))
+      .collect();
+    for (const s of scansAsScanner) await ctx.db.delete(s._id);
+    const scansAsScanned = await ctx.db
+      .query("scanEvents")
+      .withIndex("by_scanned", (q) => q.eq("scannedUserId", user._id))
+      .collect();
+    for (const s of scansAsScanned) await ctx.db.delete(s._id);
+
+    const vouchers = await ctx.db
+      .query("vouchers")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+    for (const vch of vouchers) await ctx.db.delete(vch._id);
+
+    const favorites = await ctx.db
+      .query("favoriteSessions")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+    for (const fav of favorites) await ctx.db.delete(fav._id);
+
+    const ticketLinks = await ctx.db
+      .query("ticketLinks")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+    for (const tl of ticketLinks) await ctx.db.delete(tl._id);
+
+    const partnerMemberships = await ctx.db
+      .query("partnerMembers")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+    for (const pm of partnerMemberships) await ctx.db.delete(pm._id);
+
+    const emailCodes = await ctx.db
+      .query("emailCodes")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+    for (const ec of emailCodes) await ctx.db.delete(ec._id);
+
+    // Claim codes claimed by this user + their associated pendingAttendees
+    // rows (which carry name/email/jobRole — personal data about them).
+    if (user.claimCodeId) {
+      const code = await ctx.db.get(user.claimCodeId);
+      if (code) {
+        if (code.pendingAttendeeId) {
+          const pending = await ctx.db.get(code.pendingAttendeeId);
+          if (pending) await ctx.db.delete(pending._id);
+        }
+        await ctx.db.delete(code._id);
+      }
+    }
+
+    // --- per-email cascades ---------------------------------------------------
+    if (email) {
+      const partnerInvites = await ctx.db
+        .query("partnerInvites")
+        .withIndex("by_email", (q) => q.eq("email", email))
+        .collect();
+      for (const pi of partnerInvites) await ctx.db.delete(pi._id);
+
+      const adminInvites = await ctx.db
+        .query("adminInvites")
+        .withIndex("by_email", (q) => q.eq("email", email))
+        .collect();
+      for (const ai of adminInvites) await ctx.db.delete(ai._id);
+
+      // Standalone pendingAttendees keyed by this email (e.g. desk pre-
+      // registered them but they never claimed). The claimed-by-user path
+      // above handles the ones tied via claimCodeId.
+      const standalonePending = await ctx.db
+        .query("pendingAttendees")
+        .withIndex("by_email", (q) => q.eq("email", email))
+        .collect();
+      for (const p of standalonePending) {
+        // Skip the one we already deleted via the claimCode branch.
+        if (await ctx.db.get(p._id)) {
+          // Also delete any claim codes pointing at it.
+          const codes = await ctx.db
+            .query("claimCodes")
+            .withIndex("by_pending_attendee", (q) =>
+              q.eq("pendingAttendeeId", p._id),
+            )
+            .collect();
+          for (const c of codes) await ctx.db.delete(c._id);
+          await ctx.db.delete(p._id);
+        }
+      }
+    }
+
+  if (user.imageStorageId) await ctx.storage.delete(user.imageStorageId);
+  await ctx.db.delete(user._id);
+}
+
 export const deleteAccount = mutation({
   args: {},
   handler: async (ctx) => {
@@ -235,29 +399,39 @@ export const deleteAccount = mutation({
       .first();
     if (!user) return;
 
-    // Cascade delete: profiles, goals, consents, contacts where user is subject, scan events, notifications, image
-    const profiles = await ctx.db.query("profiles").withIndex("by_user", (q) => q.eq("userId", user._id)).collect();
-    for (const p of profiles) await ctx.db.delete(p._id);
+    // Block delete-and-recreate as kick-evasion. A deactivated user trying
+    // to wipe their row and start over with a fresh account is exactly the
+    // attack we want to prevent.
+    if (user.deactivatedAt) {
+      throw new Error(
+        "This account has been deactivated by an admin. Talk to the conference team if you need to be reinstated.",
+      );
+    }
 
-    const goals = await ctx.db.query("goals").withIndex("by_user", (q) => q.eq("userId", user._id)).collect();
-    for (const g of goals) await ctx.db.delete(g._id);
+    await cascadeDeleteUser(ctx, user, user._id, "self_delete");
+  },
+});
 
-    const consents = await ctx.db.query("consents").withIndex("by_user_key", (q) => q.eq("userId", user._id)).collect();
-    for (const c of consents) await ctx.db.delete(c._id);
-
-    const contactsAsSubject = await ctx.db
-      .query("contacts")
-      .withIndex("by_contacted", (q) => q.eq("contactedUserId", user._id))
-      .collect();
-    for (const c of contactsAsSubject) await ctx.db.delete(c._id);
-
-    const scansAsScanner = await ctx.db.query("scanEvents").withIndex("by_scanner", (q) => q.eq("scannerUserId", user._id)).collect();
-    for (const s of scansAsScanner) await ctx.db.delete(s._id);
-    const scansAsScanned = await ctx.db.query("scanEvents").withIndex("by_scanned", (q) => q.eq("scannedUserId", user._id)).collect();
-    for (const s of scansAsScanned) await ctx.db.delete(s._id);
-
-    if (user.imageStorageId) await ctx.storage.delete(user.imageStorageId);
-    await ctx.db.delete(user._id);
+// Test helper: wipe a user by email without auth. Used by the abuse-test
+// harness in convex/_abuse_tests.ts. Refuses to act on a real-looking
+// account by requiring the email to match a test-only suffix so it can't
+// be misused to nuke a real attendee.
+export const bootstrapPurgeUserByEmail = internalMutation({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    const normalized = email.toLowerCase().trim();
+    if (!normalized.endsWith("@example.local") && !normalized.endsWith("@test.local")) {
+      throw new Error(
+        "Refusing to purge a non-test email. Test addresses must end with @example.local or @test.local.",
+      );
+    }
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", normalized))
+      .first();
+    if (!user) return { found: false };
+    await cascadeDeleteUser(ctx, user, user._id, "admin_purge");
+    return { found: true };
   },
 });
 

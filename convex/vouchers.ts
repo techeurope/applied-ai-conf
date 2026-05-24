@@ -87,9 +87,26 @@ export const adminIssueForUser = mutation({
     const admin = await requireAdmin(ctx);
     const target = await ctx.db.get(userId);
     if (!target) throw new Error("User not found");
+    // Dedupe by email across delete + re-signup. If this person already had
+    // a voucher of this kind issued — even under a now-deleted user — refuse.
+    const email = (target.email ?? "").toLowerCase().trim();
+    if (email) {
+      const sameEmailVoucher = await ctx.db
+        .query("vouchers")
+        .withIndex("by_email_kind", (q) =>
+          q.eq("email", email).eq("kind", kind),
+        )
+        .first();
+      if (sameEmailVoucher) {
+        throw new Error(
+          `${email} already has a ${kind} voucher (${sameEmailVoucher.publicToken}).`,
+        );
+      }
+    }
     const token = await uniqueVoucherToken(ctx);
     const id = await ctx.db.insert("vouchers", {
       userId,
+      email: email || undefined,
       kind,
       publicToken: token,
       issuedAt: Date.now(),
@@ -108,7 +125,9 @@ export const adminIssueForUser = mutation({
 // --- bulk issuance -----------------------------------------------------------
 
 // Issue 1 voucher of the given kind to every active, verified (ticketLinkedAt)
-// user who doesn't already have one. Idempotent.
+// user who doesn't already have one. Idempotent and email-deduped — a user
+// who deleted their account and re-signed up under the same email won't get
+// a second voucher (the delete-then-recreate exploit).
 export const bootstrapIssueForVerifiedAttendees = internalMutation({
   args: { kind: v.string() },
   handler: async (ctx, { kind }) => {
@@ -124,17 +143,34 @@ export const bootstrapIssueForVerifiedAttendees = internalMutation({
         skipped += 1;
         continue;
       }
-      const existing = await ctx.db
+      // Belt + suspenders: skip if either (userId,kind) or (email,kind)
+      // already has a voucher. Email check catches the delete + re-signup
+      // case; userId check is the fast path for the common case.
+      const byUser = await ctx.db
         .query("vouchers")
         .withIndex("by_user_kind", (q) => q.eq("userId", u._id).eq("kind", kind))
         .first();
-      if (existing) {
+      if (byUser) {
         skipped += 1;
         continue;
+      }
+      const email = (u.email ?? "").toLowerCase().trim();
+      if (email) {
+        const byEmail = await ctx.db
+          .query("vouchers")
+          .withIndex("by_email_kind", (q) =>
+            q.eq("email", email).eq("kind", kind),
+          )
+          .first();
+        if (byEmail) {
+          skipped += 1;
+          continue;
+        }
       }
       const token = await uniqueVoucherToken(ctx);
       await ctx.db.insert("vouchers", {
         userId: u._id,
+        email: email || undefined,
         kind,
         publicToken: token,
         issuedAt: Date.now(),
@@ -142,5 +178,31 @@ export const bootstrapIssueForVerifiedAttendees = internalMutation({
       issued += 1;
     }
     return { issued, skipped, total: users.length };
+  },
+});
+
+// Backfill the `email` column on legacy voucher rows (issued before the
+// schema gained the column). Re-runnable; only patches missing fields.
+export const bootstrapBackfillVoucherEmails = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const all = await ctx.db.query("vouchers").collect();
+    let patched = 0;
+    let skipped = 0;
+    for (const v of all) {
+      if (v.email) {
+        skipped += 1;
+        continue;
+      }
+      const u = await ctx.db.get(v.userId);
+      const email = (u?.email ?? "").toLowerCase().trim();
+      if (!email) {
+        skipped += 1;
+        continue;
+      }
+      await ctx.db.patch(v._id, { email });
+      patched += 1;
+    }
+    return { patched, skipped, total: all.length };
   },
 });
