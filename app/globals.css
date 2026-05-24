@@ -48,8 +48,12 @@ html {
   margin: 0;
   padding: 0;
   width: 100%;
-  overflow-x: hidden;
-  overflow-y: auto;
+  /* `overflow-x: clip` instead of `hidden` — clip prevents horizontal
+     overflow without turning the element into a scroll container, which
+     would otherwise break `position: sticky` on every descendant (the
+     sticky element would search for the nearest scrolling ancestor and
+     find body, which isn't actually scrolling, so it never activates). */
+  overflow-x: clip;
   scroll-padding-top: 5rem;
 }
 
@@ -57,8 +61,7 @@ body {
   margin: 0;
   padding: 0;
   width: 100%;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow-x: clip;
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-inter), sans-serif;
