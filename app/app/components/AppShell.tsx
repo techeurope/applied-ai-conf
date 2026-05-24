@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@workos-inc/authkit-nextjs/components";
 import { useMutation, useQuery } from "convex/react";
 import { IdCard, Users, CalendarDays, Settings, Compass, LogIn, LogOut, Shield, Briefcase, Ticket, Home } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { api } from "@convex/_generated/api";
 import { applyDemoClockFromUrl } from "@/lib/conference-time";
@@ -170,19 +170,51 @@ export function AppShell({ children }: { children: ReactNode }) {
     return base;
   })();
 
+  // All Convex queries that gate which tabs render must resolve before we
+  // paint the nav — otherwise tabs pop in one at a time as each query
+  // finishes, causing visible layout shift.
+  const tabsReady =
+    me !== undefined && myTeam !== undefined && vouchers !== undefined;
+
   const counts = {
     contacts: contacts?.length,
   } as const;
 
+  // Sticky descendants (the agenda's filter bar) need to know the header
+  // height so they can sit just below it. The header's height shifts when
+  // we add/remove rows (status pill, nav) — easier to measure at runtime
+  // than hardcode. We expose it via a CSS var on the page wrapper.
+  const headerRef = useRef<HTMLElement | null>(null);
+  const [headerH, setHeaderH] = useState<number | null>(null);
+  useEffect(() => {
+    if (!headerRef.current) return;
+    const el = headerRef.current;
+    const update = () => setHeaderH(el.getBoundingClientRect().height);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    window.addEventListener("resize", update);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+
   return (
-    <div className="min-h-[100dvh] bg-background text-foreground flex flex-col selection:bg-white/20">
-      <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/80 border-b border-white/10">
+    <div
+      className="min-h-[100dvh] bg-background text-foreground flex flex-col selection:bg-white/20"
+      style={headerH ? ({ "--app-header-h": `${headerH}px` } as React.CSSProperties) : undefined}
+    >
+      <header
+        ref={headerRef}
+        className="sticky top-0 z-40 backdrop-blur-xl bg-background/80 border-b border-white/10"
+      >
         <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-[env(safe-area-inset-top)]">
           <div className="flex items-center justify-between gap-3 py-3">
             <div className="flex items-baseline gap-2.5 min-w-0 flex-1">
               <Link
                 href="/"
-                className="font-mono text-sm sm:text-base font-bold tracking-wide text-white hover:text-white/70 transition-colors shrink-0"
+                className="font-mono text-sm sm:text-base font-bold tracking-wide text-white/55 hover:text-white transition-colors shrink-0"
               >
                 Applied AI Conf
               </Link>
@@ -191,26 +223,18 @@ export function AppShell({ children }: { children: ReactNode }) {
               </span>
               <Link
                 href="/app"
-                className={`font-mono text-sm tracking-wide truncate transition-colors ${
-                  pathname === "/app"
-                    ? "text-white"
-                    : "text-white/55 hover:text-white"
-                }`}
+                className="font-mono text-sm tracking-wide truncate text-white hover:text-white/80 transition-colors"
                 aria-current={pathname === "/app" ? "page" : undefined}
               >
                 Conf day
               </Link>
-              {pathname === "/app" && (
-                <>
-                  <span className="hidden sm:inline-flex items-baseline gap-2 font-mono text-sm text-white/55 tracking-wide shrink-0">
-                    <span className="text-white/30">·</span>
-                    <span>May 28, 2026</span>
-                  </span>
-                  <span className="ml-2 shrink-0">
-                    <StatusPill />
-                  </span>
-                </>
-              )}
+              <span className="hidden sm:inline-flex items-baseline gap-2 font-mono text-sm text-white/55 tracking-wide shrink-0">
+                <span className="text-white/30">·</span>
+                <span>May 28, 2026</span>
+              </span>
+              <span className="ml-2 shrink-0">
+                <StatusPill />
+              </span>
             </div>
             <div className="flex items-center gap-4">
               {auth.user ? (
@@ -237,39 +261,67 @@ export function AppShell({ children }: { children: ReactNode }) {
           {!hideNav && (
             <nav aria-label="Primary" className="-mx-4 sm:-mx-6 border-t border-white/5">
               <ul className="flex overflow-x-auto no-scrollbar px-4 sm:px-6">
-                {visibleTabs.map(({ href, label, icon: Icon, countKey }) => {
-                  // /app must be exact-match so it doesn't light up on every
-                  // nested route.
-                  const active =
-                    href === "/app"
-                      ? pathname === "/app"
-                      : pathname === href || pathname?.startsWith(href + "/");
-                  const count = countKey ? counts[countKey] : undefined;
-                  return (
-                    <li key={href} className="shrink-0">
-                      <Link
-                        href={href}
-                        className={`flex items-center gap-2 px-4 py-3 font-mono text-[11px] uppercase tracking-[0.18em] border-b-2 transition-colors ${
-                          active
-                            ? "text-white border-white"
-                            : "text-white/40 border-transparent hover:text-white/80"
-                        }`}
-                      >
-                        <Icon className="size-4" strokeWidth={1.75} />
-                        <span>{label}</span>
-                        {count !== undefined && count > 0 && (
-                          <span
-                            className={`tabular-nums text-[10px] tracking-normal ${
-                              active ? "text-white/70" : "text-white/30"
+                {tabsReady
+                  ? visibleTabs.map(({ href, label, icon: Icon, countKey }) => {
+                      // /app must be exact-match so it doesn't light up on every
+                      // nested route.
+                      const active =
+                        href === "/app"
+                          ? pathname === "/app"
+                          : pathname === href || pathname?.startsWith(href + "/");
+                      const count = countKey ? counts[countKey] : undefined;
+                      return (
+                        <li key={href} className="shrink-0">
+                          <Link
+                            href={href}
+                            className={`flex items-center gap-2 px-4 py-3 font-mono text-[11px] uppercase tracking-[0.18em] border-b-2 transition-colors ${
+                              active
+                                ? "text-white border-white"
+                                : "text-white/40 border-transparent hover:text-white/80"
                             }`}
                           >
-                            · {count}
+                            <Icon className="size-4" strokeWidth={1.75} />
+                            <span>{label}</span>
+                            {count !== undefined && count > 0 && (
+                              <span
+                                className={`tabular-nums text-[10px] tracking-normal ${
+                                  active ? "text-white/70" : "text-white/30"
+                                }`}
+                              >
+                                · {count}
+                              </span>
+                            )}
+                          </Link>
+                        </li>
+                      );
+                    })
+                  : /* Skeleton tabs — render the same labels the real nav
+                       will show with text-transparent + a pulsing background,
+                       so the chip widths match the real labels exactly. When
+                       the gating queries (me, myTeam, vouchers) resolve and
+                       we swap to the real nav, individual chips don't move. */
+                    [
+                      { label: "Home", icon: Home },
+                      { label: "Agenda", icon: CalendarDays },
+                      { label: "Connect", icon: IdCard },
+                      { label: "Voucher", icon: Ticket },
+                      { label: "Contacts", icon: Users },
+                      { label: "Team", icon: Briefcase },
+                      { label: "Settings", icon: Settings },
+                      { label: "Admin", icon: Shield },
+                    ].map(({ label, icon: Icon }) => (
+                      <li key={label} className="shrink-0" aria-hidden>
+                        <span className="flex items-center gap-2 px-4 py-3 font-mono text-[11px] uppercase tracking-[0.18em] border-b-2 border-transparent">
+                          <Icon
+                            className="size-4 text-white/[0.08] animate-pulse"
+                            strokeWidth={1.75}
+                          />
+                          <span className="text-transparent bg-white/[0.08] rounded animate-pulse leading-tight">
+                            {label}
                           </span>
-                        )}
-                      </Link>
-                    </li>
-                  );
-                })}
+                        </span>
+                      </li>
+                    ))}
               </ul>
             </nav>
           )}
@@ -278,14 +330,17 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <main className="flex-1 w-full">
         {blockedByAuth ? (
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 text-center text-sm text-white/50">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12 text-center text-sm text-white/50">
             Sign in required — redirecting…
           </div>
         ) : pathname === "/app" ? (
           // The /app home owns its full-width layout.
           children
         ) : (
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 pb-12">{children}</div>
+          // Every other /app/* route shares the same wide rail as the home and
+          // admin so they can use horizontal space (two-column lists, tables,
+          // photo + meta layouts, etc).
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 pb-12">{children}</div>
         )}
       </main>
     </div>
