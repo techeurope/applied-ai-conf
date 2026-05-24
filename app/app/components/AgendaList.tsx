@@ -53,26 +53,31 @@ const CONFLICT_COLORS = [
 
 const SCROLL_KEY = "agenda:last-opened-slot";
 
-// Derive `Speaker Name(s)`, `Company`, and primary speaker photo for a slot.
-// Company + image come from the last speaker in SPEAKERS (matches the
-// marketing site behavior). The image is preferred as the transparent
-// cut-out, falling back to the regular headshot.
+// Derive `Speaker Name(s)`, `Company`, and per-speaker photos for a slot.
+// Company comes from the last speaker (matches the marketing site
+// convention for joint talks). Images are returned as an array (one entry
+// per speaker that has a photo) so the render layer can show 1, 2, or
+// more side-by-side inside the same outer avatar box — no layout shift
+// between solo and joint sessions.
 function speakerLines(slot: Pick<Slot, "speakerName" | "speakerNames">): {
   speaker: string;
   company: string;
-  image: string | undefined;
-  imageAlt: string;
+  images: Array<{ src: string; alt: string }>;
 } {
   const names = slot.speakerNames ?? (slot.speakerName ? [slot.speakerName] : []);
-  if (names.length === 0) {
-    return { speaker: "", company: "", image: undefined, imageAlt: "" };
+  if (names.length === 0) return { speaker: "", company: "", images: [] };
+  const profiles = names.map((n) => SPEAKERS.find((s) => s.name === n));
+  const lastProfile = profiles[profiles.length - 1];
+  const images: Array<{ src: string; alt: string }> = [];
+  for (let i = 0; i < profiles.length; i++) {
+    const p = profiles[i];
+    const src = p?.imageTransparent || p?.image;
+    if (src) images.push({ src, alt: p?.imageAlt ?? names[i] });
   }
-  const last = SPEAKERS.find((s) => s.name === names[names.length - 1]);
   return {
     speaker: names.join(" & "),
-    company: last?.company ?? "",
-    image: last?.imageTransparent || last?.image,
-    imageAlt: last?.imageAlt ?? names[names.length - 1],
+    company: lastProfile?.company ?? "",
+    images,
   };
 }
 
@@ -435,7 +440,7 @@ export function AgendaList({
             const live = clock.isConferenceDay && isLive(slot, clock.nowMinutes);
             const liveTalk = live && !isVenueFormat;
             const liveVenue = live && isVenueFormat;
-            const { speaker, company, image, imageAlt } = speakerLines(slot);
+            const { speaker, company, images } = speakerLines(slot);
             const slotConflicts = fav ? conflicts.get(slot.id) : undefined;
             const conflictColor = fav ? conflictColorBySlot.get(slot.id) : undefined;
             return (
@@ -502,16 +507,27 @@ export function AgendaList({
                 )}
 
                 <div className="flex gap-3 sm:gap-4">
-                  {/* Speaker photo — only for sessions with a known speaker.
-                      Venue/break rows skip the column and fill the width. */}
-                  {image && (
-                    <div className="size-20 sm:size-24 rounded-lg ring-1 ring-white/10 overflow-hidden shrink-0 bg-white/[0.03]">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={image}
-                        alt={imageAlt}
-                        className="w-full h-full object-cover object-top"
-                      />
+                  {/* Speaker photo(s) — joint talks render two photos
+                      split inside the same outer box so the row height
+                      stays identical between solo and joint sessions.
+                      Venue/break rows have no photos and skip the column. */}
+                  {images.length > 0 && (
+                    <div className="size-20 sm:size-24 rounded-lg ring-1 ring-white/10 overflow-hidden shrink-0 bg-white/[0.03] flex">
+                      {images.slice(0, 2).map((img, i) => (
+                        <div
+                          key={i}
+                          className={`h-full ${
+                            images.length === 1 ? "w-full" : "w-1/2"
+                          } ${i > 0 ? "border-l border-white/10" : ""}`}
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={img.src}
+                            alt={img.alt}
+                            className="w-full h-full object-cover object-top"
+                          />
+                        </div>
+                      ))}
                     </div>
                   )}
 

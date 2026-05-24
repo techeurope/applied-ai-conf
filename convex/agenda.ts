@@ -201,6 +201,53 @@ export const setCancelled = mutation({
 
 // ---- bootstrap -------------------------------------------------------------
 
+// Patch any session field by slug. CLI-only, used to apply post-seed edits
+// (title rename, description add, etc.) without going through the admin
+// UI. Idempotent: no-op if the slug doesn't exist.
+export const bootstrapPatchSession = internalMutation({
+  args: {
+    slug: v.string(),
+    patch: v.object({
+      title: v.optional(v.string()),
+      speakerName: v.optional(v.string()),
+      speakerNames: v.optional(v.array(v.string())),
+      description: v.optional(v.string()),
+      startTime: v.optional(v.string()),
+      endTime: v.optional(v.string()),
+      stage: v.optional(
+        v.union(v.literal("main"), v.literal("side"), v.literal("expo")),
+      ),
+      format: v.optional(
+        v.union(
+          v.literal("keynote"),
+          v.literal("talk"),
+          v.literal("workshop"),
+          v.literal("break"),
+          v.literal("logistics"),
+        ),
+      ),
+    }),
+  },
+  handler: async (ctx, { slug, patch }) => {
+    const row = await ctx.db
+      .query("sessions")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    if (!row) return { slug, outcome: "not_found" as const };
+    const dbPatch: Record<string, unknown> = {};
+    if (patch.title !== undefined) dbPatch.title = patch.title;
+    if (patch.speakerName !== undefined) dbPatch.speakerName = patch.speakerName;
+    if (patch.speakerNames !== undefined) dbPatch.speakerNames = patch.speakerNames;
+    if (patch.description !== undefined) dbPatch.description = patch.description;
+    if (patch.startTime !== undefined) dbPatch.startMinutes = parseHHMM(patch.startTime);
+    if (patch.endTime !== undefined) dbPatch.endMinutes = parseHHMM(patch.endTime);
+    if (patch.stage !== undefined) dbPatch.stage = patch.stage;
+    if (patch.format !== undefined) dbPatch.format = patch.format;
+    await ctx.db.patch(row._id, dbPatch);
+    return { slug, outcome: "patched" as const, fields: Object.keys(dbPatch) };
+  },
+});
+
 // Patch speakerNames (the joint-talk array field) onto existing session
 // rows by slug. bootstrapSeed didn't take speakerNames, so joint talks
 // imported with both speakerName + speakerNames undefined — which made
