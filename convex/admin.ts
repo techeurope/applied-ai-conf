@@ -676,10 +676,15 @@ export const reactivateUser = mutation({
 const CLAIM_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ"; // no 0/1/I/L/O
 
 function generateCode(): string {
+  // crypto.getRandomValues — claim codes grant ticket-link + (for
+  // staff/speaker kinds) elevated rights. The 8-char/31-alphabet ≈ 40 bits
+  // of entropy is fine; using Math.random for it isn't.
+  const bytes = new Uint8Array(8);
+  crypto.getRandomValues(bytes);
   let out = "";
-  for (let i = 0; i < 4; i++) out += CLAIM_ALPHABET[Math.floor(Math.random() * CLAIM_ALPHABET.length)];
+  for (let i = 0; i < 4; i++) out += CLAIM_ALPHABET[bytes[i] % CLAIM_ALPHABET.length];
   out += "-";
-  for (let i = 0; i < 4; i++) out += CLAIM_ALPHABET[Math.floor(Math.random() * CLAIM_ALPHABET.length)];
+  for (let i = 0; i < 4; i++) out += CLAIM_ALPHABET[bytes[i + 4] % CLAIM_ALPHABET.length];
   return out;
 }
 

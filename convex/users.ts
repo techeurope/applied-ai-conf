@@ -55,12 +55,30 @@ export const me = query({
   },
 });
 
+// Public projection — never expose email, workosUserId, accessLevel,
+// claimCodeId, deactivatedReason, lumaGuestId. Returning the full doc to
+// any client that hit a profile route leaked those fields.
+function publicProfile(user: Doc<"users">) {
+  return {
+    _id: user._id,
+    name: user.name,
+    role: user.role,
+    company: user.company,
+    headline: user.headline,
+    bio: user.bio,
+    linkedinUrl: user.linkedinUrl,
+    isSpeaker: user.isSpeaker,
+    publicToken: user.publicToken,
+    imageStorageId: user.imageStorageId,
+  };
+}
+
 export const getById = query({
   args: { userId: v.id("users") },
   handler: async (ctx, { userId }) => {
     const user = await ctx.db.get(userId);
-    if (!user || user.deletedAt) return null;
-    return user;
+    if (!user || user.deletedAt || user.deactivatedAt) return null;
+    return publicProfile(user);
   },
 });
 
@@ -71,8 +89,8 @@ export const getByPublicToken = query({
       .query("users")
       .withIndex("by_public_token", (q) => q.eq("publicToken", token))
       .first();
-    if (!user || user.deletedAt) return null;
-    return user;
+    if (!user || user.deletedAt || user.deactivatedAt) return null;
+    return publicProfile(user);
   },
 });
 
@@ -85,11 +103,15 @@ export const getByTokenOrId = query({
       .query("users")
       .withIndex("by_public_token", (q) => q.eq("publicToken", value))
       .first();
-    if (byToken && !byToken.deletedAt) return byToken;
+    if (byToken && !byToken.deletedAt && !byToken.deactivatedAt) {
+      return publicProfile(byToken);
+    }
     // Convex _id format: 32 lowercase alphanumerics.
     if (/^[a-z0-9]{32}$/.test(value)) {
       const byId = await ctx.db.get(value as Id<"users">);
-      if (byId && !byId.deletedAt) return byId;
+      if (byId && !byId.deletedAt && !byId.deactivatedAt) {
+        return publicProfile(byId);
+      }
     }
     return null;
   },
@@ -258,6 +280,36 @@ async function cascadeDeleteUser(
     }),
     createdAt: Date.now(),
   });
+
+  // Reassign teams.createdByUserId for any partner teams this user created
+  // so the team doesn't dangle. Prefer another existing owner; fall back to
+  // the first admin in the system. If neither exists the team is orphaned
+  // and an admin will have to fix it manually (audit log captures the
+  // event).
+  const teamsCreated = await ctx.db.query("teams").collect();
+  for (const team of teamsCreated) {
+    if (team.createdByUserId !== user._id) continue;
+    const otherOwners = await ctx.db
+      .query("partnerMembers")
+      .withIndex("by_team", (q) => q.eq("teamId", team._id))
+      .collect();
+    const nextOwner = otherOwners.find(
+      (m) => m.userId !== user._id && m.role === "owner",
+    );
+    let newOwnerId: Doc<"users">["_id"] | null = nextOwner?.userId ?? null;
+    if (!newOwnerId) {
+      const admin = await ctx.db
+        .query("users")
+        .withIndex("by_access_level", (q) => q.eq("accessLevel", "admin"))
+        .first();
+      newOwnerId = admin?._id ?? null;
+    }
+    if (newOwnerId) {
+      await ctx.db.patch(team._id, { createdByUserId: newOwnerId });
+    }
+    // If no replacement, leave the field pointing at the (about-to-be-
+    // deleted) userId. It'll dangle but the team still functions.
+  }
 
   // --- per-userId cascades --------------------------------------------------
     const profiles = await ctx.db

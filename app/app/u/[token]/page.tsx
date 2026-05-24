@@ -3,7 +3,8 @@
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery } from "convex/react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { LogIn } from "lucide-react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 
@@ -14,12 +15,14 @@ export default function ProfileViewPage({
 }) {
   const { token } = use(params);
   const router = useRouter();
+  const pathname = usePathname();
   const user = useQuery(api.users.getByTokenOrId, { value: token });
   const me = useQuery(api.users.me);
   const contacts = useQuery(api.contacts.list);
   const addContact = useMutation(api.contacts.add);
   const recordScan = useMutation(api.scans.record);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Camera-app path: when an authenticated, ticket-linked viewer lands on a
   // profile by scanning the QR with their phone camera, record a scanEvent so
@@ -59,10 +62,12 @@ export default function ProfileViewPage({
   async function handleAdd() {
     if (!user) return;
     setSaving(true);
+    setError(null);
     try {
       const contactId = await addContact({ userId: user._id });
       router.push(`/app/contacts/${contactId}`);
-    } catch {
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Couldn't add to contacts");
       setSaving(false);
     }
   }
@@ -118,7 +123,15 @@ export default function ProfileViewPage({
         </section>
       )}
 
-      {existing ? (
+      {me === null ? (
+        <a
+          href={`/api/auth/sign-in?returnTo=${encodeURIComponent(pathname ?? `/app/u/${token}`)}`}
+          className="inline-flex items-center gap-1.5 px-6 py-3 rounded-full bg-white text-black font-mono text-sm font-medium ring-1 ring-white/30"
+        >
+          <LogIn className="size-3.5" strokeWidth={2} />
+          Sign in to save as contact
+        </a>
+      ) : existing ? (
         <Link
           href={`/app/contacts/${existing._id}`}
           className="inline-flex items-center justify-center w-full sm:w-auto px-7 py-3.5 rounded-full bg-white text-black font-mono text-sm font-medium ring-1 ring-white/30"
@@ -134,6 +147,9 @@ export default function ProfileViewPage({
         >
           {saving ? "Adding…" : "Add to my contacts"}
         </button>
+      )}
+      {error && (
+        <p className="text-xs text-rose-200 font-mono">{error}</p>
       )}
     </div>
   );

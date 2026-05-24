@@ -400,7 +400,7 @@ export function AgendaList() {
         </section>
       )}
 
-      <div className="sticky top-[88px] z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 py-2 bg-background/85 backdrop-blur-xl border-b border-white/5">
+      <div className="sticky top-[calc(88px+env(safe-area-inset-top))] z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 py-2 bg-background/85 backdrop-blur-xl border-b border-white/5">
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
           <FilterPill active={stage === "all"} onClick={() => setStage("all")}>
             All stages

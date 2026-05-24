@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>// CONNECT — sketch</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Kode+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+      :root {
+        --background: #05070f;
+        --foreground: #f5f7ff;
+        --accent: #f5c451;
+        --hair: rgba(255, 255, 255, 0.08);
+      }
+
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+
+      body {
+        font-family: "Inter", system-ui, sans-serif;
+        background: var(--background);
+        color: var(--foreground);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        letter-spacing: 0.01em;
+        line-height: 1.6;
+        min-height: 100dvh;
+        overflow-x: hidden;
+      }
+
+      /* Ambient atmosphere — shifts hue with the active mode */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(ellipse 70% 50% at 50% 28%, rgba(245, 196, 81, 0.07), transparent 60%);
+        pointer-events: none;
+        z-index: 0;
+      }
+      body.mode-scanner::before {
+        background: radial-gradient(ellipse 70% 50% at 50% 28%, rgba(120, 180, 255, 0.07), transparent 60%);
+      }
+
+      /* Grain overlay */
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.045 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+        pointer-events: none;
+        opacity: 0.6;
+        z-index: 1;
+        mix-blend-mode: overlay;
+      }
+
+      .page {
+        position: relative;
+        z-index: 2;
+        max-width: 460px;
+        margin: 0 auto;
+        padding: 24px 20px 64px;
+      }
+
+      /* ───── Header ───── */
+      header.top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 22px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-family: "Kode Mono", monospace;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.25em;
+        color: rgba(255, 255, 255, 0.45);
+      }
+      .brand .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 12px rgba(245, 196, 81, 0.7);
+        animation: pulse 2.2s ease-in-out infinite;
+      }
+      body.mode-scanner .brand .dot {
+        background: #7eb4ff;
+        box-shadow: 0 0 12px rgba(126, 180, 255, 0.7);
+      }
+
+      /* ───── Toggle ───── */
+      .toggle {
+        display: inline-flex;
+        padding: 4px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.02);
+        backdrop-filter: blur(8px);
+      }
+      .toggle button {
+        font-family: "Kode Mono", monospace;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.22em;
+        padding: 7px 18px;
+        border-radius: 999px;
+        border: none;
+        background: transparent;
+        color: rgba(255, 255, 255, 0.55);
+        cursor: pointer;
+        transition: color 0.2s ease, background 0.25s ease, transform 0.15s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .toggle button:hover { color: rgba(255, 255, 255, 0.95); }
+      .toggle button.active {
+        background: #fafafa;
+        color: #05070f;
+      }
+      .toggle svg { width: 12px; height: 12px; }
+
+      /* ───── Stage ───── */
+      .stage {
+        position: relative;
+        margin-top: 8px;
+      }
+      .pane {
+        display: none;
+        position: relative;
+      }
+      .pane.active {
+        display: block;
+      }
+
+      /* ───── Glass panel ───── */
+      .panel {
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        background: rgba(24, 24, 27, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 22px;
+        padding: 28px 22px 24px;
+        transition: border-color 0.3s ease;
+      }
+      .panel:hover { border-color: rgba(255, 255, 255, 0.18); }
+
+      .section-heading {
+        font-family: "Kode Mono", monospace;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.28em;
+        color: rgba(255, 255, 255, 0.4);
+        margin: 0 0 12px;
+      }
+
+      /* ───── Badge mode ───── */
+      .badge { text-align: center; position: relative; }
+      .qr-frame {
+        position: relative;
+        width: 260px;
+        height: 260px;
+        margin: 10px auto 24px;
+        padding: 14px;
+        background: #fafafa;
+        border-radius: 16px;
+        box-shadow:
+          0 30px 80px -20px rgba(245, 196, 81, 0.22),
+          0 0 0 1px rgba(255, 255, 255, 0.06);
+      }
+      .qr-frame > div { width: 100% !important; height: 100% !important; }
+      .qr-frame canvas, .qr-frame img {
+        width: 100% !important; height: 100% !important; display: block;
+      }
+      .reticle {
+        position: absolute;
+        width: 18px; height: 18px;
+        border: 1.5px solid var(--accent);
+        opacity: 0.85;
+      }
+      .reticle.tl { top: -8px; left: -8px; border-right: none; border-bottom: none; border-top-left-radius: 4px; }
+      .reticle.tr { top: -8px; right: -8px; border-left: none; border-bottom: none; border-top-right-radius: 4px; }
+      .reticle.bl { bottom: -8px; left: -8px; border-right: none; border-top: none; border-bottom-left-radius: 4px; }
+      .reticle.br { bottom: -8px; right: -8px; border-left: none; border-top: none; border-bottom-right-radius: 4px; }
+
+      .name {
+        font-family: "Inter", sans-serif;
+        font-weight: 500;
+        font-size: 22px;
+        letter-spacing: -0.01em;
+        margin: 0;
+        color: rgba(255, 255, 255, 0.95);
+      }
+      .meta {
+        font-family: "Kode Mono", monospace;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.55);
+        margin-top: 4px;
+      }
+      .pills {
+        display: flex;
+        gap: 6px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 12px;
+      }
+      .pill {
+        font-family: "Kode Mono", monospace;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        padding: 4px 10px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .pill.speaker {
+        background: rgba(16, 185, 129, 0.14);
+        color: #6ee7b7;
+        box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.3);
+      }
+      .pill.partner {
+        background: rgba(139, 92, 246, 0.14);
+        color: #c4b5fd;
+        box-shadow: inset 0 0 0 1px rgba(139, 92, 246, 0.3);
+      }
+      .pill .dot { width: 5px; height: 5px; border-radius: 50%; }
+      .pill.speaker .dot { background: #34d399; }
+      .pill.partner .dot { background: #a78bfa; }
+
+      .edit-link {
+        margin-top: 18px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: "Kode Mono", monospace;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        color: rgba(255, 255, 255, 0.4);
+        text-decoration: none;
+        transition: color 0.2s ease;
+      }
+      .edit-link:hover { color: rgba(255, 255, 255, 0.9); }
+
+      /* ───── Scanner mode ───── */
+      .viewport {
+        position: relative;
+        aspect-ratio: 1 / 1;
+        border-radius: 16px;
+        background:
+          radial-gradient(circle at 30% 30%, rgba(120, 130, 160, 0.22), transparent 60%),
+          radial-gradient(circle at 70% 80%, rgba(60, 70, 90, 0.35), transparent 60%),
+          linear-gradient(180deg, #15161e, #07080d);
+        overflow: hidden;
+        margin-bottom: 16px;
+      }
+      .viewport .reticle {
+        border-color: rgba(255, 255, 255, 0.45);
+        width: 22px; height: 22px;
+      }
+      .viewport .reticle.tl { top: 14px; left: 14px; }
+      .viewport .reticle.tr { top: 14px; right: 14px; }
+      .viewport .reticle.bl { bottom: 14px; left: 14px; }
+      .viewport .reticle.br { bottom: 14px; right: 14px; }
+      .viewport .sweep {
+        position: absolute;
+        inset: 14px;
+        border-radius: 12px;
+        overflow: hidden;
+        pointer-events: none;
+      }
+      .viewport .sweep::before {
+        content: "";
+        position: absolute;
+        left: 0; right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        box-shadow: 0 0 12px rgba(245, 196, 81, 0.7);
+        animation: sweep 2.2s ease-in-out infinite;
+      }
+      .viewport .status {
+        position: absolute;
+        bottom: 28px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(8px);
+        font-family: "Kode Mono", monospace;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.25em;
+        color: rgba(255, 255, 255, 0.85);
+      }
+      .viewport .status .pip {
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: var(--accent);
+        animation: pulse 1.4s ease-in-out infinite;
+      }
+
+      .upload-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 14px;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        font-family: "Kode Mono", monospace;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        color: rgba(255, 255, 255, 0.5);
+        background: transparent;
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
+        width: 100%;
+        cursor: pointer;
+        transition: color 0.2s ease, background 0.2s ease;
+      }
+      .upload-row:hover {
+        color: rgba(255, 255, 255, 0.95);
+        background: rgba(255, 255, 255, 0.03);
+      }
+      .upload-row svg { width: 13px; height: 13px; }
+
+      .scanner-panel { padding: 22px 22px 0; }
+
+      /* ───── Animations ───── */
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+      }
+      @keyframes sweep {
+        0% { top: 0; }
+        50% { top: calc(100% - 2px); }
+        100% { top: 0; }
+      }
+      @keyframes fade-in-up {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .fade-in { animation: fade-in-up 0.6s ease-out both; }
+      .fade-in.d1 { animation-delay: 0.05s; }
+      .fade-in.d2 { animation-delay: 0.15s; }
+
+      /* ───── Sketch caption ───── */
+      .sketch-note {
+        margin-top: 36px;
+        padding: 14px 16px;
+        border: 1px dashed rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        font-family: "Kode Mono", monospace;
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.42);
+        line-height: 1.75;
+        letter-spacing: 0.05em;
+      }
+      .sketch-note b {
+        color: rgba(245, 196, 81, 0.9);
+        font-weight: 500;
+      }
+    </style>
+  </head>
+  <body class="mode-badge">
+    <div class="page">
+      <!-- ───── Header ───── -->
+      <header class="top fade-in d1">
+        <div class="brand">
+          <span class="dot"></span>
+          <span>// CONNECT</span>
+        </div>
+        <div class="toggle" role="tablist" aria-label="Connect mode">
+          <button id="t-badge" class="active" role="tab" aria-selected="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/>
+              <path d="M14 14h3v3h-3zM18 18h3v3h-3zM14 18h2v2h-2z"/>
+            </svg>
+            Badge
+          </button>
+          <button id="t-scanner" role="tab" aria-selected="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+            Scanner
+          </button>
+        </div>
+      </header>
+
+      <!-- ───── Stage ───── -->
+      <div class="stage fade-in d2">
+        <!-- BADGE -->
+        <div class="pane active" id="pane-badge" role="tabpanel">
+          <h2 class="section-heading">// YOUR BADGE</h2>
+          <div class="panel badge">
+            <div class="qr-frame" role="button" tabindex="0" aria-label="Tap to enlarge">
+              <span class="reticle tl"></span>
+              <span class="reticle tr"></span>
+              <span class="reticle bl"></span>
+              <span class="reticle br"></span>
+              <div id="qr"></div>
+            </div>
+            <p class="name">Tim Pietrusky</p>
+            <p class="meta">Tech Lead · {Tech: Europe}</p>
+            <div class="pills">
+              <span class="pill speaker"><span class="dot"></span>Speaker</span>
+              <span class="pill partner"><span class="dot"></span>Core team · Admin</span>
+            </div>
+            <a class="edit-link" href="#">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"/>
+              </svg>
+              Edit profile
+            </a>
+          </div>
+        </div>
+
+        <!-- SCANNER -->
+        <div class="pane" id="pane-scanner" role="tabpanel">
+          <h2 class="section-heading">// SCANNER ACTIVE</h2>
+          <div class="panel scanner-panel">
+            <div class="viewport">
+              <span class="reticle tl"></span>
+              <span class="reticle tr"></span>
+              <span class="reticle bl"></span>
+              <span class="reticle br"></span>
+              <div class="sweep"></div>
+              <div class="status">
+                <span class="pip"></span>
+                Scanning…
+              </div>
+            </div>
+            <button class="upload-row" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <span>or upload a photo</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sketch-note">
+        <b>// sketch note</b><br />
+        One page, two modes. Tap <b>Badge</b> or <b>Scanner</b> in the header to switch. Default opens in <b>Badge</b> for attendees and <b>Scanner</b> for partners (detected from access level). Ambient hue shifts amber → cool blue between modes as a subtle cue. The QR is a real one — point a phone at it to test the round-trip.
+      </div>
+    </div>
+
+    <script>
+      // Real QR pointing at a sample profile URL.
+      new QRCode(document.getElementById("qr"), {
+        text: "https://applied-ai.conf/app/u/tim-pietrusky-sample",
+        width: 232,
+        height: 232,
+        colorDark: "#05070f",
+        colorLight: "#fafafa",
+        correctLevel: QRCode.CorrectLevel.M,
+      });
+
+      const tBadge = document.getElementById("t-badge");
+      const tScanner = document.getElementById("t-scanner");
+      const pBadge = document.getElementById("pane-badge");
+      const pScanner = document.getElementById("pane-scanner");
+
+      function setMode(mode) {
+        const onBadge = mode === "badge";
+        tBadge.classList.toggle("active", onBadge);
+        tScanner.classList.toggle("active", !onBadge);
+        tBadge.setAttribute("aria-selected", onBadge);
+        tScanner.setAttribute("aria-selected", !onBadge);
+        pBadge.classList.toggle("active", onBadge);
+        pScanner.classList.toggle("active", !onBadge);
+        document.body.classList.toggle("mode-badge", onBadge);
+        document.body.classList.toggle("mode-scanner", !onBadge);
+      }
+      tBadge.addEventListener("click", () => setMode("badge"));
+      tScanner.addEventListener("click", () => setMode("scanner"));
+    </script>
+  </body>
+</html>

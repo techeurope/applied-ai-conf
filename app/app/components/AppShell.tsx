@@ -48,6 +48,12 @@ export function AppShell({ children }: { children: ReactNode }) {
     pathname === "/app" ||
     pathname === "/app/agenda" ||
     pathname?.startsWith("/app/agenda/") ||
+    pathname?.startsWith("/app/about") ||
+    pathname?.startsWith("/app/programme") ||
+    pathname?.startsWith("/app/venue") ||
+    pathname?.startsWith("/app/travel") ||
+    pathname?.startsWith("/app/faq") ||
+    pathname?.startsWith("/app/preview") ||
     pathname?.startsWith("/app/team/accept/") ||
     pathname?.startsWith("/app/team/join/");
 
@@ -239,7 +245,11 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
 
       <main className="flex-1 w-full">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 pb-12">{children}</div>
+        {pathname?.startsWith("/app/preview") ? (
+          children
+        ) : (
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 pb-12">{children}</div>
+        )}
       </main>
     </div>
   );

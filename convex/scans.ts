@@ -39,13 +39,23 @@ export const record = mutation({
     const scanned = await ctx.db.get(scannedUserId);
     if (!scanned || scanned.deletedAt) throw new Error("Scanned user not found");
 
-    // Check the scanned user has consented to being scanned
+    // Default-deny: the scanned user must have an explicit consent row with
+    // granted=true. Previously this was fail-open (missing row = allowed),
+    // which silently exposed pre-onboarding users (no consent yet) and made
+    // a UX inconsistency — onboarding presents `visible_when_scanned` as
+    // opt-in. Users who completed onboarding have an explicit row from the
+    // `consents:set` call there; users who haven't yet shouldn't appear in
+    // a partner's contacts list.
     const visibility = await ctx.db
       .query("consents")
-      .withIndex("by_user_key", (q) => q.eq("userId", scannedUserId).eq("key", "visible_when_scanned"))
+      .withIndex("by_user_key", (q) =>
+        q.eq("userId", scannedUserId).eq("key", "visible_when_scanned"),
+      )
       .first();
-    if (visibility && !visibility.granted) {
-      throw new Error("This user has opted out of being scanned");
+    if (!visibility?.granted) {
+      throw new Error(
+        "This user has opted out of being scanned (or hasn't finished onboarding).",
+      );
     }
 
     const now = Date.now();

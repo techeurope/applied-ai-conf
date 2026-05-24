@@ -4,7 +4,7 @@ import { useMutation, useQuery } from "convex/react";
 import Link from "next/link";
 import { useAuth } from "@workos-inc/authkit-nextjs/components";
 import { api } from "@convex/_generated/api";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type ConsentKey = "visible_when_scanned" | "conference_updates";
 
@@ -192,22 +192,13 @@ function ProfileEditor({
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
-  // Hydrate once from server state.
-  useState(() => {
-    if (me && !hydrated) {
-      setForm({
-        name: me.name ?? "",
-        role: me.role ?? "",
-        company: me.company ?? "",
-        linkedinUrl: me.linkedinUrl ?? "",
-        headline: me.headline ?? "",
-        bio: me.bio ?? "",
-      });
-      setHydrated(true);
-    }
-  });
-  // Re-hydrate when `me` first arrives.
-  if (me && !hydrated) {
+  // Hydrate the form once when the server-side me arrives. Previously
+  // this was a useState(fn) initializer (only ever fires once and never
+  // sees the updated me) plus a setForm during render (React anti-
+  // pattern that fires warnings + can bail mid-render). Both replaced
+  // by a single effect.
+  useEffect(() => {
+    if (!me || hydrated) return;
     setForm({
       name: me.name ?? "",
       role: me.role ?? "",
@@ -217,7 +208,7 @@ function ProfileEditor({
       bio: me.bio ?? "",
     });
     setHydrated(true);
-  }
+  }, [me, hydrated]);
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();

@@ -6,7 +6,10 @@ import { api, internal } from "./_generated/api";
 
 // Notify a queued admin that they've been granted access. Idempotent —
 // every call sends a fresh email regardless of whether they've signed in.
-export const sendAdminInvite = action({
+// Downgraded from `action` to `internalAction` — no client UI calls it,
+// only CLI bootstraps (`npx convex run admin_email:sendAdminInvite ...`).
+// As a public action it was an unauthenticated email-spam primitive.
+export const sendAdminInvite = internalAction({
   args: { email: v.string(), inviterName: v.optional(v.string()) },
   handler: async (_ctx, { email, inviterName }): Promise<{ sentTo: string }> => {
     const normalized = email.toLowerCase().trim();

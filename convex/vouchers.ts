@@ -11,9 +11,13 @@ import { requireAdmin } from "./admin";
 const VCH_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ"; // no 0/1/I/L/O
 
 function generateVoucherToken(): string {
+  // crypto.getRandomValues — vouchers redeem to real goods (lunch), so the
+  // token has to resist guessing.
+  const bytes = new Uint8Array(8);
+  crypto.getRandomValues(bytes);
   let suffix = "";
   for (let i = 0; i < 8; i++) {
-    suffix += VCH_ALPHABET[Math.floor(Math.random() * VCH_ALPHABET.length)];
+    suffix += VCH_ALPHABET[bytes[i] % VCH_ALPHABET.length];
   }
   return `vch_${suffix.toLowerCase()}`;
 }

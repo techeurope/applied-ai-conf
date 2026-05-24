@@ -27,7 +27,14 @@ function pseudoHash(code: string): string {
 }
 
 function generateSixDigit(): string {
-  return String(Math.floor(100000 + Math.random() * 900000));
+  // crypto.getRandomValues — the 6-digit code is the proof of email
+  // ownership for ticket-linking, so it has to resist guessing in the
+  // 15-minute expiration window.
+  const bytes = new Uint8Array(4);
+  crypto.getRandomValues(bytes);
+  const n =
+    ((bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3]) >>> 0;
+  return String(100_000 + (n % 900_000));
 }
 
 // --- helper: attempt auto-link based on user's email ------------------------
