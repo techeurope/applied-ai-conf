@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Heart, Mic } from "lucide-react";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation, usePreloadedQuery, useQuery } from "convex/react";
+import type { Preloaded } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { SPEAKERS } from "@/data/speakers";
 import {
@@ -67,8 +68,20 @@ function speakerLines(slot: Pick<Slot, "speakerName" | "speakerNames">): {
   };
 }
 
-export function AgendaList() {
-  const slots = useQuery(api.agenda.list) ?? [];
+export function AgendaList({
+  preloadedSlots,
+}: {
+  // Optional — when the parent server component preloaded the agenda we
+  // hydrate from that (no loading flash, no Convex round-trip on first
+  // paint). The reactive subscription still fires under the hood so
+  // edits in /app/admin/agenda push to every open browser within ~100ms.
+  // When omitted (e.g. AgendaList used inside other client components),
+  // we fall back to a plain useQuery.
+  preloadedSlots?: Preloaded<typeof api.agenda.list>;
+}) {
+  const queriedSlots = useQuery(api.agenda.list, preloadedSlots ? "skip" : {});
+  const preloaded = preloadedSlots ? usePreloadedQuery(preloadedSlots) : null;
+  const slots = preloaded ?? queriedSlots ?? [];
   const favorites = useQuery(api.favorites.list);
   const me = useQuery(api.users.me);
   const addFavorite = useMutation(api.favorites.add);
