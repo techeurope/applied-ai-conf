@@ -1,14 +1,15 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BrowserMultiFormatReader } from "@zxing/browser";
-import { IdCard, ImageUp, Mic, ScanLine, Shield } from "lucide-react";
+import { Expand, IdCard, ImageUp, Mic, ScanLine, Shield } from "lucide-react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { UserQR } from "../components/UserQR";
 import { QrScanner } from "../components/QrScanner";
+import { FullScreenQr } from "../components/FullScreenQr";
 
 type Mode = "badge" | "scanner";
 
@@ -120,15 +121,35 @@ type Me = NonNullable<ReturnType<typeof useQuery<typeof api.users.me>>>;
 type MyTeam = NonNullable<ReturnType<typeof useQuery<typeof api.partners.myTeam>>> | null;
 
 function BadgeMode({ me, myTeam }: { me: Me; myTeam: MyTeam }) {
+  const [fullscreen, setFullscreen] = useState(false);
+  const [origin, setOrigin] = useState<string | null>(null);
+  useEffect(() => {
+    if (typeof window !== "undefined") setOrigin(window.location.origin);
+  }, []);
+  const token = me.publicToken ?? me._id;
+  const badgeUrl = origin ? `${origin}/app/u/${token}` : null;
+
   return (
     <section className="space-y-3">
       <div className="glass-card rounded-2xl p-5 space-y-4">
-        <UserQR
-          token={me.publicToken ?? me._id}
-          size={600}
-          showUrl={false}
-          maxWidthClass="max-w-none"
-        />
+        {/* Smaller, click-to-enlarge QR. Tap anywhere on the QR tile and a
+            full-screen overlay opens for scanning by the other person. */}
+        <button
+          type="button"
+          onClick={() => setFullscreen(true)}
+          className="group block w-full mx-auto max-w-[240px] sm:max-w-[280px] relative"
+          aria-label="Enlarge your badge QR"
+        >
+          <UserQR
+            token={token}
+            size={320}
+            showUrl={false}
+            maxWidthClass="max-w-none"
+          />
+          <span className="absolute top-2 right-2 size-7 rounded-full bg-stone-900/80 backdrop-blur ring-1 ring-white/15 flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
+            <Expand className="size-3.5 text-white" strokeWidth={2} />
+          </span>
+        </button>
         <div className="text-center space-y-1.5">
           <p className="font-mono text-base text-white">{me.name || "Unnamed"}</p>
           {(me.role || me.company) && (
@@ -153,8 +174,21 @@ function BadgeMode({ me, myTeam }: { me: Me; myTeam: MyTeam }) {
               </PillBadge>
             )}
           </div>
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/30 pt-1">
+            Tap the QR to enlarge
+          </p>
         </div>
       </div>
+
+      {badgeUrl && (
+        <FullScreenQr
+          open={fullscreen}
+          value={badgeUrl}
+          title={me.name || undefined}
+          caption="Let the other person scan this to save your contact."
+          onClose={() => setFullscreen(false)}
+        />
+      )}
     </section>
   );
 }

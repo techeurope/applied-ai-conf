@@ -1,24 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import QRCode from "qrcode";
+import { useState } from "react";
 import { useQuery } from "convex/react";
-import { CheckCircle2, Maximize2, QrCode, X } from "lucide-react";
+import { ArrowUpRight, CheckCircle2, Ticket } from "lucide-react";
 import { api } from "@convex/_generated/api";
+import { FullScreenQr } from "./FullScreenQr";
 
-// Renders the signed-in user's personal Luma check-in QR. Source URL comes
-// straight from Luma's get-guests response (`check_in_qr_code`) and is what
-// their email + the Luma ticket page already encode — so it's safe to
-// surface to the user themselves.
+type CheckInData = NonNullable<
+  ReturnType<typeof useQuery<typeof api.luma.myCheckIn>>
+>;
+
+// Slim "your ticket" card on /app. The QR itself never renders inline —
+// tapping the card opens a full-screen overlay with the Luma check-in QR
+// so the user can hold the phone up to a scanner without distractions.
 //
-// Hidden when the user has no Luma data yet (e.g. account created but ticket
-// not linked, or the Luma sync hasn't run since the backfill).
+// Hidden when the user has no Luma data yet (e.g. account created but
+// ticket not linked, or the Luma sync hasn't run since the backfill).
 export function LumaCheckInCard() {
-  const data = useQuery(api.luma.myCheckIn);
+  const data: ReturnType<typeof useQuery<typeof api.luma.myCheckIn>> =
+    useQuery(api.luma.myCheckIn);
   const [open, setOpen] = useState(false);
 
-  // Query is loading or signed-out / not-linked. Nothing to show.
-  if (data === undefined) return null;
+  if (data === undefined) return <LumaCheckInSkeleton />;
   if (data === null) return null;
   if (!data.checkInUrl) return null;
 
@@ -26,128 +29,119 @@ export function LumaCheckInCard() {
 
   return (
     <>
-      <section className="rounded-2xl ring-1 ring-emerald-300/30 bg-gradient-to-br from-emerald-400/[0.07] to-emerald-400/[0.02] p-4 sm:p-5">
-        <div className="flex items-center gap-4 sm:gap-5">
-          {/* Inline mini QR */}
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            className="relative shrink-0 size-24 sm:size-28 rounded-xl bg-white p-2 ring-1 ring-white/20 hover:scale-[1.02] transition-transform"
-            aria-label="Enlarge check-in QR"
-          >
-            <Qr url={data.checkInUrl} size={120} />
-            <span className="absolute -top-1.5 -right-1.5 size-6 rounded-full bg-stone-900 ring-2 ring-[#05070f] flex items-center justify-center">
-              <Maximize2 className="size-3 text-white" strokeWidth={2} />
-            </span>
-          </button>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <QrCode className="size-3.5 text-emerald-300" strokeWidth={2} />
-              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-emerald-200">
-                Your check-in
-              </p>
-            </div>
-            <p className="text-lg sm:text-xl text-white font-medium tracking-tight leading-tight">
-              {checkedIn ? "You're checked in." : "Show this at the door."}
-            </p>
-            <p className="text-sm text-white/55 mt-1 leading-snug">
-              {checkedIn ? (
-                <span className="inline-flex items-center gap-1.5">
-                  <CheckCircle2 className="size-3.5 text-emerald-300" strokeWidth={2} />
-                  Checked in
-                  {data.checkedInAt && (
-                    <span className="text-white/40">
-                      · {new Date(data.checkedInAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                    </span>
-                  )}
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="group w-full text-left rounded-2xl ring-1 ring-emerald-300/30 bg-gradient-to-br from-emerald-400/[0.08] to-emerald-400/[0.02] hover:from-emerald-400/[0.12] hover:ring-emerald-300/50 transition-colors p-4 sm:p-5 flex items-center gap-4"
+        aria-label="Show your check-in QR"
+      >
+        <div className="size-12 sm:size-14 rounded-xl bg-emerald-400/15 ring-1 ring-emerald-300/30 flex items-center justify-center shrink-0">
+          <Ticket className="size-5 sm:size-6 text-emerald-200" strokeWidth={1.75} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-emerald-200">
+            Your ticket
+          </p>
+          <p className="text-base sm:text-lg text-white font-medium leading-tight mt-1">
+            {checkedIn ? "You're checked in." : "Tap to show your check-in QR."}
+          </p>
+          {checkedIn ? (
+            <p className="text-xs text-white/55 mt-1 inline-flex items-center gap-1.5">
+              <CheckCircle2 className="size-3.5 text-emerald-300" strokeWidth={2} />
+              Checked in
+              {data.checkedInAt && (
+                <span className="text-white/40">
+                  ·{" "}
+                  {new Date(data.checkedInAt).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </span>
-              ) : (
-                <>
-                  Tap the QR to enlarge it. Luma check-in QR — works the same
-                  as the one in your confirmation email.
-                </>
+              )}
+              {data.ticketType && (
+                <span className="text-white/40">· {data.ticketType}</span>
               )}
             </p>
-            {data.ticketType && (
-              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/35 mt-2">
-                {data.ticketType}
-              </p>
-            )}
-          </div>
+          ) : (
+            <p className="text-xs text-white/55 mt-1">
+              Hand the screen to the crew at the door.
+              {data.ticketType && (
+                <span className="text-white/35"> · {data.ticketType}</span>
+              )}
+            </p>
+          )}
         </div>
-      </section>
+        <ArrowUpRight
+          className="size-4 text-emerald-200/70 group-hover:text-emerald-200 shrink-0 transition-colors"
+          strokeWidth={1.75}
+        />
+      </button>
 
-      {/* Full-screen overlay — large QR for the door scanner. */}
-      {open && (
-        <div
-          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-6"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setOpen(false)}
-        >
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            className="absolute top-5 right-5 size-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-            aria-label="Close"
-          >
-            <X className="size-5 text-white" strokeWidth={2} />
-          </button>
-          <div
-            className="flex flex-col items-center gap-5"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="rounded-2xl bg-white p-5 shadow-2xl">
-              <Qr url={data.checkInUrl} size={420} />
-            </div>
-            <p className="text-white text-center max-w-xs">
-              {data.name && (
-                <span className="block text-lg font-medium tracking-tight">
-                  {data.name}
-                </span>
-              )}
-              <span className="block text-sm text-white/55 mt-1">
-                {checkedIn
-                  ? "You're already checked in."
-                  : "Hand the screen to the crew at the door."}
-              </span>
-            </p>
-          </div>
-        </div>
-      )}
+      <FullScreenQr
+        open={open}
+        value={data.checkInUrl}
+        title={data.name ?? undefined}
+        caption={<CheckInCaption data={data} checkedIn={checkedIn} />}
+        onClose={() => setOpen(false)}
+      />
     </>
   );
 }
 
-function Qr({ url, size }: { url: string; size: number }) {
-  const [dataUrl, setDataUrl] = useState<string | null>(null);
-  useEffect(() => {
-    QRCode.toDataURL(url, {
-      width: size,
-      margin: 1,
-      errorCorrectionLevel: "M",
-      color: { dark: "#0c0a06", light: "#ffffff" },
-    })
-      .then(setDataUrl)
-      .catch(() => setDataUrl(null));
-  }, [url, size]);
-  if (!dataUrl) {
-    return (
-      <div
-        className="rounded bg-stone-100 animate-pulse"
-        style={{ width: size, height: size }}
-        aria-hidden
-      />
-    );
-  }
+// Identity block shown under the QR in the full-screen overlay. The crew
+// scanning the QR can read the email + ticket type to verify the person on
+// stage matches the registered guest. Approval status surfaces edge cases
+// (waitlisted / declined) so they're not turned away silently.
+function CheckInCaption({
+  data,
+  checkedIn,
+}: {
+  data: CheckInData;
+  checkedIn: boolean;
+}) {
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={dataUrl}
-      alt="Luma check-in QR"
-      width={size}
-      height={size}
-      className="block w-full h-auto"
-    />
+    <span className="block">
+      <span className="block text-white/70">
+        {checkedIn
+          ? "You're already checked in."
+          : "Hand the screen to the crew at the door."}
+      </span>
+      <span className="block font-mono text-[11px] uppercase tracking-[0.2em] text-white/55 mt-3 space-y-0.5">
+        {data.email && (
+          <span className="block normal-case tracking-normal font-sans text-white/75 break-all">
+            {data.email}
+          </span>
+        )}
+        <span className="block">
+          {[
+            data.ticketType,
+            data.approvalStatus === "approved" ? null : data.approvalStatus,
+            data.registeredAt
+              ? `registered ${new Date(data.registeredAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}`
+              : null,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
+        </span>
+      </span>
+    </span>
+  );
+}
+
+// Matches the outer dimensions of the real card so the page below doesn't
+// shift when the data resolves.
+function LumaCheckInSkeleton() {
+  return (
+    <section
+      className="rounded-2xl ring-1 ring-emerald-300/15 bg-gradient-to-br from-emerald-400/[0.04] to-emerald-400/[0.01] p-4 sm:p-5 flex items-center gap-4"
+      aria-hidden
+    >
+      <div className="size-12 sm:size-14 rounded-xl bg-white/[0.05] animate-pulse shrink-0" />
+      <div className="min-w-0 flex-1 space-y-2">
+        <div className="h-3 w-24 rounded bg-white/[0.06] animate-pulse" />
+        <div className="h-5 w-64 max-w-full rounded bg-white/[0.06] animate-pulse" />
+        <div className="h-3 w-48 max-w-full rounded bg-white/[0.04] animate-pulse" />
+      </div>
+    </section>
   );
 }

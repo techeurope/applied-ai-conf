@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import { useQuery } from "convex/react";
-import { Check, Coffee, UtensilsCrossed, type LucideIcon } from "lucide-react";
+import { Check, Coffee, Expand, UtensilsCrossed, type LucideIcon } from "lucide-react";
 import { api } from "@convex/_generated/api";
+import { FullScreenQr } from "../components/FullScreenQr";
 
 const KIND_META: Record<string, { icon: LucideIcon; label: string }> = {
   lunch: { icon: UtensilsCrossed, label: "Lunch" },
@@ -63,6 +64,7 @@ function VoucherFull({
 }) {
   const [dataUrl, setDataUrl] = useState<string | null>(null);
   const [origin, setOrigin] = useState<string | null>(null);
+  const [fullscreen, setFullscreen] = useState(false);
   const meta = KIND_META[voucher.kind] ?? {
     icon: UtensilsCrossed,
     label: voucher.kind,
@@ -77,7 +79,7 @@ function VoucherFull({
   useEffect(() => {
     if (!origin || redeemed) return;
     QRCode.toDataURL(`${origin}/v/${voucher.publicToken}`, {
-      width: 800,
+      width: 320,
       margin: 2,
       color: { dark: "#000000", light: "#ffffff" },
       errorCorrectionLevel: "M",
@@ -85,6 +87,8 @@ function VoucherFull({
       .then(setDataUrl)
       .catch(() => setDataUrl(null));
   }, [origin, voucher.publicToken, redeemed]);
+
+  const voucherUrl = origin ? `${origin}/v/${voucher.publicToken}` : null;
 
   return (
     <section
@@ -109,35 +113,59 @@ function VoucherFull({
         )}
       </div>
 
-      <div className="aspect-square w-full rounded-2xl bg-white p-4 sm:p-5 flex items-center justify-center">
-        {redeemed ? (
-          <div className="text-center space-y-2">
-            <div className="size-20 mx-auto rounded-full bg-emerald-500/20 ring-2 ring-emerald-400/40 flex items-center justify-center">
-              <Check className="size-10 text-emerald-600" strokeWidth={2.5} />
-            </div>
-            <p className="font-mono text-sm text-black/70">
-              Redeemed at{" "}
+      {redeemed ? (
+        <div className="rounded-2xl bg-white/[0.02] ring-1 ring-white/10 p-6 flex items-center gap-4">
+          <div className="size-12 rounded-full bg-emerald-500/15 ring-2 ring-emerald-400/40 flex items-center justify-center shrink-0">
+            <Check className="size-6 text-emerald-300" strokeWidth={2.5} />
+          </div>
+          <p className="text-sm text-white/70">
+            Redeemed at{" "}
+            <span className="font-mono text-white tabular-nums">
               {new Date(voucher.redeemedAt!).toLocaleTimeString(undefined, {
                 hour: "2-digit",
                 minute: "2-digit",
               })}
-            </p>
-          </div>
-        ) : dataUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={dataUrl}
-            alt={`${meta.label} voucher QR`}
-            className="w-full h-full"
-          />
-        ) : (
-          <div className="font-mono text-xs text-black/40">Generating QR…</div>
-        )}
-      </div>
+            </span>
+          </p>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setFullscreen(true)}
+          className="group relative aspect-square w-full mx-auto max-w-[240px] sm:max-w-[280px] rounded-2xl bg-white p-3 flex items-center justify-center"
+          aria-label={`Enlarge ${meta.label} voucher QR`}
+        >
+          {dataUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={dataUrl}
+              alt={`${meta.label} voucher QR`}
+              className="w-full h-full"
+            />
+          ) : (
+            <div className="font-mono text-xs text-black/40">Generating…</div>
+          )}
+          <span className="absolute top-2 right-2 size-7 rounded-full bg-stone-900/80 backdrop-blur ring-1 ring-white/15 flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
+            <Expand className="size-3.5 text-white" strokeWidth={2} />
+          </span>
+        </button>
+      )}
 
-      <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/30 text-center break-all">
-        {voucher.publicToken}
-      </p>
+      {!redeemed && (
+        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/35 text-center">
+          Tap the QR to enlarge
+        </p>
+      )}
+
+      {voucherUrl && !redeemed && (
+        <FullScreenQr
+          open={fullscreen}
+          value={voucherUrl}
+          title={meta.label}
+          caption="Hand the screen to the vendor at the counter."
+          onClose={() => setFullscreen(false)}
+        />
+      )}
     </section>
   );
 }

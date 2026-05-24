@@ -161,7 +161,8 @@ export const findByEmail = internalQuery({
 
 // Personal Luma check-in info for the signed-in user. Returns null if not
 // signed in, not ticket-linked, or the cached lumaAttendees row is missing.
-// Used by the home page to render the Luma check-in QR.
+// Used by the home page to render the Luma check-in QR + crew-facing
+// identity context in the full-screen overlay.
 export const myCheckIn = query({
   args: {},
   handler: async (
@@ -171,7 +172,10 @@ export const myCheckIn = query({
         checkInUrl: string | null;
         checkedInAt: number | null;
         name: string | null;
+        email: string | null;
         ticketType: string | null;
+        approvalStatus: string | null;
+        registeredAt: number | null;
       }
     | null
   > => {
@@ -193,7 +197,10 @@ export const myCheckIn = query({
       checkInUrl: row.checkInQrCode ?? null,
       checkedInAt: row.checkedInAt ?? null,
       name: row.name ?? null,
+      email: row.email ?? null,
       ticketType: row.ticketType ?? null,
+      approvalStatus: row.approvalStatus ?? null,
+      registeredAt: row.registeredAt ?? null,
     };
   },
 });

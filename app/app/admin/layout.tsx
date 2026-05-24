@@ -37,14 +37,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="space-y-6">
-      <header className="space-y-2">
-        <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">Admin</p>
-        <h1 className="font-mono font-bold text-3xl sm:text-4xl tracking-tighter leading-[1.1] pb-1 text-glow">
-          Conference desk
-        </h1>
-      </header>
-      <nav aria-label="Admin sections" className="-mx-1 border-b border-white/10">
+    <div className="space-y-5">
+      {/* Admin sub-nav — sits directly under the main tab bar with no
+          intermediate headline. The "Admin" label and identity are already
+          carried by the active primary tab + the breadcrumb in AppShell. */}
+      <nav aria-label="Admin sections" className="border-b border-white/10">
         <ul className="flex gap-1 overflow-x-auto no-scrollbar">
           {subTabs.map(({ href, label }) => {
             const active =
