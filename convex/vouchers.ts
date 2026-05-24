@@ -224,6 +224,47 @@ export const bootstrapIssueForVerifiedAttendees = internalMutation({
   },
 });
 
+// Nuke every voucher of the given kind. Also clears the matching
+// voucherIssuanceLog rows so a future re-issue gets a fresh token (rather
+// than re-using a token an attendee might already have screenshotted).
+// Re-runnable. Audited.
+export const bootstrapRevokeAllVouchers = internalMutation({
+  args: { kind: v.string() },
+  handler: async (ctx, { kind }) => {
+    const all = await ctx.db.query("vouchers").collect();
+    const vouchersRemoved = all.filter((v) => v.kind === kind);
+    for (const v of vouchersRemoved) {
+      await ctx.db.delete(v._id);
+    }
+    const logs = await ctx.db.query("voucherIssuanceLog").collect();
+    const logsRemoved = logs.filter((l) => l.kind === kind);
+    for (const l of logsRemoved) {
+      await ctx.db.delete(l._id);
+    }
+    const admin = await ctx.db
+      .query("users")
+      .withIndex("by_access_level", (q) => q.eq("accessLevel", "admin"))
+      .first();
+    if (admin) {
+      await ctx.db.insert("auditLog", {
+        actorUserId: admin._id,
+        action: "voucher.bulk_revoke",
+        metadata: JSON.stringify({
+          kind,
+          vouchersRemoved: vouchersRemoved.length,
+          logsRemoved: logsRemoved.length,
+        }),
+        createdAt: Date.now(),
+      });
+    }
+    return {
+      kind,
+      vouchersRemoved: vouchersRemoved.length,
+      logsRemoved: logsRemoved.length,
+    };
+  },
+});
+
 // Backfill the `email` column on legacy voucher rows + create a
 // voucherIssuanceLog entry for each (so re-issuance returns the same
 // token). Re-runnable.
