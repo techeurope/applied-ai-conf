@@ -225,6 +225,20 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_luma_guest_id", ["lumaGuestId"]),
 
+  // Per-email log of every voucher that's ever been issued, indexed by
+  // (email, kind). Survives the cascade in cascadeDeleteUser — that's the
+  // whole point — so a user who deletes and re-signs up gets the SAME
+  // voucher token back rather than a fresh one. Kept under GDPR legitimate
+  // interest (fraud prevention); contains only email + token, no profile.
+  voucherIssuanceLog: defineTable({
+    email: v.string(),
+    kind: v.string(),
+    publicToken: v.string(),
+    firstIssuedAt: v.number(),
+    lastReissuedAt: v.optional(v.number()),
+    reissuanceCount: v.number(),
+  }).index("by_email_kind", ["email", "kind"]),
+
   vouchers: defineTable({
     userId: v.id("users"),
     // Snapshot of the user's email at issue time. Used by

@@ -262,18 +262,19 @@ export const run = internalAction({
     const cascadeEmail = `cascade-test${TEST_DOMAIN}`;
     const deactivatedEmail = `kicked-test${TEST_DOMAIN}`;
 
-    // Clean up any prior fixtures (re-runnable harness).
+    // Clean up any prior fixtures (re-runnable harness). Nukes EVERY
+    // artifact a previous run could leave (users, orphan vouchers,
+    // issuance log, audit entries, etc.) so assertions are deterministic.
     for (const email of [dedupeEmail, cascadeEmail, deactivatedEmail]) {
-      try {
-        await ctx.runMutation(internal.users.bootstrapPurgeUserByEmail, {
-          email,
-        });
-      } catch {
-        /* user may not exist — ignore */
-      }
+      await ctx.runMutation(internal.abuse_tests._purgeAllTestArtifacts, {
+        email,
+      });
     }
 
     // ---- Test 1: voucher dedupe across delete + re-signup ----
+    await ctx.runMutation(internal.abuse_tests._purgeAllTestArtifacts, {
+      email: dedupeEmail,
+    });
     try {
       // 1a. Create original user
       const userA = (await ctx.runMutation(
@@ -341,6 +342,9 @@ export const run = internalAction({
 
     // ---- Test 1b: the actual abuse vector — issue voucher, "soft" delete
     //      (user row removed via direct insert hack), re-issue, expect 1 ----
+    await ctx.runMutation(internal.abuse_tests._purgeAllTestArtifacts, {
+      email: dedupeEmail,
+    });
     try {
       // Reset fixture
       await ctx.runMutation(internal.users.bootstrapPurgeUserByEmail, {
@@ -393,7 +397,86 @@ export const run = internalAction({
       });
     }
 
+    // ---- Test 1c: re-issued voucher gets the SAME token as the original ----
+    await ctx.runMutation(internal.abuse_tests._purgeAllTestArtifacts, {
+      email: dedupeEmail,
+    });
+    try {
+      await ctx.runMutation(internal.abuse_tests._setupVoucherDedupeUser, {
+        email: dedupeEmail,
+        name: "Persistent Token A",
+      });
+      await ctx.runMutation(
+        internal.vouchers.bootstrapIssueForVerifiedAttendees,
+        { kind: TEST_KIND },
+      );
+      const first = await ctx.runQuery(internal.abuse_tests._countVouchersForEmail, {
+        email: dedupeEmail,
+        kind: TEST_KIND,
+      });
+      const tokenA = first.byUserId[0]?.publicToken;
+      // delete + re-signup + re-bootstrap
+      await ctx.runMutation(internal.users.bootstrapPurgeUserByEmail, {
+        email: dedupeEmail,
+      });
+      await ctx.runMutation(internal.abuse_tests._setupVoucherDedupeUser, {
+        email: dedupeEmail,
+        name: "Persistent Token B",
+      });
+      await ctx.runMutation(
+        internal.vouchers.bootstrapIssueForVerifiedAttendees,
+        { kind: TEST_KIND },
+      );
+      const second = await ctx.runQuery(
+        internal.abuse_tests._countVouchersForEmail,
+        { email: dedupeEmail, kind: TEST_KIND },
+      );
+      const tokenB = second.byUserId[0]?.publicToken;
+      // do it again — token C should still match
+      await ctx.runMutation(internal.users.bootstrapPurgeUserByEmail, {
+        email: dedupeEmail,
+      });
+      await ctx.runMutation(internal.abuse_tests._setupVoucherDedupeUser, {
+        email: dedupeEmail,
+        name: "Persistent Token C",
+      });
+      await ctx.runMutation(
+        internal.vouchers.bootstrapIssueForVerifiedAttendees,
+        { kind: TEST_KIND },
+      );
+      const third = await ctx.runQuery(internal.abuse_tests._countVouchersForEmail, {
+        email: dedupeEmail,
+        kind: TEST_KIND,
+      });
+      const tokenC = third.byUserId[0]?.publicToken;
+      const logRow = await ctx.runQuery(internal.abuse_tests._readIssuanceLog, {
+        email: dedupeEmail,
+        kind: TEST_KIND,
+      });
+      results.push({
+        name: "persistent log — re-signups get the SAME voucher token",
+        pass:
+          !!tokenA &&
+          tokenA === tokenB &&
+          tokenB === tokenC &&
+          first.total === 1 &&
+          second.total === 1 &&
+          third.total === 1 &&
+          logRow?.reissuanceCount === 2,
+        detail: `tokens A=${tokenA} B=${tokenB} C=${tokenC} | counts ${first.total}/${second.total}/${third.total} | reissuanceCount=${logRow?.reissuanceCount ?? "?"}`,
+      });
+    } catch (e) {
+      results.push({
+        name: "persistent log — re-signups get the SAME voucher token",
+        pass: false,
+        detail: e instanceof Error ? e.message : String(e),
+      });
+    }
+
     // ---- Test 2: deactivated user can't delete account ----
+    await ctx.runMutation(internal.abuse_tests._purgeAllTestArtifacts, {
+      email: deactivatedEmail,
+    });
     try {
       const userId = (await ctx.runMutation(
         internal.abuse_tests._setupDeactivatedUser,
@@ -428,6 +511,9 @@ export const run = internalAction({
     }
 
     // ---- Test 3: cascade completeness ----
+    await ctx.runMutation(internal.abuse_tests._purgeAllTestArtifacts, {
+      email: cascadeEmail,
+    });
     try {
       const userId = (await ctx.runMutation(
         internal.abuse_tests._setupCascadeUser,
@@ -469,15 +555,11 @@ export const run = internalAction({
       });
     }
 
-    // Final cleanup
+    // Final cleanup — leave NO test artifact behind.
     for (const email of [dedupeEmail, cascadeEmail, deactivatedEmail]) {
-      try {
-        await ctx.runMutation(internal.users.bootstrapPurgeUserByEmail, {
-          email,
-        });
-      } catch {
-        /* ignore */
-      }
+      await ctx.runMutation(internal.abuse_tests._purgeAllTestArtifacts, {
+        email,
+      });
     }
 
     const allPassed = results.every((r) => r.pass);
@@ -489,5 +571,166 @@ export const _deleteUserRowOnly = internalMutation({
   args: { userId: v.id("users") },
   handler: async (ctx, { userId }) => {
     await ctx.db.delete(userId);
+  },
+});
+
+// Thorough wipe of EVERY artifact that an abuse-test run could leave behind
+// for a given test email — survives across re-runs without contaminating
+// other tests. Refuses to touch real (non-test) emails.
+export const _purgeAllTestArtifacts = internalMutation({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    const normalized = email.toLowerCase().trim();
+    if (
+      !normalized.endsWith("@example.local") &&
+      !normalized.endsWith("@test.local")
+    ) {
+      throw new Error("Refusing to purge a non-test email.");
+    }
+    const summary: Record<string, number> = {};
+
+    // Delete ALL users matching this email (a sloppy prior run may have
+    // left multiples; cascade each).
+    const users = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", normalized))
+      .collect();
+    for (const u of users) {
+      // Inline cascade — avoid the deactivatedAt check (the cleanup must
+      // work even on fixtures that simulate kicked users).
+      const profiles = await ctx.db
+        .query("profiles")
+        .withIndex("by_user", (q) => q.eq("userId", u._id))
+        .collect();
+      for (const p of profiles) await ctx.db.delete(p._id);
+      const goals = await ctx.db
+        .query("goals")
+        .withIndex("by_user", (q) => q.eq("userId", u._id))
+        .collect();
+      for (const g of goals) await ctx.db.delete(g._id);
+      const consents = await ctx.db
+        .query("consents")
+        .withIndex("by_user_key", (q) => q.eq("userId", u._id))
+        .collect();
+      for (const c of consents) await ctx.db.delete(c._id);
+      const favs = await ctx.db
+        .query("favoriteSessions")
+        .withIndex("by_user", (q) => q.eq("userId", u._id))
+        .collect();
+      for (const f of favs) await ctx.db.delete(f._id);
+      const tl = await ctx.db
+        .query("ticketLinks")
+        .withIndex("by_user", (q) => q.eq("userId", u._id))
+        .collect();
+      for (const t of tl) await ctx.db.delete(t._id);
+      const ec = await ctx.db
+        .query("emailCodes")
+        .withIndex("by_user", (q) => q.eq("userId", u._id))
+        .collect();
+      for (const e of ec) await ctx.db.delete(e._id);
+      const pm = await ctx.db
+        .query("partnerMembers")
+        .withIndex("by_user", (q) => q.eq("userId", u._id))
+        .collect();
+      for (const m of pm) await ctx.db.delete(m._id);
+      const vs = await ctx.db
+        .query("vouchers")
+        .withIndex("by_user", (q) => q.eq("userId", u._id))
+        .collect();
+      for (const v of vs) await ctx.db.delete(v._id);
+      await ctx.db.delete(u._id);
+    }
+    summary.users = users.length;
+
+    // Orphan vouchers + log entries + invites + pendings + audit by email.
+    const orphanVouchers = await ctx.db
+      .query("vouchers")
+      .withIndex("by_email_kind", (q) => q.eq("email", normalized))
+      .collect();
+    for (const v of orphanVouchers) await ctx.db.delete(v._id);
+    summary.orphanVouchers = orphanVouchers.length;
+
+    const logs = await ctx.db.query("voucherIssuanceLog").collect();
+    let logsRemoved = 0;
+    for (const l of logs) {
+      if (l.email === normalized) {
+        await ctx.db.delete(l._id);
+        logsRemoved += 1;
+      }
+    }
+    summary.logsRemoved = logsRemoved;
+
+    const partnerInvites = await ctx.db
+      .query("partnerInvites")
+      .withIndex("by_email", (q) => q.eq("email", normalized))
+      .collect();
+    for (const p of partnerInvites) await ctx.db.delete(p._id);
+    summary.partnerInvites = partnerInvites.length;
+
+    const adminInvites = await ctx.db
+      .query("adminInvites")
+      .withIndex("by_email", (q) => q.eq("email", normalized))
+      .collect();
+    for (const a of adminInvites) await ctx.db.delete(a._id);
+    summary.adminInvites = adminInvites.length;
+
+    const pending = await ctx.db
+      .query("pendingAttendees")
+      .withIndex("by_email", (q) => q.eq("email", normalized))
+      .collect();
+    for (const p of pending) await ctx.db.delete(p._id);
+    summary.pendingAttendees = pending.length;
+
+    // Audit log: by metadata email match (no index, scan).
+    const allAudit = await ctx.db.query("auditLog").collect();
+    let auditRemoved = 0;
+    for (const a of allAudit) {
+      try {
+        const meta = JSON.parse(a.metadata ?? "{}");
+        if (meta.email === normalized) {
+          await ctx.db.delete(a._id);
+          auditRemoved += 1;
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    summary.auditRemoved = auditRemoved;
+
+    return summary;
+  },
+});
+
+export const _purgeIssuanceLog = internalMutation({
+  args: { email: v.string(), kind: v.string() },
+  handler: async (ctx, { email, kind }) => {
+    const rows = await ctx.db
+      .query("voucherIssuanceLog")
+      .withIndex("by_email_kind", (q) =>
+        q.eq("email", email).eq("kind", kind),
+      )
+      .collect();
+    for (const r of rows) await ctx.db.delete(r._id);
+    return { removed: rows.length };
+  },
+});
+
+export const _readIssuanceLog = internalQuery({
+  args: { email: v.string(), kind: v.string() },
+  handler: async (ctx, { email, kind }) => {
+    const row = await ctx.db
+      .query("voucherIssuanceLog")
+      .withIndex("by_email_kind", (q) =>
+        q.eq("email", email).eq("kind", kind),
+      )
+      .first();
+    return row
+      ? {
+          publicToken: row.publicToken,
+          firstIssuedAt: row.firstIssuedAt,
+          lastReissuedAt: row.lastReissuedAt,
+          reissuanceCount: row.reissuanceCount,
+        }
+      : null;
   },
 });

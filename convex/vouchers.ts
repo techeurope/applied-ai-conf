@@ -30,6 +30,44 @@ async function uniqueVoucherToken(ctx: MutationCtx): Promise<string> {
   throw new Error("Could not generate a unique voucher token");
 }
 
+// Reserve a voucher token for (email, kind). If the log already has one
+// (the email previously received this voucher kind, even under a deleted
+// user), return the same token + bump reissuance metadata. Otherwise mint
+// a fresh token and create a new log entry. The voucher row itself is
+// inserted by the caller after this returns.
+async function reserveVoucherToken(
+  ctx: MutationCtx,
+  email: string,
+  kind: string,
+): Promise<{ token: string; reissued: boolean }> {
+  const normalizedEmail = email.toLowerCase().trim();
+  if (!normalizedEmail) {
+    return { token: await uniqueVoucherToken(ctx), reissued: false };
+  }
+  const log = await ctx.db
+    .query("voucherIssuanceLog")
+    .withIndex("by_email_kind", (q) =>
+      q.eq("email", normalizedEmail).eq("kind", kind),
+    )
+    .first();
+  if (log) {
+    await ctx.db.patch(log._id, {
+      lastReissuedAt: Date.now(),
+      reissuanceCount: log.reissuanceCount + 1,
+    });
+    return { token: log.publicToken, reissued: true };
+  }
+  const token = await uniqueVoucherToken(ctx);
+  await ctx.db.insert("voucherIssuanceLog", {
+    email: normalizedEmail,
+    kind,
+    publicToken: token,
+    firstIssuedAt: Date.now(),
+    reissuanceCount: 0,
+  });
+  return { token, reissued: false };
+}
+
 async function writeAudit(
   ctx: MutationCtx,
   actorUserId: Doc<"users">["_id"],
@@ -103,7 +141,7 @@ export const adminIssueForUser = mutation({
         );
       }
     }
-    const token = await uniqueVoucherToken(ctx);
+    const { token, reissued } = await reserveVoucherToken(ctx, email, kind);
     const id = await ctx.db.insert("vouchers", {
       userId,
       email: email || undefined,
@@ -117,8 +155,9 @@ export const adminIssueForUser = mutation({
       voucherId: id,
       kind,
       userId,
+      reissued,
     });
-    return { id, publicToken: token };
+    return { id, publicToken: token, reissued };
   },
 });
 
@@ -167,7 +206,7 @@ export const bootstrapIssueForVerifiedAttendees = internalMutation({
           continue;
         }
       }
-      const token = await uniqueVoucherToken(ctx);
+      const { token } = await reserveVoucherToken(ctx, email, kind);
       await ctx.db.insert("vouchers", {
         userId: u._id,
         email: email || undefined,
@@ -181,28 +220,45 @@ export const bootstrapIssueForVerifiedAttendees = internalMutation({
   },
 });
 
-// Backfill the `email` column on legacy voucher rows (issued before the
-// schema gained the column). Re-runnable; only patches missing fields.
+// Backfill the `email` column on legacy voucher rows + create a
+// voucherIssuanceLog entry for each (so re-issuance returns the same
+// token). Re-runnable.
 export const bootstrapBackfillVoucherEmails = internalMutation({
   args: {},
   handler: async (ctx) => {
     const all = await ctx.db.query("vouchers").collect();
     let patched = 0;
+    let logged = 0;
     let skipped = 0;
     for (const v of all) {
-      if (v.email) {
-        skipped += 1;
-        continue;
-      }
-      const u = await ctx.db.get(v.userId);
-      const email = (u?.email ?? "").toLowerCase().trim();
+      let email = v.email;
       if (!email) {
-        skipped += 1;
-        continue;
+        const u = await ctx.db.get(v.userId);
+        const candidate = (u?.email ?? "").toLowerCase().trim();
+        if (!candidate) {
+          skipped += 1;
+          continue;
+        }
+        email = candidate;
+        await ctx.db.patch(v._id, { email });
+        patched += 1;
       }
-      await ctx.db.patch(v._id, { email });
-      patched += 1;
+      const existingLog = await ctx.db
+        .query("voucherIssuanceLog")
+        .withIndex("by_email_kind", (q) =>
+          q.eq("email", email).eq("kind", v.kind),
+        )
+        .first();
+      if (existingLog) continue;
+      await ctx.db.insert("voucherIssuanceLog", {
+        email,
+        kind: v.kind,
+        publicToken: v.publicToken,
+        firstIssuedAt: v.issuedAt,
+        reissuanceCount: 0,
+      });
+      logged += 1;
     }
-    return { patched, skipped, total: all.length };
+    return { patched, logged, skipped, total: all.length };
   },
 });
