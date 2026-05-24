@@ -29,15 +29,19 @@ function matchSpeaker(name: string | undefined | null): Speaker | undefined {
 export function AgendaDetailClient({
   slug,
   preloadedSlots,
+  preloadedFavorites,
 }: {
   slug: string;
   // usePreloadedQuery returns the server-fetched value immediately AND
   // subscribes on the client for live updates. No loading flash, and
   // admin edits in /app/admin/agenda push to all open clients live.
   preloadedSlots: Preloaded<typeof api.agenda.list>;
+  // Preloading favorites too keeps the "Add to my agenda" /
+  // "On your agenda" button in the correct state on first paint.
+  preloadedFavorites: Preloaded<typeof api.favorites.list>;
 }) {
   const slots = usePreloadedQuery(preloadedSlots);
-  const favorites = useQuery(api.favorites.list);
+  const favorites = usePreloadedQuery(preloadedFavorites);
   const addFavorite = useMutation(api.favorites.add);
   const removeFavorite = useMutation(api.favorites.remove);
   const [, setTick] = useState(0);

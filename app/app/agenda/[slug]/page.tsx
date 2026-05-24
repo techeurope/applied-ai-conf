@@ -1,12 +1,12 @@
 import { preloadQuery } from "convex/nextjs";
+import { withAuth } from "@workos-inc/authkit-nextjs";
 import { api } from "@convex/_generated/api";
 import { AgendaDetailClient } from "./AgendaDetailClient";
 
-// Same SSR-preload pattern as /app/agenda — server hydrates with the
-// agenda data so the detail card paints immediately. revalidate=60 keeps
-// the SSR cache fresh; signed-in clients see live updates via the
-// reactive subscription regardless.
-export const revalidate = 60;
+// Per-user dynamic — we preload both the agenda + the signed-in viewer's
+// favorites so the "On your agenda" / "Add to my agenda" button is in the
+// right state on first paint (no pop-in or layout shift).
+export const dynamic = "force-dynamic";
 
 export default async function AgendaDetailPage({
   params,
@@ -14,6 +14,19 @@ export default async function AgendaDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const preloadedSlots = await preloadQuery(api.agenda.list, {});
-  return <AgendaDetailClient slug={slug} preloadedSlots={preloadedSlots} />;
+  const { accessToken } = await withAuth();
+  const tokenOption = accessToken ? { token: accessToken } : undefined;
+
+  const [preloadedSlots, preloadedFavorites] = await Promise.all([
+    preloadQuery(api.agenda.list, {}),
+    preloadQuery(api.favorites.list, {}, tokenOption),
+  ]);
+
+  return (
+    <AgendaDetailClient
+      slug={slug}
+      preloadedSlots={preloadedSlots}
+      preloadedFavorites={preloadedFavorites}
+    />
+  );
 }

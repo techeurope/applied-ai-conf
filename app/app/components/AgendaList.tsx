@@ -53,23 +53,32 @@ const CONFLICT_COLORS = [
 
 const SCROLL_KEY = "agenda:last-opened-slot";
 
-// Derive `Speaker Name(s)` and `Company` strings for a slot. Company comes
-// from the last speaker in SPEAKERS (matches the marketing site behavior).
+// Derive `Speaker Name(s)`, `Company`, and primary speaker photo for a slot.
+// Company + image come from the last speaker in SPEAKERS (matches the
+// marketing site behavior). The image is preferred as the transparent
+// cut-out, falling back to the regular headshot.
 function speakerLines(slot: Pick<Slot, "speakerName" | "speakerNames">): {
   speaker: string;
   company: string;
+  image: string | undefined;
+  imageAlt: string;
 } {
   const names = slot.speakerNames ?? (slot.speakerName ? [slot.speakerName] : []);
-  if (names.length === 0) return { speaker: "", company: "" };
+  if (names.length === 0) {
+    return { speaker: "", company: "", image: undefined, imageAlt: "" };
+  }
   const last = SPEAKERS.find((s) => s.name === names[names.length - 1]);
   return {
     speaker: names.join(" & "),
     company: last?.company ?? "",
+    image: last?.imageTransparent || last?.image,
+    imageAlt: last?.imageAlt ?? names[names.length - 1],
   };
 }
 
 export function AgendaList({
   preloadedSlots,
+  preloadedFavorites,
 }: {
   // Optional — when the parent server component preloaded the agenda we
   // hydrate from that (no loading flash, no Convex round-trip on first
@@ -78,11 +87,24 @@ export function AgendaList({
   // When omitted (e.g. AgendaList used inside other client components),
   // we fall back to a plain useQuery.
   preloadedSlots?: Preloaded<typeof api.agenda.list>;
+  // Same pattern for the signed-in user's favorites — without this the
+  // heart fill state pops in after first paint and causes a 1px layout
+  // shift (the conflict-pill on overlapping favorites only renders once
+  // `fav` resolves true). Preloading on the server keeps the first paint
+  // visually identical to the final hydrated state.
+  preloadedFavorites?: Preloaded<typeof api.favorites.list>;
 }) {
   const queriedSlots = useQuery(api.agenda.list, preloadedSlots ? "skip" : {});
   const preloaded = preloadedSlots ? usePreloadedQuery(preloadedSlots) : null;
   const slots = preloaded ?? queriedSlots ?? [];
-  const favorites = useQuery(api.favorites.list);
+  const queriedFavorites = useQuery(
+    api.favorites.list,
+    preloadedFavorites ? "skip" : {},
+  );
+  const preloadedFavs = preloadedFavorites
+    ? usePreloadedQuery(preloadedFavorites)
+    : null;
+  const favorites = preloadedFavs ?? queriedFavorites;
   const me = useQuery(api.users.me);
   const addFavorite = useMutation(api.favorites.add);
   const removeFavorite = useMutation(api.favorites.remove);
@@ -413,7 +435,7 @@ export function AgendaList({
             const live = clock.isConferenceDay && isLive(slot, clock.nowMinutes);
             const liveTalk = live && !isVenueFormat;
             const liveVenue = live && isVenueFormat;
-            const { speaker, company } = speakerLines(slot);
+            const { speaker, company, image, imageAlt } = speakerLines(slot);
             const slotConflicts = fav ? conflicts.get(slot.id) : undefined;
             const conflictColor = fav ? conflictColorBySlot.get(slot.id) : undefined;
             return (
@@ -479,77 +501,96 @@ export function AgendaList({
                   </>
                 )}
 
-                <div className="flex items-center justify-between gap-3 mb-2">
-                  <div className="flex items-baseline gap-2.5 min-w-0">
-                    <span className="font-mono text-base sm:text-lg font-semibold tabular-nums leading-none text-white">
-                      {slot.startTime}
-                      <span className="text-white/30 mx-0.5">–</span>
-                      {slot.endTime}
-                    </span>
-                    {liveTalk && (
-                      <span className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.18em] px-1.5 py-0.5 rounded-full bg-rose-500/25 text-rose-100 ring-1 ring-rose-400/30">
-                        <span className="size-1.5 rounded-full bg-rose-300 animate-pulse" />
-                        Live
-                      </span>
-                    )}
-                    {liveVenue && (
-                      <span className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.18em] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-100 ring-1 ring-amber-400/30">
-                        <span className="size-1.5 rounded-full bg-amber-300 animate-pulse" />
-                        Now
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <span
-                      className={`font-mono text-[10px] uppercase tracking-[0.18em] px-2 py-0.5 rounded-full ring-1 ${stageClass}`}
-                    >
-                      {slot.stage}
-                    </span>
-                    {me === null ? (
-                      <a
-                        href={`/api/auth/sign-in?return_to=${encodeURIComponent("/app/agenda")}`}
-                        title="Sign in to favorite"
-                        className="relative z-10 p-1 rounded-full text-white/20 hover:text-white/60 transition-colors"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Heart className="size-4" strokeWidth={1.75} />
-                      </a>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => toggle(slot)}
-                        aria-label={fav ? "Remove from my agenda" : "Add to my agenda"}
-                        className={`relative z-10 p-1 rounded-full transition-colors ${
-                          fav
-                            ? "text-rose-400 hover:text-rose-300"
-                            : "text-white/30 hover:text-white/70"
-                        }`}
-                      >
-                        <Heart
-                          className="size-4"
-                          strokeWidth={1.75}
-                          fill={fav ? "currentColor" : "none"}
-                        />
-                      </button>
-                    )}
-                  </div>
-                </div>
-                <div className="text-base sm:text-lg font-medium text-white leading-snug">
-                  {slot.title}
-                </div>
-                {speaker && (
-                  <div className="mt-1.5 flex items-baseline gap-1.5 text-xs min-w-0">
-                    <span className="truncate text-zinc-300 min-w-0">{speaker}</span>
-                    {company && (
-                      <>
-                        <span className="text-zinc-600 shrink-0">·</span>
-                        <span className="truncate text-zinc-500 min-w-0">
-                          {company}
+                <div className="flex gap-3 sm:gap-4">
+                  {/* Speaker photo — only for sessions with a known speaker.
+                      Venue/break rows skip the column and fill the width. */}
+                  {image && (
+                    <div className="size-20 sm:size-24 rounded-lg ring-1 ring-white/10 overflow-hidden shrink-0 bg-white/[0.03]">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={image}
+                        alt={imageAlt}
+                        className="w-full h-full object-cover object-top"
+                      />
+                    </div>
+                  )}
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-3 mb-2">
+                      <div className="flex items-baseline gap-2.5 min-w-0 flex-wrap">
+                        <span className="font-mono text-base sm:text-lg font-semibold tabular-nums leading-none text-white">
+                          {slot.startTime}
+                          <span className="text-white/30 mx-0.5">–</span>
+                          {slot.endTime}
                         </span>
-                      </>
+                        {liveTalk && (
+                          <span className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.18em] px-1.5 py-0.5 rounded-full bg-rose-500/25 text-rose-100 ring-1 ring-rose-400/30">
+                            <span className="size-1.5 rounded-full bg-rose-300 animate-pulse" />
+                            Live
+                          </span>
+                        )}
+                        {liveVenue && (
+                          <span className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.18em] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-100 ring-1 ring-amber-400/30">
+                            <span className="size-1.5 rounded-full bg-amber-300 animate-pulse" />
+                            Now
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span
+                          className={`font-mono text-[10px] uppercase tracking-[0.18em] px-2 py-0.5 rounded-full ring-1 ${stageClass}`}
+                        >
+                          {slot.stage}
+                        </span>
+                        {me === null ? (
+                          <a
+                            href={`/api/auth/sign-in?return_to=${encodeURIComponent("/app/agenda")}`}
+                            title="Sign in to favorite"
+                            className="relative z-10 p-1 rounded-full text-white/20 hover:text-white/60 transition-colors"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Heart className="size-4" strokeWidth={1.75} />
+                          </a>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => toggle(slot)}
+                            aria-label={fav ? "Remove from my agenda" : "Add to my agenda"}
+                            className={`relative z-10 p-1 rounded-full transition-colors ${
+                              fav
+                                ? "text-rose-400 hover:text-rose-300"
+                                : "text-white/30 hover:text-white/70"
+                            }`}
+                          >
+                            <Heart
+                              className="size-4"
+                              strokeWidth={1.75}
+                              fill={fav ? "currentColor" : "none"}
+                            />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-lg sm:text-xl font-medium text-white leading-snug">
+                      {slot.title}
+                    </div>
+                    {speaker && (
+                      <div className="mt-2 flex items-baseline gap-1.5 min-w-0">
+                        <span className="text-sm sm:text-base text-white truncate min-w-0">
+                          {speaker}
+                        </span>
+                        {company && (
+                          <>
+                            <span className="text-white/30 shrink-0">·</span>
+                            <span className="text-xs sm:text-sm text-white/55 truncate min-w-0">
+                              {company}
+                            </span>
+                          </>
+                        )}
+                      </div>
                     )}
                   </div>
-                )}
+                </div>
               </li>
             );
           })}
