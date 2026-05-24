@@ -56,3 +56,6 @@ next-env.d.ts
 
 # admin grant script — uncommitted on purpose
 /scripts/admin-grant.mjs
+
+# Local design experiments — Tim's WIP, never push to prod
+/app/app/preview/
