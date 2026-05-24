@@ -14,6 +14,7 @@ import {
   nextSlotsByStage,
   timeToMinutes,
 } from "@/lib/conference-time";
+import { LiveSessionCard } from "./LiveSessionCard";
 
 type Slot = NonNullable<ReturnType<typeof useQuery<typeof api.agenda.list>>>[number];
 type StageFilter = "all" | "main" | "side";
@@ -292,60 +293,16 @@ export function AgendaList() {
             // RIGHT NOW · {clock.nowHHMM}
           </p>
           <div className="space-y-2">
-            {liveTalks.map((s) => {
-              const { speaker, company } = speakerLines(s);
-              return (
-              <button
+            {liveTalks.map((s) => (
+              <LiveSessionCard
                 key={s._id}
-                type="button"
+                slot={s}
+                nowMinutes={clock.nowMinutes}
+                isLive
+                variant="button"
                 onClick={() => scrollToSlot(s.id)}
-                className={`w-full text-left rounded-2xl bg-white/[0.03] ring-1 p-4 space-y-2 transition-colors hover:bg-white/[0.05] ${
-                  s.stage === "main"
-                    ? "ring-emerald-300/30"
-                    : "ring-violet-300/30"
-                }`}
-              >
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] px-1.5 py-0.5 rounded-full bg-rose-500/25 text-rose-100 ring-1 ring-rose-400/30">
-                    <span className="size-1.5 rounded-full bg-rose-300 animate-pulse" />
-                    Live
-                  </span>
-                  <span
-                    className={`font-mono text-[10px] uppercase tracking-[0.18em] ${
-                      s.stage === "main" ? "text-emerald-200" : "text-violet-200"
-                    }`}
-                  >
-                    {s.stage}
-                  </span>
-                  <span className="font-mono text-[10px] tracking-widest text-white/50">
-                    {s.startTime}–{s.endTime}
-                  </span>
-                </div>
-                <p className="text-sm sm:text-base text-white leading-snug">{s.title}</p>
-                {speaker && (
-                  <div className="flex items-baseline gap-1.5 text-xs min-w-0">
-                    <span className="truncate text-white/70 min-w-0">
-                      <span className="font-mono text-white/30">› </span>
-                      {speaker}
-                    </span>
-                    {company && (
-                      <>
-                        <span className="text-white/30 shrink-0">·</span>
-                        <span className="truncate text-white/50 min-w-0">
-                          {company}
-                        </span>
-                      </>
-                    )}
-                  </div>
-                )}
-                <ProgressBar
-                  start={timeToMinutes(s.startTime)}
-                  end={timeToMinutes(s.endTime)}
-                  now={clock.nowMinutes}
-                />
-              </button>
-              );
-            })}
+              />
+            ))}
             {liveVenue.map((s) => (
               <article
                 key={s._id}
@@ -585,26 +542,6 @@ export function AgendaList() {
           })}
         </ol>
       )}
-    </div>
-  );
-}
-
-function ProgressBar({
-  start,
-  end,
-  now,
-}: {
-  start: number;
-  end: number;
-  now: number;
-}) {
-  const pct = Math.max(0, Math.min(1, (now - start) / (end - start))) * 100;
-  return (
-    <div className="w-full h-1 rounded-full bg-white/5 overflow-hidden">
-      <div
-        className="h-full bg-rose-400/80 transition-all duration-500"
-        style={{ width: `${pct}%` }}
-      />
     </div>
   );
 }

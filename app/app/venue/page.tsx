@@ -54,34 +54,20 @@ export default function VenuePage() {
         </div>
       </section>
 
-      {/* Floor plan thumbnail link */}
+      {/* Floor plan preview (static) */}
       <section className="space-y-3">
         <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/40">
-          // walk the floor
+          // floor plan
         </p>
-        <Link
-          href="/app/preview/v4"
-          className="group block rounded-2xl ring-1 ring-white/10 bg-[#07090f] overflow-hidden hover:ring-sky-300/30 transition-all relative"
-        >
+        <div className="rounded-2xl ring-1 ring-white/10 bg-[#07090f] overflow-hidden relative">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/venue/floorplan-bg.png"
             alt="Floor plan of The Delta Campus"
-            className="w-full h-auto block opacity-60 group-hover:opacity-80 transition-opacity"
+            className="w-full h-auto block opacity-75"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
-          <div className="absolute bottom-4 left-5 right-5 flex items-end justify-between gap-4">
-            <div>
-              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-sky-200/80">
-                interactive map
-              </p>
-              <p className="text-base text-white font-medium leading-snug">
-                Tap a zone to see what's there and walking directions.
-              </p>
-            </div>
-            <ArrowGlyph />
-          </div>
-        </Link>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+        </div>
       </section>
 
       <section className="grid sm:grid-cols-2 gap-3">
@@ -191,8 +177,3 @@ function Info({
   );
 }
 
-function ArrowGlyph() {
-  return (
-    <span className="font-mono text-sky-200 text-base">→</span>
-  );
-}

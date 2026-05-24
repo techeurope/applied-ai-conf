@@ -310,6 +310,10 @@ export default defineSchema({
     registeredAt: v.number(),
     approvalStatus: v.string(),
     checkedInAt: v.optional(v.number()),
+    // The full check-in URL Luma exposes per guest (returned by get-guests).
+    // Rendered as a QR on /app so attendees can scan in without opening their
+    // Luma confirmation email.
+    checkInQrCode: v.optional(v.string()),
     syncedAt: v.number(),
   })
     .index("by_luma_guest_id", ["lumaGuestId"])

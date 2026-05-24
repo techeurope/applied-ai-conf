@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import type { ReactNode } from "react";
 import { api } from "@convex/_generated/api";
 import { applyDemoClockFromUrl } from "@/lib/conference-time";
+import { StatusPill } from "./StatusPill";
 
 type Tab = {
   href: string;
@@ -53,7 +54,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     pathname?.startsWith("/app/venue") ||
     pathname?.startsWith("/app/travel") ||
     pathname?.startsWith("/app/faq") ||
-    pathname?.startsWith("/app/preview") ||
     pathname?.startsWith("/app/team/accept/") ||
     pathname?.startsWith("/app/team/join/");
 
@@ -71,6 +71,17 @@ export function AppShell({ children }: { children: ReactNode }) {
     pathname?.startsWith("/app/consent-details") ||
     pathname?.startsWith("/app/team/join/") ||
     pathname?.startsWith("/app/team/accept/");
+
+  // Routes that require auth. Anything in the public list, the sign-in page,
+  // or the API surface is OK to render without a user. Everything else gets
+  // a placeholder until the sign-in redirect (below) bounces them — otherwise
+  // we briefly flash the private page (Voucher, Contacts, …) before the
+  // redirect kicks in.
+  const onPrivatePath =
+    !isPublicAppPath &&
+    !pathname?.startsWith("/app/login") &&
+    !pathname?.startsWith("/api/");
+  const blockedByAuth = onPrivatePath && !auth.loading && !auth.user;
 
   useEffect(() => {
     applyDemoClockFromUrl();
@@ -168,19 +179,40 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/80 border-b border-white/10">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-[env(safe-area-inset-top)]">
           <div className="flex items-center justify-between gap-3 py-3">
-            <Link
-              href="/"
-              className="font-mono text-sm sm:text-base font-bold tracking-wide text-white hover:text-white/70 transition-colors"
-            >
-              Applied AI Conf
-            </Link>
-            <div className="flex items-center gap-4">
+            <div className="flex items-baseline gap-2.5 min-w-0 flex-1">
+              <Link
+                href="/"
+                className="font-mono text-sm sm:text-base font-bold tracking-wide text-white hover:text-white/70 transition-colors shrink-0"
+              >
+                Applied AI Conf
+              </Link>
+              <span className="font-mono text-white/25 text-sm sm:text-base shrink-0" aria-hidden>
+                /
+              </span>
               <Link
                 href="/app"
-                className="font-mono text-xs uppercase tracking-[0.25em] text-white/40 hover:text-white transition-colors"
+                className={`font-mono text-sm tracking-wide truncate transition-colors ${
+                  pathname === "/app"
+                    ? "text-white"
+                    : "text-white/55 hover:text-white"
+                }`}
+                aria-current={pathname === "/app" ? "page" : undefined}
               >
-                app
+                Conf day
               </Link>
+              {pathname === "/app" && (
+                <>
+                  <span className="hidden sm:inline-flex items-baseline gap-2 font-mono text-sm text-white/55 tracking-wide shrink-0">
+                    <span className="text-white/30">·</span>
+                    <span>May 28, 2026</span>
+                  </span>
+                  <span className="ml-2 shrink-0">
+                    <StatusPill />
+                  </span>
+                </>
+              )}
+            </div>
+            <div className="flex items-center gap-4">
               {auth.user ? (
                 <button
                   type="button"
@@ -245,7 +277,12 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
 
       <main className="flex-1 w-full">
-        {pathname?.startsWith("/app/preview") ? (
+        {blockedByAuth ? (
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 text-center text-sm text-white/50">
+            Sign in required — redirecting…
+          </div>
+        ) : pathname === "/app" ? (
+          // The /app home owns its full-width layout.
           children
         ) : (
           <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 pb-12">{children}</div>

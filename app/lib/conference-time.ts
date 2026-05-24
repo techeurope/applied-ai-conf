@@ -16,26 +16,49 @@ export function timeToMinutes(hhmm: string): number {
 }
 
 /**
- * Debug clock override. Reads `?__now=HH:MM` from the URL on the client and
- * stashes it in sessionStorage so subsequent navigations keep the override.
- * `?__now=off` clears it. No effect on the server or on production users who
- * never visit a URL with the param.
+ * Debug clock override. Two sticky URL params (stashed in sessionStorage):
+ *
+ *   ?__now=HH:MM        — fakes the wall clock (used to preview live state)
+ *   ?__date=YYYY-MM-DD  — fakes today's date (preview "in N days" or post-conf)
+ *
+ * Either can be set with `=off` (or empty) to clear it. They compose freely —
+ * `?__date=2026-05-26&__now=10:15` previews two days before, at 10:15. Pre-set
+ * `__now` with no `__date` still implies conference day (legacy behaviour).
+ *
+ * No effect on the server or on production users who never visit a URL with
+ * the param.
  */
-const DEMO_KEY = "aac:demo-now";
+const DEMO_TIME_KEY = "aac:demo-now";
+const DEMO_DATE_KEY = "aac:demo-date";
 
 export function applyDemoClockFromUrl(): void {
   if (typeof window === "undefined") return;
   const params = new URLSearchParams(window.location.search);
-  const v = params.get("__now");
-  if (v === null) return;
-  try {
-    if (v === "off" || v === "") {
-      window.sessionStorage.removeItem(DEMO_KEY);
-    } else if (/^\d{1,2}:\d{2}$/.test(v)) {
-      window.sessionStorage.setItem(DEMO_KEY, v);
+
+  const t = params.get("__now");
+  if (t !== null) {
+    try {
+      if (t === "off" || t === "") {
+        window.sessionStorage.removeItem(DEMO_TIME_KEY);
+      } else if (/^\d{1,2}:\d{2}$/.test(t)) {
+        window.sessionStorage.setItem(DEMO_TIME_KEY, t);
+      }
+    } catch {
+      /* sessionStorage disabled — ignore */
     }
-  } catch {
-    /* sessionStorage disabled — ignore */
+  }
+
+  const d = params.get("__date");
+  if (d !== null) {
+    try {
+      if (d === "off" || d === "") {
+        window.sessionStorage.removeItem(DEMO_DATE_KEY);
+      } else if (/^\d{4}-\d{2}-\d{2}$/.test(d)) {
+        window.sessionStorage.setItem(DEMO_DATE_KEY, d);
+      }
+    } catch {
+      /* ignore */
+    }
   }
 }
 
@@ -50,18 +73,36 @@ function parseHHMM(v: string | null | undefined): { nowMinutes: number; nowHHMM:
   };
 }
 
+function parseDate(v: string | null | undefined): string | null {
+  if (!v || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return null;
+  return v;
+}
+
 function readDemoClock(): { nowMinutes: number; nowHHMM: string } | null {
   if (typeof window === "undefined") return null;
-  // 1. Query param wins (synchronous, no effect required).
   try {
     const fromUrl = parseHHMM(new URLSearchParams(window.location.search).get("__now"));
     if (fromUrl) return fromUrl;
   } catch {
     /* malformed url — fall through */
   }
-  // 2. Sticky session value, set on any prior visit with ?__now=…
   try {
-    return parseHHMM(window.sessionStorage.getItem(DEMO_KEY));
+    return parseHHMM(window.sessionStorage.getItem(DEMO_TIME_KEY));
+  } catch {
+    return null;
+  }
+}
+
+function readDemoDate(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const fromUrl = parseDate(new URLSearchParams(window.location.search).get("__date"));
+    if (fromUrl) return fromUrl;
+  } catch {
+    /* fall through */
+  }
+  try {
+    return parseDate(window.sessionStorage.getItem(DEMO_DATE_KEY));
   } catch {
     return null;
   }
@@ -78,30 +119,32 @@ export function getConferenceClock(now: Date = new Date()): ConferenceClock {
     hour12: false,
   }).formatToParts(now);
   const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
-  const date = `${get("year")}-${get("month")}-${get("day")}`;
-  const hour = parseInt(get("hour"), 10) || 0;
-  const minute = parseInt(get("minute"), 10) || 0;
+  const realDate = `${get("year")}-${get("month")}-${get("day")}`;
+  const realHour = parseInt(get("hour"), 10) || 0;
+  const realMinute = parseInt(get("minute"), 10) || 0;
 
-  // Days until conference, computed in conference tz.
-  const today = new Date(`${date}T00:00:00Z`);
+  const demoTime = readDemoClock();
+  const demoDate = readDemoDate();
+
+  // Effective date: explicit __date wins → otherwise, if only __now is set we
+  // treat it as a conference-day preview (legacy) → otherwise real today.
+  const effectiveDate = demoDate ?? (demoTime ? CONFERENCE_DATE : realDate);
+
+  // Effective time: __now wins; otherwise real.
+  const effectiveMinutes = demoTime ? demoTime.nowMinutes : realHour * 60 + realMinute;
+  const effectiveHHMM = demoTime
+    ? demoTime.nowHHMM
+    : `${String(realHour).padStart(2, "0")}:${String(realMinute).padStart(2, "0")}`;
+
+  const today = new Date(`${effectiveDate}T00:00:00Z`);
   const conf = new Date(`${CONFERENCE_DATE}T00:00:00Z`);
   const daysUntil = Math.round((conf.getTime() - today.getTime()) / 86_400_000);
 
-  const demo = readDemoClock();
-  if (demo) {
-    return {
-      isConferenceDay: true,
-      daysUntil: 0,
-      nowMinutes: demo.nowMinutes,
-      nowHHMM: demo.nowHHMM,
-    };
-  }
-
   return {
-    isConferenceDay: date === CONFERENCE_DATE,
+    isConferenceDay: effectiveDate === CONFERENCE_DATE,
     daysUntil,
-    nowMinutes: hour * 60 + minute,
-    nowHHMM: `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`,
+    nowMinutes: effectiveMinutes,
+    nowHHMM: effectiveHHMM,
   };
 }
 

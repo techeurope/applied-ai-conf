@@ -23,6 +23,10 @@ type LumaGuest = {
   approval_status?: string;
   checked_in_at?: string | null;
   event_ticket?: { name?: string } | null;
+  // Personal check-in URL Luma generates per guest. This is the URL that
+  // their QR code encodes — host scans it at the door to mark check-in.
+  // We surface it in /app so attendees don't have to dig through email.
+  check_in_qr_code?: string | null;
 };
 
 type LumaGetGuestsResponse = {
@@ -120,6 +124,7 @@ export const upsertOne = internalMutation({
     registeredAt: v.number(),
     approvalStatus: v.string(),
     checkedInAt: v.optional(v.number()),
+    checkInQrCode: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
@@ -135,6 +140,7 @@ export const upsertOne = internalMutation({
         registeredAt: args.registeredAt,
         approvalStatus: args.approvalStatus,
         checkedInAt: args.checkedInAt,
+        checkInQrCode: args.checkInQrCode,
         syncedAt: now,
       });
       return existing._id;
@@ -150,6 +156,45 @@ export const findByEmail = internalQuery({
       .query("lumaAttendees")
       .withIndex("by_email", (q) => q.eq("email", email.toLowerCase().trim()))
       .first();
+  },
+});
+
+// Personal Luma check-in info for the signed-in user. Returns null if not
+// signed in, not ticket-linked, or the cached lumaAttendees row is missing.
+// Used by the home page to render the Luma check-in QR.
+export const myCheckIn = query({
+  args: {},
+  handler: async (
+    ctx,
+  ): Promise<
+    | {
+        checkInUrl: string | null;
+        checkedInAt: number | null;
+        name: string | null;
+        ticketType: string | null;
+      }
+    | null
+  > => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const me = await ctx.db
+      .query("users")
+      .withIndex("by_workos_id", (q) => q.eq("workosUserId", identity.subject))
+      .first();
+    if (!me?.lumaGuestId) return null;
+    const row = await ctx.db
+      .query("lumaAttendees")
+      .withIndex("by_luma_guest_id", (q) =>
+        q.eq("lumaGuestId", me.lumaGuestId as string),
+      )
+      .first();
+    if (!row) return null;
+    return {
+      checkInUrl: row.checkInQrCode ?? null,
+      checkedInAt: row.checkedInAt ?? null,
+      name: row.name ?? null,
+      ticketType: row.ticketType ?? null,
+    };
   },
 });
 
@@ -254,6 +299,7 @@ export const lookupOneByEmail = internalAction({
       registeredAt: g.registered_at ? Date.parse(g.registered_at) : 0,
       approvalStatus: g.approval_status ?? "unknown",
       checkedInAt: g.checked_in_at ? Date.parse(g.checked_in_at) : undefined,
+      checkInQrCode: g.check_in_qr_code ?? undefined,
     });
     return {
       status: "found",
@@ -314,6 +360,7 @@ export const sync = internalAction({
           registeredAt: g.registered_at ? Date.parse(g.registered_at) : 0,
           approvalStatus: g.approval_status ?? "unknown",
           checkedInAt: g.checked_in_at ? Date.parse(g.checked_in_at) : undefined,
+          checkInQrCode: g.check_in_qr_code ?? undefined,
         });
         upserted += 1;
       }
