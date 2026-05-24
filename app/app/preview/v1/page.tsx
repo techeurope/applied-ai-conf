@@ -43,18 +43,13 @@ export default function V1Bento() {
   // sessionStorage (?__now demo override), which only exists on the client —
   // computing it during SSR causes a hydration mismatch on the status pill.
   const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-    const id = setInterval(() => setMounted((m) => m), 30_000);
-    return () => clearInterval(id);
-  }, []);
-  // Re-tick every 30s so the live state stays current.
+  // setTick triggers a re-render every 30s once mounted so live state ages.
   const [, setTick] = useState(0);
   useEffect(() => {
-    if (!mounted) return;
+    setMounted(true);
     const id = setInterval(() => setTick((n) => n + 1), 30_000);
     return () => clearInterval(id);
-  }, [mounted]);
+  }, []);
   const clock = mounted ? getConferenceClock() : null;
   const peek = clock ? rightNowPeek(clock.nowMinutes, clock.isConferenceDay) : null;
 
@@ -71,11 +66,11 @@ export default function V1Bento() {
               May 28, 2026 · The Delta Campus, Berlin
             </p>
           </div>
-          <StatusPill clock={clock} />
+          {clock ? <StatusPill clock={clock} /> : <StatusPillSkeleton />}
         </header>
 
         {/* Today snapshot — conference day only */}
-        {peek && <TodayCard peek={peek} now={clock.nowMinutes} />}
+        {peek && clock && <TodayCard peek={peek} now={clock.nowMinutes} />}
 
         {/* Sign-in — signed-out only */}
         {!auth.user && !auth.loading && <SignInCard />}
@@ -104,6 +99,17 @@ export default function V1Bento() {
 
 // ──────────────────────────────────────────────────────────────────
 // Top bits
+
+// Neutral placeholder rendered during SSR / before mount — same dimensions
+// as the live pill so there's no layout shift when the real one swaps in.
+function StatusPillSkeleton() {
+  return (
+    <span className="inline-flex items-center gap-2 rounded-full ring-1 ring-white/10 px-3.5 py-1.5 text-sm text-white/0 shrink-0 select-none">
+      <span className="size-1.5" />
+      <span aria-hidden>placeholder</span>
+    </span>
+  );
+}
 
 function StatusPill({ clock }: { clock: ReturnType<typeof getConferenceClock> }) {
   if (clock.isConferenceDay) {
