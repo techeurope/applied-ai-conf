@@ -572,29 +572,41 @@ export function AgendaList({
                   )}
 
                   <div className="min-w-0 flex-1">
+                    {/* Meta row — stage pill (or live/now), then speaker
+                        name, then company. Heart sits on the right. Order
+                        intentionally: identity comes first, the talk title
+                        is the focus below. */}
                     <div className="flex items-center justify-between gap-3 mb-2">
-                      <div className="flex items-baseline gap-2.5 min-w-0 flex-wrap">
-                        {liveTalk && (
-                          <span className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.18em] px-1.5 py-0.5 rounded-full bg-rose-500/25 text-rose-100 ring-1 ring-rose-400/30">
+                      <div className="flex items-baseline gap-2 min-w-0 flex-wrap">
+                        {liveTalk ? (
+                          <span className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.18em] px-1.5 py-0.5 rounded-full bg-rose-500/25 text-rose-100 ring-1 ring-rose-400/30 shrink-0">
                             <span className="size-1.5 rounded-full bg-rose-300 animate-pulse" />
                             Live
                           </span>
-                        )}
-                        {liveVenue && (
-                          <span className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.18em] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-100 ring-1 ring-amber-400/30">
+                        ) : liveVenue ? (
+                          <span className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.18em] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-100 ring-1 ring-amber-400/30 shrink-0">
                             <span className="size-1.5 rounded-full bg-amber-300 animate-pulse" />
                             Now
                           </span>
-                        )}
-                        {!liveTalk && !liveVenue && (
-                          // Subtle stage tag stands in for the now-removed
-                          // time, so the top row of the card isn't empty
-                          // for non-live sessions.
+                        ) : (
                           <span
-                            className={`font-mono text-[10px] uppercase tracking-[0.18em] px-2 py-0.5 rounded-full ring-1 ${stageClass}`}
+                            className={`font-mono text-[10px] uppercase tracking-[0.18em] px-2 py-0.5 rounded-full ring-1 shrink-0 ${stageClass}`}
                           >
                             {slot.stage}
                           </span>
+                        )}
+                        {speaker && (
+                          <span className="text-sm text-white truncate min-w-0">
+                            {speaker}
+                          </span>
+                        )}
+                        {company && (
+                          <>
+                            <span className="text-white/30 shrink-0">·</span>
+                            <span className="text-xs sm:text-sm text-white/55 truncate min-w-0">
+                              {company}
+                            </span>
+                          </>
                         )}
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
@@ -627,24 +639,15 @@ export function AgendaList({
                         )}
                       </div>
                     </div>
-                    <div className="text-lg sm:text-xl font-medium text-white leading-snug">
+                    {/* Title — on mobile (< sm) lets it wrap as many lines
+                        as it needs so the user always sees the full title.
+                        On sm+ we constrain to 2 lines with ellipsis so the
+                        card stays compact and visually uniform; max-width
+                        ~80% leaves breathing room for the right column +
+                        any future trailing actions. */}
+                    <h3 className="text-lg sm:text-xl font-medium text-white leading-snug sm:line-clamp-2 sm:max-w-[80%]">
                       {slot.title}
-                    </div>
-                    {speaker && (
-                      <div className="mt-2 flex items-baseline gap-1.5 min-w-0">
-                        <span className="text-sm sm:text-base text-white truncate min-w-0">
-                          {speaker}
-                        </span>
-                        {company && (
-                          <>
-                            <span className="text-white/30 shrink-0">·</span>
-                            <span className="text-xs sm:text-sm text-white/55 truncate min-w-0">
-                              {company}
-                            </span>
-                          </>
-                        )}
-                      </div>
-                    )}
+                    </h3>
                   </div>
                 </div>
               </article>
