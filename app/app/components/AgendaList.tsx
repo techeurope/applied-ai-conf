@@ -176,6 +176,29 @@ export function AgendaList({
     });
   }, [slots, stage, onlyFavorites, favSet]);
 
+  // Group visible slots by (startTime, endTime) so parallel main + side
+  // sessions share one time header on top — no duplicate "14:05–14:35"
+  // when both stages are showing. Solo time slots render the same header
+  // with just one card underneath.
+  const visibleGroups = useMemo(() => {
+    const order: string[] = [];
+    const buckets = new Map<
+      string,
+      { startTime: string; endTime: string; slots: Slot[] }
+    >();
+    for (const s of visible) {
+      const key = `${s.startTime}-${s.endTime}`;
+      let bucket = buckets.get(key);
+      if (!bucket) {
+        bucket = { startTime: s.startTime, endTime: s.endTime, slots: [] };
+        buckets.set(key, bucket);
+        order.push(key);
+      }
+      bucket.slots.push(s);
+    }
+    return order.map((k) => buckets.get(k)!);
+  }, [visible]);
+
   // Restore scroll position to the last-opened session when we come back to
   // this page from /app/agenda/[slug]. Stash the slug on click below, then
   // scroll it into view (centered) once Convex data has loaded.
@@ -431,8 +454,16 @@ export function AgendaList({
             : "No sessions match the current filter."}
         </p>
       ) : (
-        <ol className="space-y-3">
-          {visible.map((slot) => {
+        <ol className="space-y-5">
+          {visibleGroups.map((group) => (
+            <li key={`${group.startTime}-${group.endTime}`} className="space-y-2">
+              <h2 className="font-mono text-base sm:text-lg font-semibold tabular-nums text-white px-1">
+                {group.startTime}
+                <span className="text-white/30 mx-0.5">–</span>
+                {group.endTime}
+              </h2>
+              <div className="space-y-2">
+                {group.slots.map((slot) => {
             const fav = favSet.has(slot.id);
             const isVenueFormat =
               slot.format === "break" || slot.format === "logistics";
@@ -444,7 +475,7 @@ export function AgendaList({
             const slotConflicts = fav ? conflicts.get(slot.id) : undefined;
             const conflictColor = fav ? conflictColorBySlot.get(slot.id) : undefined;
             return (
-              <li
+              <article
                 key={slot.id}
                 id={`agenda-${slot.id}`}
                 className={`glass-card rounded-xl p-4 transition-shadow relative ${
@@ -534,11 +565,6 @@ export function AgendaList({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-3 mb-2">
                       <div className="flex items-baseline gap-2.5 min-w-0 flex-wrap">
-                        <span className="font-mono text-base sm:text-lg font-semibold tabular-nums leading-none text-white">
-                          {slot.startTime}
-                          <span className="text-white/30 mx-0.5">–</span>
-                          {slot.endTime}
-                        </span>
                         {liveTalk && (
                           <span className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.18em] px-1.5 py-0.5 rounded-full bg-rose-500/25 text-rose-100 ring-1 ring-rose-400/30">
                             <span className="size-1.5 rounded-full bg-rose-300 animate-pulse" />
@@ -551,13 +577,18 @@ export function AgendaList({
                             Now
                           </span>
                         )}
+                        {!liveTalk && !liveVenue && (
+                          // Subtle stage tag stands in for the now-removed
+                          // time, so the top row of the card isn't empty
+                          // for non-live sessions.
+                          <span
+                            className={`font-mono text-[10px] uppercase tracking-[0.18em] px-2 py-0.5 rounded-full ring-1 ${stageClass}`}
+                          >
+                            {slot.stage}
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
-                        <span
-                          className={`font-mono text-[10px] uppercase tracking-[0.18em] px-2 py-0.5 rounded-full ring-1 ${stageClass}`}
-                        >
-                          {slot.stage}
-                        </span>
                         {me === null ? (
                           <a
                             href={`/api/auth/sign-in?return_to=${encodeURIComponent("/app/agenda")}`}
@@ -607,9 +638,12 @@ export function AgendaList({
                     )}
                   </div>
                 </div>
-              </li>
+              </article>
             );
-          })}
+                })}
+              </div>
+            </li>
+          ))}
         </ol>
       )}
     </div>
