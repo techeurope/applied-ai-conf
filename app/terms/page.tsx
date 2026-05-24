@@ -108,6 +108,39 @@ export default function TermsPage() {
         </p>
 
         <h2 className="text-2xl font-mono font-bold text-white mt-12 mb-6">
+          3b. Event App, Networking &amp; Badge Scanning
+        </h2>
+        <p className="mb-4">
+          Applied AI Conf provides an event networking app in which you create a
+          profile (such as your name, role, company, LinkedIn URL, and bio) and
+          are issued a personal QR code. The app is designed for in-person
+          networking: when you display your QR code and another attendee scans
+          it, your profile is shown to them and saved into their contacts, and
+          you may likewise scan other attendees to save theirs.
+        </p>
+        <p className="mb-4">
+          By using the app you agree that other attendees may scan your QR code
+          and retain your profile information for the purpose of networking at
+          the event. This is a standard and expected part of attending, and
+          there is no per-scan opt-out. If you do not wish to be scanned, simply
+          do not display your QR code. You can remove yourself entirely at any
+          time by deleting your account in the app, which removes your profile
+          from other attendees&apos; contact lists.
+        </p>
+        <p className="mb-8">
+          If you join a partner team account within the app, contacts scanned by
+          any member of that team are visible to the whole team. Further detail
+          on how this data is processed is set out in our{" "}
+          <a
+            href="/privacy"
+            className="text-white hover:text-gray-300 transition-colors"
+          >
+            Privacy Policy
+          </a>
+          .
+        </p>
+
+        <h2 className="text-2xl font-mono font-bold text-white mt-12 mb-6">
           4. Event Changes
         </h2>
         <p className="mb-4">
@@ -224,7 +257,7 @@ export default function TermsPage() {
         </p>
 
         <p className="text-sm text-gray-500 mt-12">
-          Last updated: May 14, 2026
+          Last updated: May 25, 2026
         </p>
       </div>
     </SubpageLayout>

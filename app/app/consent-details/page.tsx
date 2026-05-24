@@ -6,17 +6,19 @@ export default function ConsentDetailsPage() {
       <header className="space-y-2">
         <h1 className="font-mono text-xl tracking-tight">What you&apos;re consenting to</h1>
         <p className="text-zinc-400 text-sm">
-          Plain-language explanation of each toggle on the privacy screen. Every one of these is
-          optional and can be flipped any time in Settings.
+          Plain-language explanation of how your data is used. The email preference can be flipped
+          any time in Settings; scanning is standard conference behaviour covered by the Terms.
         </p>
       </header>
 
       <section className="space-y-2">
-        <h2 className="font-mono text-sm text-foreground">Show my profile when scanned</h2>
+        <h2 className="font-mono text-sm text-foreground">Being scanned</h2>
         <p className="text-sm text-zinc-300 leading-relaxed">
           When someone points their camera at your QR code, your profile (name, role, company,
-          LinkedIn URL, bio) is shown to them and saved into their contact list. Turn this off and
-          your QR stops working — nobody can scan you.
+          LinkedIn URL, bio) is shown to them and saved into their contact list. This is standard
+          conference behaviour and is covered by the Terms you accept when you sign up — there is no
+          separate toggle. If you don&apos;t want to be scanned, simply don&apos;t show your QR code.
+          To remove yourself entirely, delete your account.
         </p>
       </section>
 
@@ -52,10 +54,9 @@ export default function ConsentDetailsPage() {
         <p className="text-sm text-zinc-300 leading-relaxed">
           If you join a team account (typically a partner company), every contact your team scans
           is visible to every team member. This means when a team-member scans someone, the whole
-          team sees that person&apos;s profile. The scanned person consents to this when they
-          enable &quot;Show my profile when scanned&quot; — the consent text on that toggle calls
-          out team sharing explicitly. Turn this off at the team level to keep your scans private
-          to you.
+          team sees that person&apos;s profile. Everyone you scan has accepted the Terms, which
+          cover scanning and team sharing. Turn this off at the team level to keep your scans
+          private to you.
         </p>
       </section>
 

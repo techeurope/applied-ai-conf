@@ -186,37 +186,83 @@ export const ensureFromWorkos = mutation({
 });
 
 // Reset a user back to "just signed in for the first time" — for QA only.
-// Wipes ticketLinks + onboarding state by email. If the user has a matching
-// approved row in lumaAttendees, the next sign-in will silently auto-link
-// again and they'll only see /app/onboarding (not /app/link-ticket). To see
-// /app/link-ticket you need a user whose email isn't in lumaAttendees.
+// Wipes onboarding + terms-acceptance state by email. By default it also
+// wipes the ticket link; if the user has a matching approved row in
+// lumaAttendees, the next sign-in will silently auto-link again and they'll
+// only see /app/onboarding (not /app/link-ticket). To see /app/link-ticket
+// you need a user whose email isn't in lumaAttendees.
+//
+// Pass keepTicket: true to leave the ticket link intact — the user stays
+// "verified" and lands straight on /app/onboarding, which is what you want
+// when testing the terms gate specifically.
 export const bootstrapResetForOnboardingTest = internalMutation({
-  args: { email: v.string() },
-  handler: async (ctx, { email }) => {
+  args: { email: v.string(), keepTicket: v.optional(v.boolean()) },
+  handler: async (ctx, { email, keepTicket }) => {
     const normalized = email.toLowerCase().trim();
     const user = await ctx.db
       .query("users")
       .withIndex("by_email", (q) => q.eq("email", normalized))
       .first();
     if (!user) throw new Error(`No user with email ${normalized}`);
-    const links = await ctx.db
-      .query("ticketLinks")
-      .withIndex("by_user", (q) => q.eq("userId", user._id))
-      .collect();
-    for (const l of links) {
-      await ctx.db.delete(l._id);
-    }
-    await ctx.db.patch(user._id, {
-      ticketLinkedAt: undefined,
-      lumaGuestId: undefined,
+
+    // Always reset onboarding + terms acceptance so both gates show again.
+    const patch: Record<string, unknown> = {
       onboardingRequired: true,
       onboardingCompletedAt: undefined,
-    });
+      termsAcceptedAt: undefined,
+      termsAcceptedVersion: undefined,
+    };
+
+    let ticketLinksRemoved = 0;
+    if (!keepTicket) {
+      const links = await ctx.db
+        .query("ticketLinks")
+        .withIndex("by_user", (q) => q.eq("userId", user._id))
+        .collect();
+      for (const l of links) {
+        await ctx.db.delete(l._id);
+      }
+      ticketLinksRemoved = links.length;
+      patch.ticketLinkedAt = undefined;
+      patch.lumaGuestId = undefined;
+    }
+
+    await ctx.db.patch(user._id, patch);
     return {
       userId: user._id,
       email: normalized,
-      ticketLinksRemoved: links.length,
+      keptTicket: !!keepTicket,
+      ticketLinksRemoved,
     };
+  },
+});
+
+// Backfill: mark every already-onboarded user as having accepted the current
+// terms. These users completed onboarding BEFORE the terms gate existed, so
+// they bypassed it — we record acceptance for them now. Skips users who never
+// completed onboarding (the live gate catches them when they onboard) and
+// anyone who already has a termsAcceptedAt. Run once, after the terms gate
+// ships to a deployment.
+export const backfillTermsForOnboardedUsers = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const all = await ctx.db.query("users").collect();
+    const now = Date.now();
+    const updated: string[] = [];
+    const skipped: string[] = [];
+    for (const u of all) {
+      if (u.termsAcceptedAt) continue; // already recorded
+      if (!u.onboardingCompletedAt) {
+        skipped.push(u.email); // never onboarded — let the live gate handle them
+        continue;
+      }
+      await ctx.db.patch(u._id, {
+        termsAcceptedAt: now,
+        termsAcceptedVersion: CURRENT_TERMS_VERSION,
+      });
+      updated.push(u.email);
+    }
+    return { updated, skipped, updatedCount: updated.length, total: all.length };
   },
 });
 
@@ -247,6 +293,11 @@ const profilePatchArgs = {
   imageStorageId: v.optional(v.id("_storage")),
 };
 
+// Current published version of /terms ("Last updated: May 25, 2026"). Bump
+// this whenever the terms page changes so we have an audit trail of which
+// version each attendee accepted (and can re-prompt if needed).
+export const CURRENT_TERMS_VERSION = "2026-05-25";
+
 export const updateProfile = mutation({
   args: profilePatchArgs,
   handler: async (ctx, patch) => {
@@ -257,13 +308,22 @@ export const updateProfile = mutation({
 });
 
 export const completeOnboarding = mutation({
-  args: profilePatchArgs,
-  handler: async (ctx, patch) => {
+  args: { ...profilePatchArgs, termsAccepted: v.boolean() },
+  handler: async (ctx, { termsAccepted, ...patch }) => {
     const user = await requireActiveUser(ctx);
+    // Hard gate: no conference onboarding without accepting the terms. The
+    // frontend disables Continue until the box is ticked, but we re-check
+    // here so the gate can't be bypassed by calling the mutation directly.
+    if (!termsAccepted) {
+      throw new Error("You must accept the Terms and Conditions to continue.");
+    }
+    const now = Date.now();
     await ctx.db.patch(user._id, {
       ...patch,
       onboardingRequired: false,
-      onboardingCompletedAt: Date.now(),
+      onboardingCompletedAt: now,
+      termsAcceptedAt: now,
+      termsAcceptedVersion: CURRENT_TERMS_VERSION,
     });
     return user._id;
   },

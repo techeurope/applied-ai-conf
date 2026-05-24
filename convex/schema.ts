@@ -28,6 +28,12 @@ export default defineSchema({
     publicToken: v.optional(v.string()),
     ticketLinkedAt: v.optional(v.number()),
     lumaGuestId: v.optional(v.string()),
+    // Terms & Conditions acceptance. Required to complete conference
+    // onboarding (enforced in users.completeOnboarding). The version stamp
+    // lets us re-prompt if the terms change. Absent on the bare worker
+    // account — only the conference onboarding gate sets it.
+    termsAcceptedAt: v.optional(v.number()),
+    termsAcceptedVersion: v.optional(v.string()),
   })
     .index("by_email", ["email"])
     .index("by_workos_id", ["workosUserId"])
@@ -163,7 +169,7 @@ export default defineSchema({
   consents: defineTable({
     userId: v.id("users"),
     key: v.union(
-      v.literal("visible_when_scanned"),
+      v.literal("visible_when_scanned"), // legacy: scanning is now governed by the Terms, no UI toggle
       v.literal("directory_listing"),
       v.literal("ai_fit_scoring"),
       v.literal("email_summaries"), // legacy, kept for existing rows; no UI
@@ -223,6 +229,32 @@ export default defineSchema({
     verifiedByUserId: v.optional(v.id("users")),
   })
     .index("by_user", ["userId"])
+    .index("by_luma_guest_id", ["lumaGuestId"]),
+
+  // A pending request to move a ticket from one account (fromUserId) to
+  // another (toUserId). Created when the email-code flow detects a conflict.
+  // Approval comes from the current holder's inbox — the token in the email
+  // is the auth, no signed-in session required to approve/decline.
+  ticketTransferRequests: defineTable({
+    token: v.string(),
+    lumaGuestId: v.string(),
+    fromUserId: v.id("users"),
+    toUserId: v.id("users"),
+    requestedAt: v.number(),
+    expiresAt: v.number(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("approved"),
+      v.literal("declined"),
+      v.literal("expired"),
+      v.literal("superseded"),
+    ),
+    resolvedAt: v.optional(v.number()),
+    notifiedEmail: v.string(),
+  })
+    .index("by_token", ["token"])
+    .index("by_to_user", ["toUserId"])
+    .index("by_from_user", ["fromUserId"])
     .index("by_luma_guest_id", ["lumaGuestId"]),
 
   // Per-email log of every voucher that's ever been issued, indexed by

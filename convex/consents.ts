@@ -2,7 +2,7 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
 const consentKey = v.union(
-  v.literal("visible_when_scanned"),
+  v.literal("visible_when_scanned"), // legacy: scanning is now governed by the Terms, no UI toggle
   v.literal("directory_listing"),
   v.literal("ai_fit_scoring"),
   v.literal("email_summaries"), // legacy, kept for back-compat

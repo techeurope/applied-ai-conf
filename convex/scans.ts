@@ -39,23 +39,14 @@ export const record = mutation({
     const scanned = await ctx.db.get(scannedUserId);
     if (!scanned || scanned.deletedAt) throw new Error("Scanned user not found");
 
-    // Default-deny: the scanned user must have an explicit consent row with
-    // granted=true. Previously this was fail-open (missing row = allowed),
-    // which silently exposed pre-onboarding users (no consent yet) and made
-    // a UX inconsistency — onboarding presents `visible_when_scanned` as
-    // opt-in. Users who completed onboarding have an explicit row from the
-    // `consents:set` call there; users who haven't yet shouldn't appear in
-    // a partner's contacts list.
-    const visibility = await ctx.db
-      .query("consents")
-      .withIndex("by_user_key", (q) =>
-        q.eq("userId", scannedUserId).eq("key", "visible_when_scanned"),
-      )
-      .first();
-    if (!visibility?.granted) {
-      throw new Error(
-        "This user has opted out of being scanned (or hasn't finished onboarding).",
-      );
+    // Scanning is standard conference behaviour, covered by the Terms every
+    // attendee accepts during onboarding — there is no separate opt-out. The
+    // only gate is that the scanned user actually finished onboarding (i.e.
+    // accepted the Terms); pre-onboarding users haven't agreed yet and aren't
+    // exposed. To stop being scanned a user simply doesn't show their QR, or
+    // deletes their account.
+    if (!scanned.onboardingCompletedAt) {
+      throw new Error("This user hasn't finished onboarding yet.");
     }
 
     const now = Date.now();

@@ -6,14 +6,9 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@convex/_generated/api";
 
-type ConsentKey = "visible_when_scanned" | "conference_updates";
+type ConsentKey = "conference_updates";
 
 const CONSENT_ITEMS: { key: ConsentKey; label: string; hint: string }[] = [
-  {
-    key: "visible_when_scanned",
-    label: "Show my profile when scanned",
-    hint: "Without this your QR can't do anything.",
-  },
   {
     key: "conference_updates",
     label: "Email me conference updates",
@@ -21,7 +16,7 @@ const CONSENT_ITEMS: { key: ConsentKey; label: string; hint: string }[] = [
   },
 ];
 
-const DRAFT_STORAGE_KEY = "aac:onboarding-draft:v1";
+const DRAFT_STORAGE_KEY = "aac:onboarding-draft:v2";
 
 interface OnboardingDraft {
   name: string;
@@ -30,6 +25,9 @@ interface OnboardingDraft {
   linkedinUrl: string;
   bio: string;
   consents: Record<ConsentKey, boolean>;
+  // Mandatory legal acceptance — distinct from the optional preference
+  // consents above. Must be an affirmative tick, so it defaults to false.
+  termsAccepted: boolean;
 }
 
 const EMPTY_DRAFT: OnboardingDraft = {
@@ -39,9 +37,9 @@ const EMPTY_DRAFT: OnboardingDraft = {
   linkedinUrl: "",
   bio: "",
   consents: {
-    visible_when_scanned: true,
     conference_updates: true,
   },
+  termsAccepted: false,
 };
 
 function loadDraft(): OnboardingDraft | null {
@@ -130,6 +128,7 @@ export default function OnboardingPage() {
         company: form.company,
         linkedinUrl: form.linkedinUrl,
         bio: form.bio,
+        termsAccepted: form.termsAccepted,
       });
       clearDraft();
       router.push("/app");
@@ -223,10 +222,34 @@ export default function OnboardingPage() {
         </ul>
       </fieldset>
 
+      <div className="pt-2">
+        <label className="flex items-start gap-2.5 cursor-pointer rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3.5">
+          <input
+            type="checkbox"
+            checked={form.termsAccepted}
+            onChange={(e) => setForm((f) => ({ ...f, termsAccepted: e.target.checked }))}
+            className="mt-0.5 size-4 accent-white shrink-0"
+          />
+          <span className="block text-sm text-white/80 leading-snug">
+            I agree to the{" "}
+            <a
+              href="/terms"
+              target="_blank"
+              rel="noreferrer"
+              className="underline text-white hover:text-white/70"
+            >
+              Terms and Conditions
+            </a>
+            .{" "}
+            <span className="text-white/40">Required to continue.</span>
+          </span>
+        </label>
+      </div>
+
       <button
         type="button"
         onClick={handleSubmit}
-        disabled={saving || !form.name.trim()}
+        disabled={saving || !form.name.trim() || !form.termsAccepted}
         className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3.5 rounded-full bg-white text-black font-mono text-sm font-medium shadow-xl shadow-white/10 hover:shadow-white/20 hover:scale-[1.02] transition-all ring-1 ring-white/30 disabled:opacity-50 disabled:hover:scale-100"
       >
         {saving ? "Saving…" : "Continue"}

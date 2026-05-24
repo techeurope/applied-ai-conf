@@ -6,14 +6,9 @@ import { useAuth } from "@workos-inc/authkit-nextjs/components";
 import { api } from "@convex/_generated/api";
 import { useEffect, useState } from "react";
 
-type ConsentKey = "visible_when_scanned" | "conference_updates";
+type ConsentKey = "conference_updates";
 
 const CONSENT_ITEMS: { key: ConsentKey; label: string; hint: string }[] = [
-  {
-    key: "visible_when_scanned",
-    label: "Show my profile when scanned",
-    hint: "Without this your QR can't do anything.",
-  },
   {
     key: "conference_updates",
     label: "Email me conference updates",
