@@ -10,6 +10,7 @@
 
 import type * as _auth from "../_auth.js";
 import type * as _tokens from "../_tokens.js";
+import type * as abuse_tests from "../abuse_tests.js";
 import type * as admin from "../admin.js";
 import type * as admin_email from "../admin_email.js";
 import type * as agenda from "../agenda.js";
@@ -38,6 +39,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   _auth: typeof _auth;
   _tokens: typeof _tokens;
+  abuse_tests: typeof abuse_tests;
   admin: typeof admin;
   admin_email: typeof admin_email;
   agenda: typeof agenda;

@@ -1,5 +1,5 @@
 // QA harness for the delete + recreate abuse vectors.
-// Run via: npx convex run _abuse_tests:run '{}'
+// Run via: npx convex run abuse_tests:run '{}'
 //
 // All test fixtures use the @example.local domain so they're trivially
 // distinguishable from real attendee data and bootstrapPurgeUserByEmail
@@ -277,7 +277,7 @@ export const run = internalAction({
     try {
       // 1a. Create original user
       const userA = (await ctx.runMutation(
-        internal._abuse_tests._setupVoucherDedupeUser,
+        internal.abuse_tests._setupVoucherDedupeUser,
         { email: dedupeEmail, name: "Dedupe Test A" },
       )) as Id<"users">;
       // 1b. Run bootstrap — should issue voucher
@@ -285,7 +285,7 @@ export const run = internalAction({
         internal.vouchers.bootstrapIssueForVerifiedAttendees,
         { kind: TEST_KIND },
       );
-      const after1 = await ctx.runQuery(internal._abuse_tests._countVouchersForEmail, {
+      const after1 = await ctx.runQuery(internal.abuse_tests._countVouchersForEmail, {
         email: dedupeEmail,
         kind: TEST_KIND,
       });
@@ -294,11 +294,11 @@ export const run = internalAction({
         email: dedupeEmail,
       });
       const afterDelete = await ctx.runQuery(
-        internal._abuse_tests._countVouchersForEmail,
+        internal.abuse_tests._countVouchersForEmail,
         { email: dedupeEmail, kind: TEST_KIND },
       );
       // 1d. Re-create user with same email (simulates re-signup via WorkOS)
-      await ctx.runMutation(internal._abuse_tests._setupVoucherDedupeUser, {
+      await ctx.runMutation(internal.abuse_tests._setupVoucherDedupeUser, {
         email: dedupeEmail,
         name: "Dedupe Test B (re-signup)",
       });
@@ -316,7 +316,7 @@ export const run = internalAction({
         internal.vouchers.bootstrapIssueForVerifiedAttendees,
         { kind: TEST_KIND },
       );
-      const after2 = await ctx.runQuery(internal._abuse_tests._countVouchersForEmail, {
+      const after2 = await ctx.runQuery(internal.abuse_tests._countVouchersForEmail, {
         email: dedupeEmail,
         kind: TEST_KIND,
       });
@@ -347,7 +347,7 @@ export const run = internalAction({
         email: dedupeEmail,
       });
       const userA = (await ctx.runMutation(
-        internal._abuse_tests._setupVoucherDedupeUser,
+        internal.abuse_tests._setupVoucherDedupeUser,
         { email: dedupeEmail, name: "Dedupe Test A" },
       )) as Id<"users">;
       // Issue once
@@ -355,7 +355,7 @@ export const run = internalAction({
         internal.vouchers.bootstrapIssueForVerifiedAttendees,
         { kind: TEST_KIND },
       );
-      const initial = await ctx.runQuery(internal._abuse_tests._countVouchersForEmail, {
+      const initial = await ctx.runQuery(internal.abuse_tests._countVouchersForEmail, {
         email: dedupeEmail,
         kind: TEST_KIND,
       });
@@ -363,11 +363,11 @@ export const run = internalAction({
       // an earlier version of deleteAccount that didn't cascade vouchers).
       // We do this by deleting just the user row, leaving the voucher.
       await ctx.runMutation(
-        internal._abuse_tests._deleteUserRowOnly,
+        internal.abuse_tests._deleteUserRowOnly,
         { userId: userA },
       );
       // Re-create user same email
-      await ctx.runMutation(internal._abuse_tests._setupVoucherDedupeUser, {
+      await ctx.runMutation(internal.abuse_tests._setupVoucherDedupeUser, {
         email: dedupeEmail,
         name: "Dedupe Test B (re-signup, voucher leftover)",
       });
@@ -376,7 +376,7 @@ export const run = internalAction({
         internal.vouchers.bootstrapIssueForVerifiedAttendees,
         { kind: TEST_KIND },
       );
-      const after = await ctx.runQuery(internal._abuse_tests._countVouchersForEmail, {
+      const after = await ctx.runQuery(internal.abuse_tests._countVouchersForEmail, {
         email: dedupeEmail,
         kind: TEST_KIND,
       });
@@ -396,14 +396,14 @@ export const run = internalAction({
     // ---- Test 2: deactivated user can't delete account ----
     try {
       const userId = (await ctx.runMutation(
-        internal._abuse_tests._setupDeactivatedUser,
+        internal.abuse_tests._setupDeactivatedUser,
         { email: deactivatedEmail, name: "Kicked Test" },
       )) as Id<"users">;
       let threw = false;
       let errorMsg = "";
       try {
         await ctx.runMutation(
-          internal._abuse_tests._attemptCascadeViaDeleteAccount,
+          internal.abuse_tests._attemptCascadeViaDeleteAccount,
           { userId },
         );
       } catch (e) {
@@ -411,7 +411,7 @@ export const run = internalAction({
         errorMsg = e instanceof Error ? e.message : String(e);
       }
       // Verify user row STILL exists
-      const stillThere = await ctx.runQuery(internal._abuse_tests._inspectByEmail, {
+      const stillThere = await ctx.runQuery(internal.abuse_tests._inspectByEmail, {
         email: deactivatedEmail,
       });
       results.push({
@@ -430,16 +430,16 @@ export const run = internalAction({
     // ---- Test 3: cascade completeness ----
     try {
       const userId = (await ctx.runMutation(
-        internal._abuse_tests._setupCascadeUser,
+        internal.abuse_tests._setupCascadeUser,
         { email: cascadeEmail, name: "Cascade Test" },
       )) as Id<"users">;
-      const before = await ctx.runQuery(internal._abuse_tests._inspectByEmail, {
+      const before = await ctx.runQuery(internal.abuse_tests._inspectByEmail, {
         email: cascadeEmail,
       });
       await ctx.runMutation(internal.users.bootstrapPurgeUserByEmail, {
         email: cascadeEmail,
       });
-      const after = await ctx.runQuery(internal._abuse_tests._inspectByEmail, {
+      const after = await ctx.runQuery(internal.abuse_tests._inspectByEmail, {
         email: cascadeEmail,
       });
       const beforeOK =
