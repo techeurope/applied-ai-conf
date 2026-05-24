@@ -24,7 +24,7 @@ export default function ContactsPage() {
           <p className="text-base text-white/80 mb-1">No contacts yet.</p>
           <p className="text-sm text-white/50 mb-6">Scan someone&apos;s QR to add them.</p>
           <Link
-            href="/app"
+            href="/app/connect?mode=scanner"
             className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-white text-black font-mono text-xs font-medium hover:scale-[1.02] transition-all ring-1 ring-white/30"
           >
             Open scanner
