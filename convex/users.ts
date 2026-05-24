@@ -150,6 +150,23 @@ export const ensureFromWorkos = mutation({
       await tryAutoLink(ctx, after);
       return existing._id;
     }
+    // Email-collision check: WorkOS should be the sole IdP for our setup,
+    // so a single email maps to a single workosUserId. If this fires it
+    // means either (a) a duplicate was introduced manually via the admin
+    // UI, or (b) WorkOS picked up a different IdP for the same email. In
+    // either case we refuse to create a second row — surface a clean
+    // error so the user can contact help desk.
+    if (claimedEmail) {
+      const sibling = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", claimedEmail))
+        .first();
+      if (sibling) {
+        throw new Error(
+          `An account for ${claimedEmail} already exists under a different sign-in. Visit the help desk to consolidate.`,
+        );
+      }
+    }
     const publicToken = await ensureUniquePublicToken(ctx);
     const userId = await ctx.db.insert("users", {
       email: claimedEmail,

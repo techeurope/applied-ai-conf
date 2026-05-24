@@ -105,6 +105,30 @@ export async function tryAutoLink(ctx: MutationCtx, user: Doc<"users">) {
     method: "auto",
     verifiedAt: now,
   });
+  // Race-safe cleanup: if two concurrent sign-ins for the same user both
+  // passed the existingLink check and both inserted, we now have ≥2 rows.
+  // Keep the earliest, delete the rest.
+  const allLinks = await ctx.db
+    .query("ticketLinks")
+    .withIndex("by_user", (q) => q.eq("userId", user._id))
+    .collect();
+  if (allLinks.length > 1) {
+    const sorted = allLinks.sort((a, b) => a.verifiedAt - b.verifiedAt);
+    const keep = sorted[0];
+    for (const extra of sorted.slice(1)) {
+      await ctx.db.delete(extra._id);
+    }
+    // Patch user to point at the survivor.
+    const patch: Record<string, unknown> = {
+      ticketLinkedAt: keep.verifiedAt,
+      lumaGuestId: keep.lumaGuestId,
+    };
+    if (luma.name && (!user.name || user.name === "Unnamed" || user.name === user.email)) {
+      patch.name = luma.name;
+    }
+    await ctx.db.patch(user._id, patch);
+    return keep;
+  }
   const patch: Record<string, unknown> = {
     ticketLinkedAt: now,
     lumaGuestId: luma.lumaGuestId,

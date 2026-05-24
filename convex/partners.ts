@@ -39,6 +39,25 @@ async function requirePartnerMembership(
   return { team, member, user };
 }
 
+// Race-safe partnerMembers dedupe. Two concurrent inserts for the same
+// (teamId, userId) can slip past existence checks; keep the oldest row,
+// delete the rest.
+async function dedupePartnerMember(
+  ctx: MutationCtx,
+  teamId: Id<"teams">,
+  userId: Id<"users">,
+): Promise<void> {
+  const rows = await ctx.db
+    .query("partnerMembers")
+    .withIndex("by_team_user", (q) => q.eq("teamId", teamId).eq("userId", userId))
+    .collect();
+  if (rows.length <= 1) return;
+  const sorted = rows.sort((a, b) => a.joinedAt - b.joinedAt);
+  for (const extra of sorted.slice(1)) {
+    await ctx.db.delete(extra._id);
+  }
+}
+
 async function writeAudit(
   ctx: MutationCtx,
   actorUserId: Id<"users">,
@@ -1073,6 +1092,7 @@ export const acceptTeamInvite = mutation({
         invitedByUserId: invite.invitedByUserId,
         joinedAt: now,
       });
+      await dedupePartnerMember(ctx, invite.teamId, user._id);
     }
     const patch: Record<string, unknown> = { teamId: invite.teamId };
     if (!user.ticketLinkedAt) patch.ticketLinkedAt = now;
@@ -1559,6 +1579,9 @@ export const redeemTeamInviteCode = mutation({
       invitedByUserId: row.createdByUserId,
       joinedAt: Date.now(),
     });
+    // Race-safe: if two concurrent redeems both passed the existing-check
+    // they'd both insert. Collapse to one (keep the oldest).
+    await dedupePartnerMember(ctx, team._id, user._id);
     const patch: Record<string, unknown> = { teamId: team._id };
     if (!user.ticketLinkedAt) patch.ticketLinkedAt = Date.now();
     await ctx.db.patch(user._id, patch);
