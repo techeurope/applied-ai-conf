@@ -172,10 +172,9 @@ node scripts/prod-cleanup.mjs --prod
 # (CONVEX_DEPLOY_KEY env var must be set for the line above too)
 ```
 
-The prod CONVEX_DEPLOY_KEY is:
-```
-prod:neat-coyote-777|eyJ2MiI6IjIwNWU3OTg0OTZhYTQzMmI5ZDAwZGMwYmJjYWNjZDMwIn0=
-```
+The prod CONVEX_DEPLOY_KEY lives in 1Password / Vercel env vars — never
+commit it to this repo. Generate / rotate from the Convex dashboard:
+https://dashboard.convex.dev/t/0nlyai/appliedaiconf-connect-convex/neat-coyote-777/settings
 
 ## Known gaps / non-blockers
 
