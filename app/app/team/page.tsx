@@ -65,6 +65,12 @@ export default function TeamDashboardPage() {
             Awaiting verification. Lead capture works, but team features unlock once admin verifies.
           </p>
         )}
+        <Link
+          href="/app/team/help"
+          className="inline-block font-mono text-[11px] uppercase tracking-[0.18em] text-white/40 hover:text-white pt-2"
+        >
+          How does this work? ›
+        </Link>
       </header>
 
       <section className="grid grid-cols-3 gap-3">

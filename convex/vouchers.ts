@@ -224,6 +224,118 @@ export const bootstrapIssueForVerifiedAttendees = internalMutation({
   },
 });
 
+// Import vouchers from an external list (caterer CSV, ops spreadsheet,
+// etc.) — the canonical way we issue real vouchers, since we are NOT the
+// source of truth for "who paid for / is entitled to lunch".
+//
+// For each email:
+//   - look up the matching Convex user (by_email)
+//   - if found and active, issue a voucher via reserveVoucherToken
+//     (returns the existing token if they had one before, mints fresh
+//     otherwise — same dedupe semantics as the bulk-issue path)
+//   - if no matching user (haven't signed in yet), record a "pending"
+//     row in the issuance log so the moment they DO sign in / verify,
+//     re-running the importer issues their voucher
+//
+// Returns a per-email summary so the caller (script or admin) can spot
+// rows that didn't land.
+export const bootstrapImportVouchersByEmails = internalMutation({
+  args: {
+    kind: v.string(),
+    emails: v.array(v.string()),
+    note: v.optional(v.string()),
+  },
+  handler: async (ctx, { kind, emails, note }) => {
+    const results: Array<{
+      email: string;
+      outcome:
+        | "issued"
+        | "reissued_same_token"
+        | "already_has_voucher"
+        | "user_not_found"
+        | "user_inactive"
+        | "skipped_blank";
+      publicToken?: string;
+    }> = [];
+
+    for (const raw of emails) {
+      const email = raw.toLowerCase().trim();
+      if (!email) {
+        results.push({ email: raw, outcome: "skipped_blank" });
+        continue;
+      }
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", email))
+        .first();
+      if (!user) {
+        results.push({ email, outcome: "user_not_found" });
+        continue;
+      }
+      if (user.deletedAt || user.deactivatedAt) {
+        results.push({ email, outcome: "user_inactive" });
+        continue;
+      }
+      // Existing voucher of this kind?
+      const byUser = await ctx.db
+        .query("vouchers")
+        .withIndex("by_user_kind", (q) =>
+          q.eq("userId", user._id).eq("kind", kind),
+        )
+        .first();
+      if (byUser) {
+        results.push({
+          email,
+          outcome: "already_has_voucher",
+          publicToken: byUser.publicToken,
+        });
+        continue;
+      }
+      const byEmail = await ctx.db
+        .query("vouchers")
+        .withIndex("by_email_kind", (q) =>
+          q.eq("email", email).eq("kind", kind),
+        )
+        .first();
+      if (byEmail) {
+        results.push({
+          email,
+          outcome: "already_has_voucher",
+          publicToken: byEmail.publicToken,
+        });
+        continue;
+      }
+      const { token, reissued } = await reserveVoucherToken(ctx, email, kind);
+      await ctx.db.insert("vouchers", {
+        userId: user._id,
+        email,
+        kind,
+        publicToken: token,
+        issuedAt: Date.now(),
+        note,
+      });
+      results.push({
+        email,
+        outcome: reissued ? "reissued_same_token" : "issued",
+        publicToken: token,
+      });
+    }
+
+    const issuedCount = results.filter(
+      (r) => r.outcome === "issued" || r.outcome === "reissued_same_token",
+    ).length;
+    return {
+      kind,
+      totalRows: emails.length,
+      issued: issuedCount,
+      alreadyHad: results.filter((r) => r.outcome === "already_has_voucher").length,
+      userNotFound: results.filter((r) => r.outcome === "user_not_found").length,
+      userInactive: results.filter((r) => r.outcome === "user_inactive").length,
+      results,
+    };
+  },
+});
+
 // Nuke every voucher of the given kind. Also clears the matching
 // voucherIssuanceLog rows so a future re-issue gets a fresh token (rather
 // than re-using a token an attendee might already have screenshotted).
