@@ -13,6 +13,7 @@ const subTabs = [
   { href: "/app/admin/luma", label: "Luma" },
   { href: "/app/admin/partners", label: "Partners" },
   { href: "/app/admin/codes", label: "Claim codes" },
+  { href: "/app/admin/stage", label: "Stage" },
   { href: "/app/admin/audit", label: "Audit" },
 ];
 

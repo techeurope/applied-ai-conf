@@ -59,6 +59,12 @@ export default function AdminOverviewPage() {
           >
             New claim code
           </Link>
+          <Link
+            href="/app/admin/stage"
+            className="inline-flex items-center justify-center px-4 py-2 rounded-full ring-1 ring-white/20 font-mono text-xs"
+          >
+            Stage monitors
+          </Link>
         </div>
       </section>
     </div>
