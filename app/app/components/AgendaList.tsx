@@ -81,6 +81,20 @@ function speakerLines(slot: Pick<Slot, "speakerName" | "speakerNames">): {
   };
 }
 
+// Match by lowercase substring so renamed-but-recognisable titles
+// ("Lunch Break", "Lunch & Networking") still resolve. Order matters —
+// most specific match first.
+function venueImage(title: string): { src: string; alt: string } | null {
+  const t = title.toLowerCase();
+  if (t.includes("lunch")) return { src: "/agenda/lunch.png", alt: "Lunch" };
+  if (t.includes("coffee")) return { src: "/agenda/coffee.png", alt: "Coffee" };
+  if (t.includes("registration") || t.includes("doors"))
+    return { src: "/agenda/badge.png", alt: "Registration" };
+  if (t.includes("remarks") || t.includes("opening") || t.includes("closing"))
+    return { src: "/agenda/mic.png", alt: "Remarks" };
+  return null;
+}
+
 export function AgendaList({
   preloadedSlots,
   preloadedFavorites,
@@ -468,7 +482,7 @@ export function AgendaList({
             <li key={`${group.startTime}-${group.endTime}`} className="space-y-2">
               <h2 className="font-mono text-base sm:text-lg font-semibold tabular-nums text-white px-1">
                 {group.startTime}
-                <span className="text-white/30 mx-0.5">–</span>
+                <span className="text-white/60 mx-2">–</span>
                 {group.endTime}
               </h2>
               <div className="space-y-2">
@@ -480,7 +494,10 @@ export function AgendaList({
             const live = clock.isConferenceDay && isLive(slot, clock.nowMinutes);
             const liveTalk = live && !isVenueFormat;
             const liveVenue = live && isVenueFormat;
-            const { speaker, company, images } = speakerLines(slot);
+            const { speaker, company, images: speakerImages } = speakerLines(slot);
+            const fallbackImage =
+              speakerImages.length === 0 ? venueImage(slot.title) : null;
+            const images = fallbackImage ? [fallbackImage] : speakerImages;
             const slotConflicts = fav ? conflicts.get(slot.id) : undefined;
             const conflictColor = fav ? conflictColorBySlot.get(slot.id) : undefined;
             return (
