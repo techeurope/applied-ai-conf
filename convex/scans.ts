@@ -1,5 +1,6 @@
 import { mutation } from "./_generated/server";
 import { v } from "convex/values";
+import type { Id } from "./_generated/dataModel";
 
 async function getMe(ctx: any) {
   const identity = await ctx.auth.getUserIdentity();
@@ -14,17 +15,34 @@ async function getMe(ctx: any) {
   return user;
 }
 
+// Accept a public token (aac_xxxx) OR a raw user _id. Older QR codes
+// (pre-publicToken backfill) still encode the bare _id; everything
+// minted now uses the token. Convex's v.id() validator rejects token
+// strings outright, which is what was breaking partner scanning in
+// production.
 export const record = mutation({
   args: {
-    scannedUserId: v.id("users"),
+    token: v.string(),
     clientId: v.string(),
     eventId: v.optional(v.id("events")),
   },
-  handler: async (ctx, { scannedUserId, clientId, eventId }) => {
+  handler: async (ctx, { token, clientId, eventId }) => {
     const scanner = await getMe(ctx);
     if (!scanner.ticketLinkedAt && scanner.accessLevel !== "admin") {
       throw new Error("Ticket not verified");
     }
+
+    const byToken = await ctx.db
+      .query("users")
+      .withIndex("by_public_token", (q) => q.eq("publicToken", token))
+      .first();
+    let scannedUserId: Id<"users"> | null = byToken?._id ?? null;
+    if (!scannedUserId && /^[a-z0-9]{32}$/.test(token)) {
+      const byId = await ctx.db.get(token as Id<"users">);
+      if (byId) scannedUserId = byId._id;
+    }
+    if (!scannedUserId) throw new Error("Scanned user not found");
+
     if (scanner._id === scannedUserId) {
       throw new Error("Cannot scan yourself");
     }

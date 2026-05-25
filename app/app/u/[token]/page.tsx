@@ -6,7 +6,6 @@ import { useMutation, useQuery } from "convex/react";
 import { usePathname, useRouter } from "next/navigation";
 import { LogIn } from "lucide-react";
 import { api } from "@convex/_generated/api";
-import type { Id } from "@convex/_generated/dataModel";
 
 export default function ProfileViewPage({
   params,
@@ -37,7 +36,7 @@ export default function ProfileViewPage({
     if (sessionStorage.getItem(key)) return;
     sessionStorage.setItem(key, "1");
     const clientId = `view-${me._id}-${user._id}-${Date.now()}`;
-    recordScan({ scannedUserId: user._id as Id<"users">, clientId }).catch(() => {
+    recordScan({ token: user._id, clientId }).catch(() => {
       // visibility opt-outs, race conditions, etc. — fail silently
       sessionStorage.removeItem(key);
     });

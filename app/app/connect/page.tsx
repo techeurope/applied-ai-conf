@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import { Expand, IdCard, ImageUp, Mic, ScanLine, Shield } from "lucide-react";
 import { api } from "@convex/_generated/api";
-import type { Id } from "@convex/_generated/dataModel";
 import { UserQR } from "../components/UserQR";
 import { QrScanner } from "../components/QrScanner";
 import { FullScreenQr } from "../components/FullScreenQr";
@@ -246,7 +245,7 @@ function ScannerMode({
       try {
         const clientId = `${crypto.randomUUID()}-${token}`;
         const result = await recordScan({
-          scannedUserId: token as Id<"users">,
+          token,
           clientId,
         });
         if ("scanEventId" in result) {
