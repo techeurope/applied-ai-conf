@@ -133,19 +133,41 @@ export function QrScanner({ onScan, paused = false }: QrScannerProps) {
     }
   }, []);
 
-  // First-mount: silently try getUserMedia. On iOS Safari within the
-  // same browsing session — and on every other browser once permission
-  // is granted — this succeeds without any prompt and we skip the
-  // gesture button entirely. On a cold reload (default iOS setting is
-  // per-session permission) it throws NotAllowedError and we fall back
-  // to the gesture button.
+  // First-mount: race getUserMedia against a short timeout. On iOS
+  // Safari without a prior gesture, getUserMedia can hang forever
+  // instead of throwing, so we can't rely on a thrown error to fall
+  // back to the button. If we don't get a stream in ~1.2s, treat it as
+  // "needs gesture" and surface the Enable button (whose onClick is the
+  // gesture iOS requires). When permission is already persisted the
+  // stream returns well inside the budget and the user never sees the
+  // button.
   useEffect(() => {
     let cancelled = false;
+    let pendingStream: Promise<MediaStream> | null = null;
+    const SILENT_TIMEOUT_MS = 1200;
     (async () => {
       try {
-        const stream = await acquireStream();
+        pendingStream = acquireStream();
+        const stream = await Promise.race<MediaStream | "__timeout__">([
+          pendingStream,
+          new Promise<"__timeout__">((resolve) =>
+            setTimeout(() => resolve("__timeout__"), SILENT_TIMEOUT_MS),
+          ),
+        ]);
         if (cancelled) {
-          stream.getTracks().forEach((t) => t.stop());
+          if (stream !== "__timeout__") {
+            stream.getTracks().forEach((t) => t.stop());
+          }
+          return;
+        }
+        if (stream === "__timeout__") {
+          // iOS Safari is silently waiting on us. Give up the silent
+          // path and show the gesture button. Stop the in-flight stream
+          // if/when it eventually resolves so we don't leak the camera.
+          pendingStream
+            .then((s) => s.getTracks().forEach((t) => t.stop()))
+            .catch(() => {});
+          setPhase("needs_gesture");
           return;
         }
         await attachAndDecode(stream);
@@ -153,9 +175,9 @@ export function QrScanner({ onScan, paused = false }: QrScannerProps) {
         if (cancelled) return;
         const name = err instanceof Error ? err.name : "";
         const message = err instanceof Error ? err.message.toLowerCase() : "";
-        // Hard-block errors (no camera at all, insecure context, no API):
-        // surface immediately. Soft errors (NotAllowedError) just mean we
-        // need a gesture — show the button without a scary error UI.
+        // Soft errors (NotAllowedError, no-gesture) just mean we need
+        // the button. Hard errors (no camera at all, insecure context,
+        // no API) surface the error UI directly.
         const isGestureFix =
           name === "NotAllowedError" ||
           message.includes("denied") ||
