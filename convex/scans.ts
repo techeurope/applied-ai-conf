@@ -90,10 +90,12 @@ export const record = mutation({
       )
       .first();
 
+    let contactId;
     if (existingContact) {
       await ctx.db.patch(existingContact._id, { lastScanAt: now });
+      contactId = existingContact._id;
     } else {
-      await ctx.db.insert("contacts", {
+      contactId = await ctx.db.insert("contacts", {
         ownerType,
         ownerId: ownerId as string,
         contactedUserId: scannedUserId,
@@ -102,6 +104,19 @@ export const record = mutation({
       });
     }
 
-    return { scanEventId, duplicate: false };
+    // Profile snippet so the client can render the scan toast + recent-
+    // scans list without a follow-up users.getById round trip.
+    return {
+      scanEventId,
+      contactId,
+      duplicate: false,
+      scanned: {
+        _id: scanned._id,
+        name: scanned.name,
+        role: scanned.role,
+        company: scanned.company,
+        publicToken: scanned.publicToken,
+      },
+    };
   },
 });

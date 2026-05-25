@@ -267,6 +267,47 @@ export const backfillTermsForOnboardedUsers = internalMutation({
   },
 });
 
+// Wipe contacts + scanEvents between two specific users on prod — used
+// to reset to a fresh state so the same scan can be retested
+// end-to-end. Idempotent.
+export const bootstrapWipeScansBetween = internalMutation({
+  args: { scannerEmail: v.string(), scannedEmail: v.string() },
+  handler: async (ctx, { scannerEmail, scannedEmail }) => {
+    const scanner = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", scannerEmail.toLowerCase().trim()))
+      .first();
+    const scanned = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", scannedEmail.toLowerCase().trim()))
+      .first();
+    if (!scanner) return { error: "scanner not found" };
+    if (!scanned) return { error: "scanned not found" };
+    const scans = await ctx.db
+      .query("scanEvents")
+      .withIndex("by_scanner", (q) => q.eq("scannerUserId", scanner._id))
+      .filter((q) => q.eq(q.field("scannedUserId"), scanned._id))
+      .collect();
+    for (const s of scans) await ctx.db.delete(s._id);
+    const ownerType = scanner.teamId ? "team" : "user";
+    const ownerId = scanner.teamId ?? scanner._id;
+    const contacts = await ctx.db
+      .query("contacts")
+      .withIndex("by_owner_contacted", (q) =>
+        q
+          .eq("ownerType", ownerType)
+          .eq("ownerId", ownerId as string)
+          .eq("contactedUserId", scanned._id),
+      )
+      .collect();
+    for (const c of contacts) await ctx.db.delete(c._id);
+    return {
+      deletedScans: scans.length,
+      deletedContacts: contacts.length,
+    };
+  },
+});
+
 // Compare Luma + ticketLink state for two or more emails side-by-side.
 // Built to answer "does +testuser have its own ticket, and is it
 // different from the main account's?"

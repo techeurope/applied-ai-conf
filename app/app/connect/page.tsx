@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useMutation, useQuery } from "convex/react";
 import { ConvexError } from "convex/values";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -83,7 +84,7 @@ export default function ConnectPage() {
       {mode === "badge" ? (
         <BadgeMode me={me} myTeam={myTeam ?? null} />
       ) : (
-        <ScannerMode recordScan={recordScan} router={router} />
+        <ScannerMode recordScan={recordScan} />
       )}
     </div>
   );
@@ -240,15 +241,27 @@ function PillBadge({
 
 type RecordScan = ReturnType<typeof useMutation<typeof api.scans.record>>;
 
+type RecentScan = {
+  contactId: string;
+  scannedUserId: string;
+  name: string;
+  role?: string;
+  company?: string;
+  publicToken?: string;
+  at: number;
+};
+
 function ScannerMode({
   recordScan,
-  router,
 }: {
   recordScan: RecordScan;
-  router: ReturnType<typeof useRouter>;
 }) {
   const [status, setStatus] = useState<"idle" | "saving" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [recent, setRecent] = useState<RecentScan[]>([]);
+  // Cooldown so the camera doesn't re-decode the same QR a dozen times
+  // while it's still in frame. Holds the publicToken just scanned.
+  const lastScanRef = useRef<{ token: string; ts: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleScan = useCallback(
@@ -260,6 +273,14 @@ function ScannerMode({
         setErrorMessage("That QR isn't an attendee code.");
         return;
       }
+      // Cooldown: if the same token was scanned in the last 4s, skip —
+      // continuous decode loops would otherwise fire the mutation many
+      // times for the same QR sitting in front of the camera.
+      const last = lastScanRef.current;
+      if (last && last.token === token && Date.now() - last.ts < 4_000) {
+        return;
+      }
+      lastScanRef.current = { token, ts: Date.now() };
       setStatus("saving");
       try {
         const clientId = `${crypto.randomUUID()}-${token}`;
@@ -267,15 +288,32 @@ function ScannerMode({
           token,
           clientId,
         });
-        if ("scanEventId" in result) {
-          router.push(`/app/contacts`);
+        if ("scanned" in result && result.scanned) {
+          setRecent((prev) => {
+            const filtered = prev.filter(
+              (r) => r.scannedUserId !== result.scanned._id,
+            );
+            return [
+              {
+                contactId: result.contactId,
+                scannedUserId: result.scanned._id,
+                name: result.scanned.name,
+                role: result.scanned.role,
+                company: result.scanned.company,
+                publicToken: result.scanned.publicToken,
+                at: Date.now(),
+              },
+              ...filtered,
+            ].slice(0, 20);
+          });
         }
+        setStatus("idle");
       } catch (err) {
         setStatus("error");
         setErrorMessage(extractErrorMessage(err, "Could not save scan"));
       }
     },
-    [recordScan, router, status],
+    [recordScan, status],
   );
 
   const handleFile = useCallback(
@@ -305,8 +343,36 @@ function ScannerMode({
     [handleScan],
   );
 
+  const latest = recent[0];
+
   return (
     <section className="space-y-3">
+      {latest && (
+        <Link
+          href={`/app/contacts/${latest.contactId}`}
+          className="block rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-300/80 mb-1">
+                Just scanned
+              </div>
+              <div className="text-sm font-medium text-white truncate">
+                {latest.name}
+              </div>
+              {(latest.role || latest.company) && (
+                <div className="text-xs text-white/60 truncate">
+                  {[latest.role, latest.company].filter(Boolean).join(" · ")}
+                </div>
+              )}
+            </div>
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-200 shrink-0">
+              Open →
+            </span>
+          </div>
+        </Link>
+      )}
+
       <QrScanner onScan={handleScan} paused={status === "saving"} />
 
       <button
@@ -348,6 +414,34 @@ function ScannerMode({
             Try again
           </button>
         </div>
+      )}
+
+      {recent.length > 0 && (
+        <section className="space-y-2 pt-2">
+          <h3 className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">
+            This session
+          </h3>
+          <ul className="space-y-1.5">
+            {recent.map((r) => (
+              <li key={r.scannedUserId}>
+                <Link
+                  href={`/app/contacts/${r.contactId}`}
+                  className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 transition-colors"
+                >
+                  <div className="min-w-0">
+                    <div className="text-sm text-white truncate">{r.name}</div>
+                    {(r.role || r.company) && (
+                      <div className="text-[11px] text-white/40 truncate">
+                        {[r.role, r.company].filter(Boolean).join(" · ")}
+                      </div>
+                    )}
+                  </div>
+                  <span className="font-mono text-[10px] text-white/30 shrink-0">→</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
     </section>
   );
