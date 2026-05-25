@@ -29,7 +29,7 @@ function diagnoseError(err: unknown): { hint: string } {
   ) {
     return {
       hint:
-        "Camera permission was denied. On iPhone: Settings → Safari → Camera → set to 'Ask' or 'Allow', then reload. On Chrome: tap the lock icon in the address bar → Camera → Allow.",
+        "Camera permission was denied. On iPhone: Settings → Safari → Camera → set to 'Allow', then reload. On Chrome: tap the lock icon in the address bar → Camera → Allow.",
     };
   }
   if (
@@ -60,63 +60,38 @@ function diagnoseError(err: unknown): { hint: string } {
   };
 }
 
+async function acquireStream(): Promise<MediaStream> {
+  if (
+    typeof navigator === "undefined" ||
+    !navigator.mediaDevices ||
+    typeof navigator.mediaDevices.getUserMedia !== "function"
+  ) {
+    throw new Error(
+      "This browser doesn't expose camera APIs. Try Safari (iOS) or Chrome (Android) over HTTPS.",
+    );
+  }
+  return navigator.mediaDevices.getUserMedia({
+    video: { facingMode: { ideal: "environment" } },
+    audio: false,
+  });
+}
+
 export function QrScanner({ onScan, paused = false }: QrScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const onScanRef = useRef(onScan);
   const streamRef = useRef<MediaStream | null>(null);
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
   const [error, setError] = useState<ScannerError | null>(null);
-  // started = the user has tapped "Enable camera" so we have a fresh
-  // user-gesture context in which to call getUserMedia. iOS Safari
-  // silently denies the call (with no prompt) when it isn't initiated
-  // from a tap, so we never call it on mount unless the Permissions
-  // API tells us camera access is already granted (see effect below).
-  const [started, setStarted] = useState(false);
-  const [requesting, setRequesting] = useState(false);
-  // null = still checking, true = autostart (no button), false = show button
-  const [permissionResolved, setPermissionResolved] = useState<boolean | null>(
-    null,
+  // null = haven't tried yet (still resolving), "running" = stream is up,
+  // "needs_gesture" = silent attempt failed, show the Enable button
+  const [phase, setPhase] = useState<"resolving" | "running" | "needs_gesture">(
+    "resolving",
   );
+  const [requesting, setRequesting] = useState(false);
 
   useEffect(() => {
     onScanRef.current = onScan;
   }, [onScan]);
-
-  // Check the Permissions API on mount. If the user has already granted
-  // camera access in a previous session, skip the "Enable camera" button
-  // and just start the stream — useEffect-initiated getUserMedia is
-  // allowed by browsers when permission is already 'granted' (the gesture
-  // requirement only applies when the call would prompt). Permissions
-  // API isn't fully supported on iOS Safari for 'camera', so anything
-  // other than an explicit 'granted' falls back to the button.
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        if (
-          typeof navigator !== "undefined" &&
-          "permissions" in navigator &&
-          navigator.permissions?.query
-        ) {
-          const status = await navigator.permissions.query({
-            name: "camera" as PermissionName,
-          });
-          if (cancelled) return;
-          if (status.state === "granted") {
-            setStarted(true);
-          }
-          setPermissionResolved(true);
-          return;
-        }
-      } catch {
-        /* fall through to button */
-      }
-      if (!cancelled) setPermissionResolved(true);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const stopCamera = useCallback(() => {
     try {
@@ -134,84 +109,113 @@ export function QrScanner({ onScan, paused = false }: QrScannerProps) {
     }
   }, []);
 
-  // Pause/resume: when the parent flips `paused` (e.g. while saving a
-  // scan), tear the stream down to free the camera; restart it after
-  // unpause. This still doesn't initiate getUserMedia without a prior
-  // user gesture — once `started` is true the original tap counts as
-  // the gesture for the remainder of the page lifetime.
-  useEffect(() => {
-    if (!started) return;
-    if (paused) {
-      stopCamera();
+  // Attach the (already-acquired) stream to the video element and start
+  // zxing's decode loop. Used both by the silent-on-mount path and the
+  // button path so the logic only lives in one place.
+  const attachAndDecode = useCallback(async (stream: MediaStream) => {
+    const video = videoRef.current;
+    if (!video) {
+      stream.getTracks().forEach((t) => t.stop());
       return;
     }
-    const video = videoRef.current;
-    if (!video) return;
-    let cancelled = false;
+    streamRef.current = stream;
+    video.srcObject = stream;
+    await video.play().catch(() => {});
+    const reader = new BrowserMultiFormatReader();
+    readerRef.current = reader;
+    setPhase("running");
+    try {
+      await reader.decodeFromVideoElement(video, (result) => {
+        if (result) onScanRef.current(result.getText());
+      });
+    } catch {
+      /* zxing throws on reset, ignore */
+    }
+  }, []);
 
+  // First-mount: silently try getUserMedia. On iOS Safari within the
+  // same browsing session — and on every other browser once permission
+  // is granted — this succeeds without any prompt and we skip the
+  // gesture button entirely. On a cold reload (default iOS setting is
+  // per-session permission) it throws NotAllowedError and we fall back
+  // to the gesture button.
+  useEffect(() => {
+    let cancelled = false;
     (async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "environment" } },
-          audio: false,
-        });
+        const stream = await acquireStream();
         if (cancelled) {
           stream.getTracks().forEach((t) => t.stop());
           return;
         }
-        streamRef.current = stream;
-        video.srcObject = stream;
-        await video.play().catch(() => {});
-        const reader = new BrowserMultiFormatReader();
-        readerRef.current = reader;
-        await reader.decodeFromVideoElement(video, (result) => {
-          if (!cancelled && result) {
-            onScanRef.current(result.getText());
-          }
-        });
+        await attachAndDecode(stream);
       } catch (err) {
-        if (!cancelled) {
+        if (cancelled) return;
+        const name = err instanceof Error ? err.name : "";
+        const message = err instanceof Error ? err.message.toLowerCase() : "";
+        // Hard-block errors (no camera at all, insecure context, no API):
+        // surface immediately. Soft errors (NotAllowedError) just mean we
+        // need a gesture — show the button without a scary error UI.
+        const isGestureFix =
+          name === "NotAllowedError" ||
+          message.includes("denied") ||
+          message.includes("not allowed") ||
+          message.includes("gesture") ||
+          message.includes("user activation");
+        if (isGestureFix) {
+          setPhase("needs_gesture");
+        } else {
           setError({
             name: err instanceof Error ? err.name || "Error" : "Error",
             message: err instanceof Error ? err.message : "Camera unavailable",
           });
-          setStarted(false);
+          setPhase("needs_gesture");
         }
       }
     })();
-
     return () => {
       cancelled = true;
-      stopCamera();
     };
-  }, [paused, started, stopCamera]);
+    // attachAndDecode is stable
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // The actual permission prompt. Called from the button's onClick so
-  // iOS Safari sees a user gesture. We request the stream here,
-  // immediately stash it, and flip `started` — the effect above takes
-  // it from there.
+  // Pause/resume from parent. Tear the stream down on pause; rebuild
+  // on unpause using the same silent attempt (we already have a
+  // permission grant by this point, so iOS shouldn't re-prompt).
+  useEffect(() => {
+    if (phase !== "running") return;
+    if (!paused) return;
+    stopCamera();
+    let cancelled = false;
+    return () => {
+      cancelled = true;
+      (async () => {
+        if (cancelled) return;
+        try {
+          const stream = await acquireStream();
+          if (cancelled) {
+            stream.getTracks().forEach((t) => t.stop());
+            return;
+          }
+          await attachAndDecode(stream);
+        } catch {
+          setPhase("needs_gesture");
+        }
+      })();
+    };
+  }, [paused, phase, stopCamera, attachAndDecode]);
+
+  useEffect(() => {
+    return () => stopCamera();
+  }, [stopCamera]);
+
   const enableCamera = useCallback(async () => {
     setError(null);
     setRequesting(true);
     try {
-      if (
-        typeof navigator === "undefined" ||
-        !navigator.mediaDevices ||
-        typeof navigator.mediaDevices.getUserMedia !== "function"
-      ) {
-        throw new Error(
-          "This browser doesn't expose camera APIs. Try Safari (iOS) or Chrome (Android) over HTTPS.",
-        );
-      }
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" } },
-        audio: false,
-      });
-      // Stop the probe stream immediately — the effect above will
-      // request its own once `started` flips. Holding onto two streams
-      // breaks zxing on some Android Chrome builds.
-      stream.getTracks().forEach((t) => t.stop());
-      setStarted(true);
+      const stream = await acquireStream();
+      await attachAndDecode(stream);
     } catch (err) {
       setError({
         name: err instanceof Error ? err.name || "Error" : "Error",
@@ -220,7 +224,7 @@ export function QrScanner({ onScan, paused = false }: QrScannerProps) {
     } finally {
       setRequesting(false);
     }
-  }, []);
+  }, [attachAndDecode]);
 
   if (error) {
     const diag = diagnoseError(error);
@@ -250,17 +254,17 @@ export function QrScanner({ onScan, paused = false }: QrScannerProps) {
     );
   }
 
-  if (permissionResolved === null) {
+  if (phase === "resolving") {
     return (
       <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-black/40 border border-white/10 flex items-center justify-center">
         <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40 animate-pulse">
-          Checking camera…
+          Starting camera…
         </p>
       </div>
     );
   }
 
-  if (!started) {
+  if (phase === "needs_gesture") {
     return (
       <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-black/40 border border-white/10 flex items-center justify-center">
         <button
@@ -273,8 +277,9 @@ export function QrScanner({ onScan, paused = false }: QrScannerProps) {
           <span className="font-mono text-xs uppercase tracking-[0.2em] text-white/80">
             {requesting ? "Requesting access…" : "Enable camera"}
           </span>
-          <span className="text-[11px] text-white/40 max-w-[200px] text-center leading-snug">
-            Your browser will ask for permission to use the camera.
+          <span className="text-[11px] text-white/40 max-w-[220px] text-center leading-snug">
+            iOS Safari asks again after every reload by default. Set
+            Settings → Safari → Camera → Allow to skip this step.
           </span>
         </button>
       </div>

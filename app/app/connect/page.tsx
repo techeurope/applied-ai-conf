@@ -343,36 +343,8 @@ function ScannerMode({
     [handleScan],
   );
 
-  const latest = recent[0];
-
   return (
     <section className="space-y-3">
-      {latest && (
-        <Link
-          href={`/app/contacts/${latest.contactId}`}
-          className="block rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3"
-        >
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-300/80 mb-1">
-                Just scanned
-              </div>
-              <div className="text-sm font-medium text-white truncate">
-                {latest.name}
-              </div>
-              {(latest.role || latest.company) && (
-                <div className="text-xs text-white/60 truncate">
-                  {[latest.role, latest.company].filter(Boolean).join(" · ")}
-                </div>
-              )}
-            </div>
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-200 shrink-0">
-              Open →
-            </span>
-          </div>
-        </Link>
-      )}
-
       <QrScanner onScan={handleScan} paused={status === "saving"} />
 
       <button
@@ -422,24 +394,52 @@ function ScannerMode({
             This session
           </h3>
           <ul className="space-y-1.5">
-            {recent.map((r) => (
-              <li key={r.scannedUserId}>
-                <Link
-                  href={`/app/contacts/${r.contactId}`}
-                  className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 transition-colors"
-                >
-                  <div className="min-w-0">
-                    <div className="text-sm text-white truncate">{r.name}</div>
-                    {(r.role || r.company) && (
-                      <div className="text-[11px] text-white/40 truncate">
-                        {[r.role, r.company].filter(Boolean).join(" · ")}
+            {recent.map((r, i) => {
+              const isLatest = i === 0;
+              return (
+                <li key={r.scannedUserId}>
+                  <Link
+                    href={`/app/contacts/${r.contactId}`}
+                    className={
+                      isLatest
+                        ? "flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-emerald-500/10 border border-emerald-400/30 hover:bg-emerald-500/15 transition-colors"
+                        : "flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 transition-colors"
+                    }
+                  >
+                    <div className="min-w-0">
+                      {isLatest && (
+                        <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-300/80 mb-1">
+                          Just scanned
+                        </div>
+                      )}
+                      <div
+                        className={`text-sm ${isLatest ? "font-medium" : ""} text-white truncate`}
+                      >
+                        {r.name}
                       </div>
-                    )}
-                  </div>
-                  <span className="font-mono text-[10px] text-white/30 shrink-0">→</span>
-                </Link>
-              </li>
-            ))}
+                      {(r.role || r.company) && (
+                        <div
+                          className={`text-[11px] ${
+                            isLatest ? "text-white/60" : "text-white/40"
+                          } truncate`}
+                        >
+                          {[r.role, r.company].filter(Boolean).join(" · ")}
+                        </div>
+                      )}
+                    </div>
+                    <span
+                      className={`font-mono text-[10px] shrink-0 ${
+                        isLatest
+                          ? "uppercase tracking-[0.2em] text-emerald-200"
+                          : "text-white/30"
+                      }`}
+                    >
+                      {isLatest ? "Open →" : "→"}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </section>
       )}
