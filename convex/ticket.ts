@@ -83,12 +83,19 @@ export const bootstrapInspectByEmail = internalQuery({
       .query("lumaAttendees")
       .withIndex("by_email", (q) => q.eq("email", normalized))
       .first();
+    const link = user
+      ? await ctx.db
+          .query("ticketLinks")
+          .withIndex("by_user", (q) => q.eq("userId", user._id))
+          .first()
+      : null;
     return {
       user: user
         ? {
             _creationTime: user._creationTime,
             email: user.email,
             ticketLinkedAt: user.ticketLinkedAt,
+            lumaGuestId: user.lumaGuestId,
             accessLevel: user.accessLevel,
           }
         : null,
@@ -96,8 +103,17 @@ export const bootstrapInspectByEmail = internalQuery({
         ? {
             _creationTime: luma._creationTime,
             email: luma.email,
+            lumaGuestId: luma.lumaGuestId,
             approvalStatus: luma.approvalStatus,
             syncedAt: luma.syncedAt,
+          }
+        : null,
+      link: link
+        ? {
+            userId: link.userId,
+            lumaGuestId: link.lumaGuestId,
+            lumaEmail: link.lumaEmail,
+            method: link.method,
           }
         : null,
     };
