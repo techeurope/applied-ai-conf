@@ -114,18 +114,26 @@ export default function TermsPage() {
           Applied AI Conf provides an event networking app in which you create a
           profile (such as your name, role, company, LinkedIn URL, and bio) and
           are issued a personal QR code. The app is designed for in-person
-          networking: when you display your QR code and another attendee scans
-          it, your profile is shown to them and saved into their contacts, and
-          you may likewise scan other attendees to save theirs.
+          networking: when you display your QR code and another attendee or
+          partner scans it (using the in-app scanner or any phone camera), your
+          profile is shown to them and saved into their contacts. You can
+          likewise open another attendee&apos;s QR with your phone camera to
+          view their profile and add them to your own contacts.
         </p>
         <p className="mb-4">
-          By using the app you agree that other attendees may scan your QR code
-          and retain your profile information for the purpose of networking at
-          the event. This is a standard and expected part of attending, and
-          there is no per-scan opt-out. If you do not wish to be scanned, simply
-          do not display your QR code. You can remove yourself entirely at any
-          time by deleting your account in the app, which removes your profile
-          from other attendees&apos; contact lists.
+          Note: the in-app scanner is provided only to partner team members for
+          lead capture at their booths. Regular attendees collect contacts by
+          opening other attendees&apos; QR codes with their phone camera. The
+          consent model is the same in either direction.
+        </p>
+        <p className="mb-4">
+          By using the app you agree that other attendees and partners may scan
+          your QR code and retain your profile information for the purpose of
+          networking at the event. This is a standard and expected part of
+          attending, and there is no per-scan opt-out. If you do not wish to be
+          scanned, simply do not display your QR code. You can remove yourself
+          entirely at any time by deleting your account in the app, which
+          removes your profile from other attendees&apos; contact lists.
         </p>
         <p className="mb-8">
           If you join a partner team account within the app, contacts scanned by

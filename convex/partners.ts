@@ -1521,6 +1521,67 @@ export const bootstrapBackfillPartnerTeams = internalMutation({
   },
 });
 
+// Per-team membership audit: every member with their email domain,
+// Luma ticket type, and whether they "should" be on this team
+// according to PARTNER_DOMAIN_TO_SLUG. Used to find people who were
+// manually placed on a team they don't belong to.
+export const auditTeamMemberships = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const teams = await ctx.db.query("teams").collect();
+    const out: Array<{
+      team: string;
+      teamSlug: string;
+      memberCount: number;
+      members: Array<{
+        email: string | undefined;
+        name: string;
+        domain: string | null;
+        lumaTicketType: string | null;
+        expectedTeamSlug: string | null;
+        matchesRule: boolean;
+      }>;
+    }> = [];
+    for (const t of teams) {
+      const memberships = await ctx.db
+        .query("partnerMembers")
+        .withIndex("by_team", (q) => q.eq("teamId", t._id))
+        .collect();
+      const members = [];
+      for (const m of memberships) {
+        const user = await ctx.db.get(m.userId);
+        if (!user) continue;
+        const domain = domainOfEmail(user.email);
+        const luma = user.email
+          ? await ctx.db
+              .query("lumaAttendees")
+              .withIndex("by_email", (q) => q.eq("email", user.email!))
+              .first()
+          : null;
+        const expectedSlug = domain ? PARTNER_DOMAIN_TO_SLUG[domain] ?? null : null;
+        const isPartner = (luma?.ticketType ?? "").toLowerCase() === "partner";
+        const matchesRule =
+          expectedSlug === t.slug && (isPartner || t.slug === "tech-europe");
+        members.push({
+          email: user.email,
+          name: user.name,
+          domain,
+          lumaTicketType: luma?.ticketType ?? null,
+          expectedTeamSlug: expectedSlug,
+          matchesRule,
+        });
+      }
+      out.push({
+        team: t.name,
+        teamSlug: t.slug,
+        memberCount: memberships.length,
+        members,
+      });
+    }
+    return out;
+  },
+});
+
 // One-shot diagnostic: every team on prod with member counts and Luma
 // ticket-type breakdown. Used to figure out which teams are real
 // partners vs. legacy / test rows before we lock the partner list down.

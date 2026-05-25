@@ -142,12 +142,12 @@ function SignInCard() {
         <Benefit
           icon={Users}
           title="Save the people you meet"
-          sub="Scan another attendee's badge and their name, company, and title land in your Contacts."
+          sub="Point your phone camera at someone's QR to open their profile and add them to your Contacts."
         />
         <Benefit
           icon={QrCode}
           title="Your scannable badge"
-          sub="A personal QR for connecting at the conference — the other person scans you to keep your details."
+          sub="A personal QR for connecting at the conference. Show it to anyone who wants to keep your details."
         />
         <Benefit
           icon={Ticket}
