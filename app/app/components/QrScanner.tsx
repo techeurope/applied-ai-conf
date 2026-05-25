@@ -69,13 +69,54 @@ export function QrScanner({ onScan, paused = false }: QrScannerProps) {
   // started = the user has tapped "Enable camera" so we have a fresh
   // user-gesture context in which to call getUserMedia. iOS Safari
   // silently denies the call (with no prompt) when it isn't initiated
-  // from a tap, so we never call it on mount.
+  // from a tap, so we never call it on mount unless the Permissions
+  // API tells us camera access is already granted (see effect below).
   const [started, setStarted] = useState(false);
   const [requesting, setRequesting] = useState(false);
+  // null = still checking, true = autostart (no button), false = show button
+  const [permissionResolved, setPermissionResolved] = useState<boolean | null>(
+    null,
+  );
 
   useEffect(() => {
     onScanRef.current = onScan;
   }, [onScan]);
+
+  // Check the Permissions API on mount. If the user has already granted
+  // camera access in a previous session, skip the "Enable camera" button
+  // and just start the stream — useEffect-initiated getUserMedia is
+  // allowed by browsers when permission is already 'granted' (the gesture
+  // requirement only applies when the call would prompt). Permissions
+  // API isn't fully supported on iOS Safari for 'camera', so anything
+  // other than an explicit 'granted' falls back to the button.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        if (
+          typeof navigator !== "undefined" &&
+          "permissions" in navigator &&
+          navigator.permissions?.query
+        ) {
+          const status = await navigator.permissions.query({
+            name: "camera" as PermissionName,
+          });
+          if (cancelled) return;
+          if (status.state === "granted") {
+            setStarted(true);
+          }
+          setPermissionResolved(true);
+          return;
+        }
+      } catch {
+        /* fall through to button */
+      }
+      if (!cancelled) setPermissionResolved(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const stopCamera = useCallback(() => {
     try {
@@ -205,6 +246,16 @@ export function QrScanner({ onScan, paused = false }: QrScannerProps) {
             {error.name}: {error.message}
           </div>
         </details>
+      </div>
+    );
+  }
+
+  if (permissionResolved === null) {
+    return (
+      <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-black/40 border border-white/10 flex items-center justify-center">
+        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40 animate-pulse">
+          Checking camera…
+        </p>
       </div>
     );
   }

@@ -267,6 +267,59 @@ export const backfillTermsForOnboardedUsers = internalMutation({
   },
 });
 
+// Compare Luma + ticketLink state for two or more emails side-by-side.
+// Built to answer "does +testuser have its own ticket, and is it
+// different from the main account's?"
+export const compareLumaTickets = internalQuery({
+  args: { emails: v.array(v.string()) },
+  handler: async (ctx, { emails }) => {
+    const out = [];
+    for (const raw of emails) {
+      const email = raw.toLowerCase().trim();
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", email))
+        .first();
+      const luma = await ctx.db
+        .query("lumaAttendees")
+        .withIndex("by_email", (q) => q.eq("email", email))
+        .first();
+      const ticketLink = user
+        ? await ctx.db
+            .query("ticketLinks")
+            .withIndex("by_user", (q) => q.eq("userId", user._id))
+            .first()
+        : null;
+      out.push({
+        email,
+        userExists: !!user,
+        userId: user?._id ?? null,
+        userLumaGuestIdField: user?.lumaGuestId ?? null,
+        luma: luma
+          ? {
+              lumaGuestId: luma.lumaGuestId,
+              ticketType: luma.ticketType,
+              approvalStatus: luma.approvalStatus,
+              registeredAt: new Date(luma.registeredAt).toISOString(),
+              checkedInAt: luma.checkedInAt
+                ? new Date(luma.checkedInAt).toISOString()
+                : null,
+            }
+          : null,
+        ticketLink: ticketLink
+          ? {
+              lumaGuestId: ticketLink.lumaGuestId,
+              lumaEmail: ticketLink.lumaEmail,
+              method: ticketLink.method,
+              verifiedAt: new Date(ticketLink.verifiedAt).toISOString(),
+            }
+          : null,
+      });
+    }
+    return out;
+  },
+});
+
 // One-shot smoke probe for the publicToken → user resolution that
 // scans.record relies on. Picks the first user with a publicToken,
 // then resolves it via by_public_token — same query the mutation now
