@@ -267,6 +267,55 @@ export const backfillTermsForOnboardedUsers = internalMutation({
   },
 });
 
+// One-shot smoke probe for the publicToken → user resolution that
+// scans.record relies on. Picks the first user with a publicToken,
+// then resolves it via by_public_token — same query the mutation now
+// runs. Returns the round-tripped pair so we can eyeball that prod is
+// actually wired up after the fix.
+export const probeScanResolution = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const sample = await ctx.db
+      .query("users")
+      .filter((q) => q.neq(q.field("publicToken"), undefined))
+      .first();
+    if (!sample || !sample.publicToken) {
+      return { ok: false, reason: "no user with publicToken found" };
+    }
+    const resolved = await ctx.db
+      .query("users")
+      .withIndex("by_public_token", (q) =>
+        q.eq("publicToken", sample.publicToken),
+      )
+      .first();
+    return {
+      ok: !!resolved && resolved._id === sample._id,
+      token: sample.publicToken,
+      sampleId: sample._id,
+      resolvedId: resolved?._id ?? null,
+      sampleEmail: sample.email,
+    };
+  },
+});
+
+// Most recent scanEvents on prod — used to confirm whether the
+// scanner has resumed working after the publicToken fix.
+export const recentScanEvents = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const events = await ctx.db
+      .query("scanEvents")
+      .order("desc")
+      .take(10);
+    return events.map((e) => ({
+      ts: new Date(e.ts).toISOString(),
+      scannerUserId: e.scannerUserId,
+      scannedUserId: e.scannedUserId,
+      clientId: e.clientId,
+    }));
+  },
+});
+
 // One-shot audit: who is currently missing a publicToken on prod? Used
 // to figure out whether the "legacy bare-_id QR" fallback in
 // scans.record is actually exercised by any live account. Returns
