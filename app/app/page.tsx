@@ -266,7 +266,7 @@ function VenueCard() {
             The Delta Campus, Berlin
           </p>
           <p className="text-sm text-white/60 mt-1">
-            S Westkreuz · 6 min walk · step-free access
+            U Rathaus Neukölln (U7) · 4 min · also U Boddinstraße (U8) and U Karl-Marx-Straße (U7)
           </p>
           <p className="text-sm text-sky-300/85 mt-2 inline-flex items-center gap-1 group-hover:text-sky-200">
             Open floor plan
@@ -283,11 +283,11 @@ function TravelCard() {
     <CardShell href="/app/travel">
       <CardHeader icon={PlaneTakeoff} title="Travel" />
       <p className="text-white/75 leading-snug">
-        Land at <span className="font-mono">BER</span>, take the FEX to
-        Hauptbahnhof, then S-Bahn to Westkreuz.
+        Land at <span className="font-mono">BER</span>, take the X71 bus to U
+        Rudow, then the U7 to U Karl-Marx-Straße.
       </p>
       <p className="text-sm text-white/45 mt-2">
-        About an hour door to door. Suggested hotels inside.
+        About 40 min door to door. Suggested hotels inside.
       </p>
     </CardShell>
   );
@@ -300,14 +300,16 @@ function WiFiCard() {
       <dl className="space-y-1.5 text-sm">
         <div className="flex items-baseline gap-3">
           <dt className="text-white/45 w-[68px] shrink-0">Network</dt>
-          <dd className="font-mono text-white truncate">AppliedAIConf</dd>
+          <dd className="font-mono text-white truncate">TBA</dd>
         </div>
         <div className="flex items-baseline gap-3">
           <dt className="text-white/45 w-[68px] shrink-0">Password</dt>
-          <dd className="font-mono text-white truncate">shipit2026</dd>
+          <dd className="font-mono text-white truncate">TBA</dd>
         </div>
       </dl>
-      <p className="text-xs text-white/40 mt-3">Open throughout the venue.</p>
+      <p className="text-xs text-white/40 mt-3">
+        Posted at registration on the day.
+      </p>
     </CardShell>
   );
 }

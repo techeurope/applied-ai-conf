@@ -14,8 +14,8 @@ export default function TravelPage() {
         title={<>Getting to Berlin.</>}
         lede={
           <>
-            One airport, one S-Bahn ride, six minutes on foot. Here's everything
-            you need to know to land, sleep, and get to the venue without
+            One airport, a 40-minute door-to-door ride, a four-minute walk.
+            Everything you need to land, sleep, and reach the venue without
             stress.
           </>
         }
@@ -27,10 +27,17 @@ export default function TravelPage() {
           // door to door
         </p>
         <ol className="space-y-3">
-          <Step n="01" title="Land at BER (Brandenburg)" body="It's the only Berlin airport. Trains leave the airport station every 10–15 min." />
-          <Step n="02" title="Take the FEX or RE to Hauptbahnhof" body="≈ 30 min. From Hauptbahnhof, switch to the S-Bahn (S3, S5, S7, S9) toward Charlottenburg." />
-          <Step n="03" title="Get off at S Westkreuz" body="≈ 15 min from Hauptbahnhof." />
-          <Step n="04" title="Walk 6 minutes to The Delta Campus" body="Follow the signs from the south exit; you'll see the building from the street." />
+          <Step n="01" title="Land at BER" body="The only airport in Berlin." />
+          <Step
+            n="02"
+            title="Fastest: Bus X71 to U Rudow, then U7 to U Karl-Marx-Straße"
+            body="≈ 40 min total. Alternative: S85 (or S9 / S45) to Treptower Park, then bus M43 to U Rathaus Neukölln or bus 166 to U Boddinstraße. ≈ 55 min."
+          />
+          <Step
+            n="03"
+            title="Walk 4–7 min to The Delta Campus"
+            body="Donaustraße 44, 12043 Berlin (Neukölln). From Rathaus Neukölln (U7) or Boddinstraße (U8) ≈ 4 min; from Karl-Marx-Straße (U7) ≈ 7 min."
+          />
         </ol>
       </section>
 
@@ -39,25 +46,25 @@ export default function TravelPage() {
           icon={Plane}
           label="AIRPORT"
           title="BER · Berlin Brandenburg"
-          body="The only airport. ~25–40 min by train to central Berlin. Taxis run €60–70, but transit is faster at rush hour."
+          body="The only airport. Combine bus + U-Bahn for the fastest route to Neukölln (≈ 40 min). Taxis run €50–70."
         />
         <Card
           icon={Train}
           label="LONG DISTANCE"
           title="Deutsche Bahn"
-          body="Direct ICE / IC trains from Hamburg, Munich, Frankfurt, Amsterdam, Prague, Warsaw. Berlin Hauptbahnhof is the main stop."
+          body="If you're coming by train, get off at Ostkreuz or Südkreuz instead of Hauptbahnhof — both are much faster onward to Neukölln."
         />
         <Card
           icon={Bike}
           label="LOCALLY"
           title="BVG · S-Bahn · U-Bahn"
-          body="A single ticket (€3.80 AB) covers the trip from BER to the venue. Bikes can be hired with Nextbike / Tier."
+          body="From BER you need a single BVG ABC ticket (€5.00) — BER is in zone C. Inside the city an AB ticket is enough. Bikes via Nextbike / Tier."
         />
         <Card
           icon={Hotel}
           label="STAY"
           title="Where to sleep"
-          body="The Charlottenburg / Wilmersdorf neighborhoods are closest. Mitte and Friedrichshain are 20–25 min away by S-Bahn."
+          body="Neukölln, Kreuzberg, and Friedrichshain are all within 5–15 min of the venue. See the recommended hotels below."
         />
       </section>
 
@@ -68,28 +75,28 @@ export default function TravelPage() {
         <ul className="rounded-2xl ring-1 ring-white/10 bg-white/[0.02] divide-y divide-white/5 overflow-hidden">
           {[
             {
-              name: "25hours Hotel Bikini Berlin",
-              area: "Charlottenburg · 12 min by transit",
-              note: "Iconic, fun lobby, walking distance to S Zoologischer Garten.",
-              url: "https://www.25hours-hotels.com/hotels/berlin/bikini-berlin",
+              name: "Estrel Berlin",
+              area: "Neukölln · 12 min walk / 1 stop on the M41 bus",
+              note: "Europe's largest hotel. Reliable, well-priced, basically next door.",
+              url: "https://www.estrel.com/",
             },
             {
-              name: "Hotel Zoo Berlin",
-              area: "Kurfürstendamm · 14 min by transit",
-              note: "Quiet, design-y, close to U-Bahn and tram lines.",
-              url: "https://www.hotelzoo.de/",
+              name: "Orania.Berlin",
+              area: "Kreuzberg, Oranienplatz · 12 min via U8",
+              note: "Boutique 5-star with a live music room; quiet rooms, strong design.",
+              url: "https://www.orania.berlin/",
             },
             {
-              name: "The Hoxton, Charlottenburg",
-              area: "Wilmersdorf · 15 min by transit",
-              note: "Communal feel; great for groups travelling together.",
-              url: "https://thehoxton.com/berlin/",
+              name: "Hüttenpalast",
+              area: "Neukölln, Hobrechtstraße · 10 min walk",
+              note: "Indoor vintage caravans + regular rooms. Quirky, well-loved.",
+              url: "https://www.huettenpalast.de/",
             },
             {
-              name: "Sir Savigny",
-              area: "Savignyplatz · 10 min by transit",
-              note: "Boutique. One of the closest to the venue.",
-              url: "https://www.sirhotels.com/savigny-berlin",
+              name: "Michelberger Hotel",
+              area: "Friedrichshain, Warschauer Str · 15 min by U / S-Bahn",
+              note: "Iconic Berlin design hotel with a great breakfast and bar.",
+              url: "https://michelbergerhotel.com/",
             },
           ].map((h) => (
             <li key={h.name}>

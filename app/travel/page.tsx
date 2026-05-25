@@ -6,11 +6,11 @@ export const metadata = {
 };
 
 const VENUE = [
-  { label: "Location", value: "Delta Campus, Berlin" },
+  { label: "Location", value: "The Delta Campus, Berlin (Neukölln)" },
   {
     label: "Address",
-    value: "Donaustrasse 44, 12043 Berlin",
-    href: "https://maps.google.com/?cid=7241970753962985311",
+    value: "Donaustraße 44, 12043 Berlin",
+    href: "https://maps.google.com/?q=The+Delta+Campus+Berlin",
   },
   { label: "Date", value: "Thursday, May 28, 2026" },
   { label: "Doors open", value: "08:00" },
@@ -34,55 +34,37 @@ const HOTELS: Array<{
 }> = [
   {
     tier: "Premium",
-    name: "Soho House Berlin",
-    location: "Torstrasse 1, Mitte · ~25 min by U-Bahn",
+    name: "Orania.Berlin",
+    location: "Oranienplatz, Kreuzberg · ~12 min via U8",
     description:
-      "Members' club hotel in the heart of Mitte — rooftop pool, strong design, and the kind of place you'll want to linger.",
-    href: "https://www.sohohouse.com/houses/soho-house-berlin",
-    linkLabel: "sohohouse.com",
-  },
-  {
-    tier: "Premium",
-    name: "Hotel Telegraphenamt",
-    location: "Monbijoustrasse 11, Mitte · ~25 min by U-Bahn",
-    description:
-      "A beautifully restored historic telegraph office with spacious rooms, excellent restaurant, and serious character.",
-    href: "https://telegraphenamt.com/",
-    linkLabel: "telegraphenamt.com",
+      "Boutique 5-star on Oranienplatz with a live music room, strong design, and very quiet rooms. Easy U8 ride to the venue.",
+    href: "https://www.orania.berlin/",
+    linkLabel: "orania.berlin",
   },
   {
     tier: "Mid-range",
-    name: "Monbijou Hotel",
-    location: "Monbijoupl. 1, Mitte · ~25 min by U-Bahn",
+    name: "Michelberger Hotel",
+    location: "Warschauer Str., Friedrichshain · ~15 min by U / S-Bahn",
     description:
-      "Boutique hotel on the Spree with a rooftop terrace overlooking Museum Island — well-priced and very well-reviewed.",
-    href: "https://monbijouhotel.com/",
-    linkLabel: "monbijouhotel.com",
+      "An iconic Berlin design hotel with a great breakfast and bar — five minutes from Warschauer Str. with frequent connections south.",
+    href: "https://michelbergerhotel.com/",
+    linkLabel: "michelbergerhotel.com",
   },
   {
     tier: "Mid-range",
-    name: "Hotel Amano",
-    location: "Auguststrasse 43, Mitte · ~25 min by U-Bahn",
+    name: "Hüttenpalast",
+    location: "Hobrechtstraße, Neukölln · ~10 min walk",
     description:
-      "Modern, well-located Mitte hotel with a popular rooftop bar and easy access to two U-Bahn lines.",
-    href: "https://www.amanogroup.de/hotels/amano/",
-    linkLabel: "amanogroup.de",
-  },
-  {
-    tier: "Budget",
-    name: "Motel One Berlin-Mitte",
-    location: "Prinzenstrasse 40–42 · ~20 min by U-Bahn",
-    description:
-      "Reliable budget-design chain in a central location — clean, well-run, and consistently well-reviewed.",
-    href: "https://www.motel-one.com/hotels/berlin/hotel-berlin-mitte/",
-    linkLabel: "motel-one.com",
+      "Quirky neighbourhood hotel with vintage caravans and cabins inside an old factory. Walking distance to the venue, well-loved by guests.",
+    href: "https://www.huettenpalast.de/",
+    linkLabel: "huettenpalast.de",
   },
   {
     tier: "Budget",
     name: "Estrel Berlin",
-    location: "Sonnenallee 225, Neukölln · ~15 min by S-Bahn",
+    location: "Sonnenallee 225, Neukölln · ~12 min walk",
     description:
-      "Europe's largest hotel, just a short S-Bahn hop from the venue — great value with minimal travel time on the day.",
+      "Europe's largest hotel, basically next door to the venue. Reliable, well-priced, minimal travel time on the day.",
     href: "https://www.estrel.com/",
     linkLabel: "estrel.com",
   },
@@ -92,16 +74,22 @@ const TRANSPORT = [
   {
     title: "From BER airport",
     description:
-      "Take the FEX or S9 toward central Berlin, then connect to the U8 toward Neukölln. Total journey ~45–55 min.",
+      "Fastest: bus X71 from BER to U Rudow, then U7 to U Karl-Marx-Straße (~40 min). Alternative: S85 (or S9 / S45) to Treptower Park, then bus M43 to U Rathaus Neukölln or bus 166 to U Boddinstraße (~55 min). Then 4–7 min on foot to Delta Campus. Ticket: BVG ABC single, €5,00.",
   },
   {
-    title: "Nearest station",
-    description: "Rathaus Neukölln (U8) — 5 min walk to Delta Campus.",
+    title: "Long-distance trains",
+    description:
+      "If you're arriving by ICE / IC, get off at Ostkreuz or Südkreuz — both are faster onward to Neukölln than Hauptbahnhof.",
+  },
+  {
+    title: "Nearest stations",
+    description:
+      "U Rathaus Neukölln (U7) and U Boddinstraße (U8) are both ~4 min walk. U Karl-Marx-Straße (U7) is ~7 min walk.",
   },
   {
     title: "By taxi / ride-share",
     description:
-      "Drop off at Donaustrasse 44. Street parking nearby but limited — public transit recommended.",
+      "Drop off at Donaustraße 44, 12043 Berlin. Street parking nearby is limited — public transit recommended.",
   },
 ];
 
@@ -207,7 +195,7 @@ export default function TravelPage() {
         <p className="text-[11px] font-mono font-medium tracking-[0.18em] uppercase text-gray-500 mb-3">
           Getting there
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
           {TRANSPORT.map((item) => (
             <div
               key={item.title}

@@ -1,12 +1,15 @@
 import Link from "next/link";
-import { Accessibility, Coffee, ExternalLink, MapPin, Toilet, UtensilsCrossed, Wifi } from "lucide-react";
+import { withAuth } from "@workos-inc/authkit-nextjs";
+import { Accessibility, Coffee, ExternalLink, Lock, MapPin, Toilet, UtensilsCrossed, Wifi } from "lucide-react";
 import { PageHeader, PageFooter } from "../_static/PageHeader";
 
 export const metadata = {
   title: "Venue · Applied AI Conf",
 };
 
-export default function VenuePage() {
+export default async function VenuePage() {
+  const { user } = await withAuth();
+  const signedIn = !!user;
   return (
     <div className="space-y-8 pt-1">
       <PageHeader
@@ -14,9 +17,10 @@ export default function VenuePage() {
         title={<>The Delta Campus.</>}
         lede={
           <>
-            Berlin. A converted industrial space designed for builders, with
-            two stages, an expo hall, and room to think. Six minutes by foot
-            from S Westkreuz.
+            Donaustraße 44, 12043 Berlin (Neukölln). A converted industrial
+            space designed for builders, with two stages, an expo hall, and
+            room to think. Four to seven minutes on foot from U Rathaus
+            Neukölln (U7), U Boddinstraße (U8), or U Karl-Marx-Straße (U7).
           </>
         }
       />
@@ -71,15 +75,19 @@ export default function VenuePage() {
       </section>
 
       <section className="grid sm:grid-cols-2 gap-3">
-        <Info
-          icon={Wifi}
-          label="WI-FI"
-          rows={[
-            ["Network", "AppliedAIConf"],
-            ["Password", "shipit2026"],
-          ]}
-          note="Guest network, open throughout the venue."
-        />
+        {signedIn ? (
+          <Info
+            icon={Wifi}
+            label="WI-FI"
+            rows={[
+              ["Network", "TBA"],
+              ["Password", "TBA"],
+            ]}
+            note="Credentials are also posted at registration on the day."
+          />
+        ) : (
+          <WifiGate />
+        )}
         <Info
           icon={UtensilsCrossed}
           label="LUNCH"
@@ -105,7 +113,6 @@ export default function VenuePage() {
             ["Main", "South corridor"],
             ["Accessible", "Ask Help Desk"],
           ]}
-          note="Gender-neutral restrooms available."
         />
       </section>
 
@@ -117,7 +124,6 @@ export default function VenuePage() {
         <ul className="space-y-2 text-sm text-white/70 leading-relaxed">
           <li>Step-free access from the main entrance.</li>
           <li>Accessible restroom available — ask Help Desk if you can't find it.</li>
-          <li>Reserved seating in both stages — ask Crew (black T-shirts) on arrival.</li>
           <li>Subtitles and quiet rooms available; flag your needs in the onboarding form.</li>
           <li>
             Anything we missed? Email{" "}
@@ -154,7 +160,7 @@ function Info({
   icon: typeof Wifi;
   label: string;
   rows: [string, string][];
-  note: string;
+  note?: string;
 }) {
   return (
     <div className="rounded-2xl ring-1 ring-white/10 bg-white/[0.02] p-5 space-y-3">
@@ -172,7 +178,31 @@ function Info({
           </div>
         ))}
       </dl>
-      <p className="text-xs text-white/50 leading-relaxed">{note}</p>
+      {note && <p className="text-xs text-white/50 leading-relaxed">{note}</p>}
+    </div>
+  );
+}
+
+function WifiGate() {
+  return (
+    <div className="rounded-2xl ring-1 ring-white/10 bg-white/[0.02] p-5 space-y-3">
+      <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/40 flex items-center gap-1.5">
+        <Wifi className="size-3" strokeWidth={2} />
+        // wi-fi
+      </p>
+      <div className="flex items-start gap-2 text-sm text-white/65">
+        <Lock className="size-4 text-white/40 mt-0.5 shrink-0" strokeWidth={1.75} />
+        <p className="leading-relaxed">
+          Wi-Fi credentials are visible after sign-in.{" "}
+          <Link
+            href="/api/auth/sign-in?return_to=/app/venue"
+            className="text-white underline underline-offset-4 hover:no-underline"
+          >
+            Sign in to see them
+          </Link>
+          .
+        </p>
+      </div>
     </div>
   );
 }

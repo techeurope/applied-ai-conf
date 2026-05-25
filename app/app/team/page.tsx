@@ -45,10 +45,11 @@ export default function TeamDashboardPage() {
         <h1 className="font-mono font-bold text-2xl tracking-tighter">
           {team.team.name}
         </h1>
-        <p className="text-xs text-white/60">
-          {team.team.partnerTier ? `${team.team.partnerTier} sponsor · ` : ""}
-          {team.team.partnerBoothLocation ?? "no booth set"}
-        </p>
+        {team.team.partnerTier && (
+          <p className="text-xs text-white/60">
+            {team.team.partnerTier} sponsor
+          </p>
+        )}
         {!verified && (
           <p className="text-xs text-amber-200 mt-2">
             Awaiting verification. Lead capture works, but team features unlock once admin verifies.
@@ -62,13 +63,12 @@ export default function TeamDashboardPage() {
         </Link>
       </header>
 
-      <section className="grid grid-cols-3 gap-3">
+      <section className="grid grid-cols-2 gap-3">
         <Stat label="Leads" value={leadCount} />
         <Stat label="Members" value={memberCount} />
-        <Stat label="Booth" value={team.team.partnerBoothLocation ?? "—"} small />
       </section>
 
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+      <section className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         <Link
           href="/app/team/leads"
           className="glass-card rounded-2xl px-4 py-4 hover:bg-white/10 flex flex-col gap-1"
@@ -87,15 +87,6 @@ export default function TeamDashboardPage() {
             Analytics →
           </span>
           <span className="text-sm">Scan timeline, lead status, and per-member leaderboard.</span>
-        </Link>
-        <Link
-          href={`/app/partner/${team.team.slug}`}
-          className="glass-card rounded-2xl px-4 py-4 hover:bg-white/10 flex flex-col gap-1"
-        >
-          <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/60">
-            Public profile →
-          </span>
-          <span className="text-sm">See how attendees see your booth page.</span>
         </Link>
       </section>
 
