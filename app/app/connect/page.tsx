@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
+import { ConvexError } from "convex/values";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import { Expand, IdCard, ImageUp, Mic, ScanLine, Shield } from "lucide-react";
@@ -20,6 +21,24 @@ function parseConnectUrl(text: string): string | null {
   } catch {
     return null;
   }
+}
+
+// Convex wraps `throw new Error(...)` into a generic "Server Error"
+// string before it reaches the client — only `ConvexError` carries
+// its payload across. Pull the readable string out of either, falling
+// back to the supplied default for anything we can't classify.
+function extractErrorMessage(err: unknown, fallback: string): string {
+  if (err instanceof ConvexError) {
+    const data = (err as { data?: unknown }).data;
+    if (typeof data === "string") return data;
+    if (data && typeof data === "object" && "message" in data) {
+      const msg = (data as { message?: unknown }).message;
+      if (typeof msg === "string") return msg;
+    }
+    return err.message || fallback;
+  }
+  if (err instanceof Error) return err.message;
+  return fallback;
 }
 
 export default function ConnectPage() {
@@ -253,7 +272,7 @@ function ScannerMode({
         }
       } catch (err) {
         setStatus("error");
-        setErrorMessage(err instanceof Error ? err.message : "Could not save scan");
+        setErrorMessage(extractErrorMessage(err, "Could not save scan"));
       }
     },
     [recordScan, router, status],

@@ -298,6 +298,36 @@ export const probeScanResolution = internalQuery({
   },
 });
 
+// Snapshot every user's scan-relevant state so we can predict
+// which throws scans.record will hit in production. Returns the
+// onboarding/ticket flags every gate checks.
+export const auditScanReadiness = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const all = await ctx.db.query("users").collect();
+    return all.map((u) => ({
+      _id: u._id,
+      email: u.email,
+      name: u.name,
+      accessLevel: u.accessLevel,
+      onboardingCompletedAt: u.onboardingCompletedAt
+        ? new Date(u.onboardingCompletedAt).toISOString()
+        : null,
+      ticketLinkedAt: u.ticketLinkedAt
+        ? new Date(u.ticketLinkedAt).toISOString()
+        : null,
+      deletedAt: u.deletedAt
+        ? new Date(u.deletedAt).toISOString()
+        : null,
+      deactivatedAt: u.deactivatedAt
+        ? new Date(u.deactivatedAt).toISOString()
+        : null,
+      teamId: u.teamId,
+      hasPublicToken: !!u.publicToken,
+    }));
+  },
+});
+
 // Most recent scanEvents on prod — used to confirm whether the
 // scanner has resumed working after the publicToken fix.
 export const recentScanEvents = internalQuery({

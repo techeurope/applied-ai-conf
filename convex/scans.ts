@@ -1,16 +1,16 @@
 import { mutation } from "./_generated/server";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 
 async function getMe(ctx: any) {
   const identity = await ctx.auth.getUserIdentity();
-  if (!identity) throw new Error("Not authenticated");
+  if (!identity) throw new ConvexError("Not authenticated");
   const user = await ctx.db
     .query("users")
     .withIndex("by_workos_id", (q: any) => q.eq("workosUserId", identity.subject))
     .first();
-  if (!user) throw new Error("User not found");
-  if (user.deactivatedAt) throw new Error("Account deactivated");
-  if (user.deletedAt) throw new Error("Account deleted");
+  if (!user) throw new ConvexError("User not found");
+  if (user.deactivatedAt) throw new ConvexError("Account deactivated");
+  if (user.deletedAt) throw new ConvexError("Account deleted");
   return user;
 }
 
@@ -27,18 +27,24 @@ export const record = mutation({
   handler: async (ctx, { token, clientId, eventId }) => {
     const scanner = await getMe(ctx);
     if (!scanner.ticketLinkedAt && scanner.accessLevel !== "admin") {
-      throw new Error("Ticket not verified");
+      throw new ConvexError(
+        "Your ticket isn't verified yet. Visit /app/link-ticket first.",
+      );
     }
 
     const byToken = await ctx.db
       .query("users")
       .withIndex("by_public_token", (q) => q.eq("publicToken", token))
       .first();
-    if (!byToken) throw new Error("Scanned user not found");
+    if (!byToken) {
+      throw new ConvexError(
+        "That QR code doesn't match any attendee. The user may have deleted their account.",
+      );
+    }
     const scannedUserId = byToken._id;
 
     if (scanner._id === scannedUserId) {
-      throw new Error("Cannot scan yourself");
+      throw new ConvexError("That's your own QR code — try scanning someone else.");
     }
 
     // Dedupe by clientId — offline-sync replays will produce the same id
@@ -49,7 +55,9 @@ export const record = mutation({
     if (duplicate) return { scanEventId: duplicate._id, duplicate: true };
 
     const scanned = await ctx.db.get(scannedUserId);
-    if (!scanned || scanned.deletedAt) throw new Error("Scanned user not found");
+    if (!scanned || scanned.deletedAt) {
+      throw new ConvexError("That attendee's account is no longer active.");
+    }
 
     // Scanning is standard conference behaviour, covered by the Terms every
     // attendee accepts during onboarding — there is no separate opt-out. The
@@ -58,7 +66,9 @@ export const record = mutation({
     // exposed. To stop being scanned a user simply doesn't show their QR, or
     // deletes their account.
     if (!scanned.onboardingCompletedAt) {
-      throw new Error("This user hasn't finished onboarding yet.");
+      throw new ConvexError(
+        "This attendee hasn't finished onboarding yet — ask them to complete it and try again.",
+      );
     }
 
     const now = Date.now();
