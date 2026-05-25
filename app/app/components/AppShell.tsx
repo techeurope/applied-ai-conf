@@ -54,8 +54,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     pathname?.startsWith("/app/venue") ||
     pathname?.startsWith("/app/travel") ||
     pathname?.startsWith("/app/faq") ||
-    pathname?.startsWith("/app/team/accept/") ||
-    pathname?.startsWith("/app/team/join/");
+    pathname?.startsWith("/app/team/accept/");
 
   const hideNav =
     !auth.user ||
@@ -69,7 +68,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     pathname?.startsWith("/app/settings") ||
     pathname?.startsWith("/app/u/") ||
     pathname?.startsWith("/app/consent-details") ||
-    pathname?.startsWith("/app/team/join/") ||
     pathname?.startsWith("/app/team/accept/");
 
   // Routes that require auth. Anything in the public list, the sign-in page,

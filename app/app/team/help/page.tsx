@@ -8,7 +8,6 @@ import {
   BarChart3,
   ScanLine,
   Mail,
-  Link as LinkIcon,
   ChevronLeft,
   Globe,
   LifeBuoy,
@@ -53,8 +52,8 @@ export default function TeamHelpPage() {
         </p>
         <ul className="space-y-1.5 list-none">
           <Bullet>
-            <strong>Owner</strong> — invites teammates, manages the join code,
-            promotes/demotes members. There can be more than one owner.
+            <strong>Owner</strong> — invites teammates and promotes/demotes
+            members. There can be more than one owner.
           </Bullet>
           <Bullet>
             <strong>Member</strong> — scans, takes notes, sees the shared lead
@@ -163,55 +162,17 @@ export default function TeamHelpPage() {
 
       <Section icon={Mail} title="// INVITING TEAMMATES">
         <p>
-          Owners have <strong>two ways</strong> to invite teammates. Pick whichever fits.
+          On{" "}
+          <Link href="/app/team" className="underline text-white hover:text-white/80">/app/team</Link>{" "}
+          → &quot;Invite a teammate&quot; → enter their email → Invite. They
+          get an email with an Accept link. The pending invite shows up in
+          the &quot;Pending invites&quot; section until they answer.
         </p>
-        <div className="space-y-4">
-          <div className="rounded-2xl ring-1 ring-white/10 bg-white/[0.02] p-4 space-y-2">
-            <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40 flex items-center gap-1.5">
-              <LinkIcon className="size-3" strokeWidth={2} />
-              SHARE A JOIN CODE
-            </p>
-            <p className="text-sm text-white/80">
-              <strong>Best for:</strong> when you don&apos;t know everyone&apos;s
-              email upfront, or you want to share a single link/URL with the
-              whole team (Slack, group chat).
-            </p>
-            <p className="text-sm text-white/80">
-              <strong>How:</strong> on{" "}
-              <Link href="/app/team" className="underline text-white hover:text-white/80">/app/team</Link>{" "}
-              → &quot;Share join code&quot; → Copy code or copy link. Hand the
-              link to anyone — they sign in (or sign up) with their own email
-              and they&apos;re on the team.
-            </p>
-            <p className="text-sm text-white/80">
-              <strong>Heads up:</strong> the code is multi-use until you
-              revoke / rotate it. Rotate after the team is fully assembled to
-              prevent strangers from joining.
-            </p>
-          </div>
-          <div className="rounded-2xl ring-1 ring-white/10 bg-white/[0.02] p-4 space-y-2">
-            <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40 flex items-center gap-1.5">
-              <Mail className="size-3" strokeWidth={2} />
-              EMAIL INVITE
-            </p>
-            <p className="text-sm text-white/80">
-              <strong>Best for:</strong> known teammates, when you want an
-              audit trail of who&apos;s pending vs accepted.
-            </p>
-            <p className="text-sm text-white/80">
-              <strong>How:</strong> on{" "}
-              <Link href="/app/team" className="underline text-white hover:text-white/80">/app/team</Link>{" "}
-              → &quot;Invite a teammate&quot; → enter their email → Invite.
-              They get an email with an Accept link. The pending invite shows
-              up in the &quot;Pending invites&quot; section until they answer.
-            </p>
-            <p className="text-sm text-white/80">
-              <strong>If they decline:</strong> the status flips to{" "}
-              <em>declined</em>. Hit &quot;Send again&quot; on their row to
-              re-open the invite.
-            </p>
-          </div>
-        </div>
+        <p>
+          <strong>If they decline:</strong> the status flips to{" "}
+          <em>declined</em>. Hit &quot;Send again&quot; on their row to
+          re-open the invite.
+        </p>
       </Section>
 
       <Section icon={Globe} title="// YOUR TEAM'S PUBLIC PROFILE">
@@ -269,11 +230,6 @@ export default function TeamHelpPage() {
           <Bullet>
             <strong>A teammate joined but doesn&apos;t show up:</strong> they
             may have accepted but not refreshed yet. Have them hard-refresh{" "}
-            <Link href="/app/team" className="underline">/app/team</Link>.
-          </Bullet>
-          <Bullet>
-            <strong>The join code stopped working:</strong> it was probably
-            revoked. The owner can generate a fresh one on{" "}
             <Link href="/app/team" className="underline">/app/team</Link>.
           </Bullet>
           <Bullet>
