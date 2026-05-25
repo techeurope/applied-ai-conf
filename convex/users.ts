@@ -2,6 +2,7 @@ import {
   mutation,
   query,
   internalMutation,
+  internalQuery,
   type MutationCtx,
 } from "./_generated/server";
 import { v } from "convex/values";
@@ -263,6 +264,40 @@ export const backfillTermsForOnboardedUsers = internalMutation({
       updated.push(u.email);
     }
     return { updated, skipped, updatedCount: updated.length, total: all.length };
+  },
+});
+
+// One-shot audit: who is currently missing a publicToken on prod? Used
+// to figure out whether the "legacy bare-_id QR" fallback in
+// scans.record is actually exercised by any live account. Returns
+// counts + a sample so we can spot patterns (test users, partner
+// invites, etc.).
+export const auditMissingPublicTokens = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const all = await ctx.db.query("users").collect();
+    const missing = all.filter((u) => !u.publicToken);
+    return {
+      totalUsers: all.length,
+      missingCount: missing.length,
+      sample: missing.map((u) => ({
+        _id: u._id,
+        email: u.email,
+        name: u.name,
+        createdAt: new Date(u._creationTime).toISOString(),
+        deletedAt: u.deletedAt
+          ? new Date(u.deletedAt).toISOString()
+          : undefined,
+        deactivatedAt: u.deactivatedAt
+          ? new Date(u.deactivatedAt).toISOString()
+          : undefined,
+        onboardingCompletedAt: u.onboardingCompletedAt
+          ? new Date(u.onboardingCompletedAt).toISOString()
+          : undefined,
+        accessLevel: u.accessLevel,
+        teamId: u.teamId,
+      })),
+    };
   },
 });
 
