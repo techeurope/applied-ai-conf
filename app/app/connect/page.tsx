@@ -72,16 +72,22 @@ export default function ConnectPage() {
     return <p className="font-mono text-xs text-white/40">Not signed in.</p>;
   }
 
+  // Scanner is partner-team-only. Regular attendees see Badge mode only,
+  // with no mode toggle. Admins always get the toggle.
+  const isAdmin = me.accessLevel === "admin";
+  const canScan = isAdmin || !!me.teamId;
+  const effectiveMode: Mode = canScan ? mode : "badge";
+
   return (
     <div className="space-y-5 pt-1">
       <header className="flex items-center justify-between gap-3">
         <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
           // CONNECT
         </p>
-        <ModeToggle mode={mode} onChange={changeMode} />
+        {canScan && <ModeToggle mode={effectiveMode} onChange={changeMode} />}
       </header>
 
-      {mode === "badge" ? (
+      {effectiveMode === "badge" ? (
         <BadgeMode me={me} myTeam={myTeam ?? null} />
       ) : (
         <ScannerMode recordScan={recordScan} />

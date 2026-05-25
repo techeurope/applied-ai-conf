@@ -6,6 +6,8 @@ import { api } from "@convex/_generated/api";
 
 export default function ContactsPage() {
   const contacts = useQuery(api.contacts.list);
+  const me = useQuery(api.users.me);
+  const canScan = !!me && (me.accessLevel === "admin" || !!me.teamId);
 
   return (
     <div className="space-y-5 pt-1">
@@ -22,13 +24,19 @@ export default function ContactsPage() {
       {contacts && contacts.length === 0 && (
         <div className="rounded-2xl glass-card p-8 text-center">
           <p className="text-base text-white/80 mb-1">No contacts yet.</p>
-          <p className="text-sm text-white/50 mb-6">Scan someone&apos;s QR to add them.</p>
-          <Link
-            href="/app/connect?mode=scanner"
-            className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-white text-black font-mono text-xs font-medium hover:scale-[1.02] transition-all ring-1 ring-white/30"
-          >
-            Open scanner
-          </Link>
+          <p className="text-sm text-white/50 mb-6">
+            {canScan
+              ? "Scan someone's QR to add them."
+              : "Open someone's QR with your phone camera and tap \"Add to my contacts\" on their profile."}
+          </p>
+          {canScan && (
+            <Link
+              href="/app/connect?mode=scanner"
+              className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-white text-black font-mono text-xs font-medium hover:scale-[1.02] transition-all ring-1 ring-white/30"
+            >
+              Open scanner
+            </Link>
+          )}
         </div>
       )}
 

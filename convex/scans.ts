@@ -31,6 +31,13 @@ export const record = mutation({
         "Your ticket isn't verified yet. Visit /app/link-ticket first.",
       );
     }
+    // Scanner is partner-only — regular attendees don't get lead capture.
+    // Admins always pass.
+    if (!scanner.teamId && scanner.accessLevel !== "admin") {
+      throw new ConvexError(
+        "Lead-capture scanning is for partner team members only.",
+      );
+    }
 
     const byToken = await ctx.db
       .query("users")

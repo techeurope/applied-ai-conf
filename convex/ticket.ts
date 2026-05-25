@@ -10,6 +10,7 @@ import {
 } from "./_generated/server";
 import { internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
+import { autoAssignPartnerTeam } from "./partners";
 
 const CODE_EXPIRY_MS = 15 * 60 * 1000; // 15 min
 const MAX_ATTEMPTS = 5;
@@ -194,6 +195,14 @@ export async function tryAutoLink(ctx: MutationCtx, user: Doc<"users">) {
     patch.name = luma.name;
   }
   await ctx.db.patch(user._id, patch);
+  // Partner-ticket auto-assign: if Luma says ticketType=Partner and the
+  // email domain matches one of the known partner companies, attach the
+  // user to that team. Skips silently otherwise (admin can place them
+  // manually).
+  const refreshedUser = await ctx.db.get(user._id);
+  if (refreshedUser) {
+    await autoAssignPartnerTeam(ctx, refreshedUser, luma.ticketType);
+  }
   return await ctx.db.get(linkId);
 }
 

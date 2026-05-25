@@ -3,6 +3,7 @@ import {
   mutation,
   query,
   internalMutation,
+  internalQuery,
   type MutationCtx,
 } from "./_generated/server";
 import { requireAdmin } from "./admin";
@@ -1381,6 +1382,171 @@ export const publicProfile = query({
       logoUrl: team.logoUrl,
       members: visibleMembers,
     };
+  },
+});
+
+// Email-domain → partner-team-slug map. Locked list — only these
+// company emails get auto-assigned to a partner team when their Luma
+// ticket type is "Partner". Everyone else (gmail, random domains)
+// stays unassigned and the admin can place them manually.
+const PARTNER_DOMAIN_TO_SLUG: Record<string, string> = {
+  "nebius.com": "nebius",
+  "nebius.ai": "nebius",
+  "elastic.co": "elastic",
+  "openai.com": "openai",
+  "stripe.com": "stripe",
+  "runpod.io": "runpod",
+  "techeurope.io": "tech-europe",
+};
+
+function domainOfEmail(email: string | undefined | null): string | null {
+  if (!email) return null;
+  const at = email.lastIndexOf("@");
+  if (at < 0) return null;
+  return email.slice(at + 1).toLowerCase();
+}
+
+// If a user's Luma ticket type is "Partner" AND their email domain
+// matches one of the known partner companies, attach them to that
+// team. Idempotent: skips if already on a team. Called from tryAutoLink
+// (after the ticket link is created) so it runs on every fresh sign-in
+// of a partner account.
+export async function autoAssignPartnerTeam(
+  ctx: MutationCtx,
+  user: Doc<"users">,
+  ticketType: string | undefined | null,
+): Promise<Id<"teams"> | null> {
+  if (user.teamId) return user.teamId;
+  if ((ticketType ?? "").toLowerCase() !== "partner") return null;
+  const domain = domainOfEmail(user.email);
+  if (!domain) return null;
+  const slug = PARTNER_DOMAIN_TO_SLUG[domain];
+  if (!slug) return null;
+  const team = await ctx.db
+    .query("teams")
+    .withIndex("by_slug", (q) => q.eq("slug", slug))
+    .first();
+  if (!team || team.kind !== "partner") return null;
+  // Look for an existing membership before inserting — handles the
+  // case where someone was added manually before the auto-assign ran.
+  const existing = await ctx.db
+    .query("partnerMembers")
+    .withIndex("by_team_user", (q) =>
+      q.eq("teamId", team._id).eq("userId", user._id),
+    )
+    .first();
+  if (!existing) {
+    await ctx.db.insert("partnerMembers", {
+      teamId: team._id,
+      userId: user._id,
+      role: "member",
+      invitedAt: Date.now(),
+      invitedByUserId: user._id,
+      joinedAt: Date.now(),
+    });
+    await dedupePartnerMember(ctx, team._id, user._id);
+  }
+  await ctx.db.patch(user._id, { teamId: team._id });
+  return team._id;
+}
+
+// Bootstrap: delete teams that have zero members. Used to clear out
+// the unused partner stubs (Modal, Dust, dltHub) without manually
+// touching the DB. Refuses if any membership exists, so it can never
+// orphan a member by accident.
+export const bootstrapDeleteEmptyTeamsBySlug = internalMutation({
+  args: { slugs: v.array(v.string()) },
+  handler: async (ctx, { slugs }) => {
+    const result: Array<{ slug: string; deleted: boolean; reason?: string }> = [];
+    for (const slug of slugs) {
+      const team = await ctx.db
+        .query("teams")
+        .withIndex("by_slug", (q) => q.eq("slug", slug))
+        .first();
+      if (!team) {
+        result.push({ slug, deleted: false, reason: "not_found" });
+        continue;
+      }
+      const members = await ctx.db
+        .query("partnerMembers")
+        .withIndex("by_team", (q) => q.eq("teamId", team._id))
+        .collect();
+      if (members.length > 0) {
+        result.push({
+          slug,
+          deleted: false,
+          reason: `has_${members.length}_members`,
+        });
+        continue;
+      }
+      // Clean up any pending invites + contacts pointing at this team
+      // before dropping the row.
+      const invites = await ctx.db
+        .query("partnerInvites")
+        .withIndex("by_team", (q) => q.eq("teamId", team._id))
+        .collect();
+      for (const inv of invites) await ctx.db.delete(inv._id);
+      await ctx.db.delete(team._id);
+      result.push({ slug, deleted: true });
+    }
+    return result;
+  },
+});
+
+// Bootstrap: backfill auto-assignment for existing users. Walks every
+// user, looks up their Luma row, and runs autoAssignPartnerTeam if
+// they're a Partner ticket holder on a known domain. Idempotent.
+export const bootstrapBackfillPartnerTeams = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const users = await ctx.db.query("users").collect();
+    const assigned: Array<{
+      email: string | undefined;
+      teamSlug: string;
+    }> = [];
+    for (const user of users) {
+      if (user.teamId) continue;
+      if (!user.email) continue;
+      const luma = await ctx.db
+        .query("lumaAttendees")
+        .withIndex("by_email", (q) => q.eq("email", user.email!))
+        .first();
+      const teamId = await autoAssignPartnerTeam(ctx, user, luma?.ticketType);
+      if (teamId) {
+        const team = await ctx.db.get(teamId);
+        assigned.push({ email: user.email, teamSlug: team?.slug ?? "?" });
+      }
+    }
+    return { assigned, total: users.length };
+  },
+});
+
+// One-shot diagnostic: every team on prod with member counts and Luma
+// ticket-type breakdown. Used to figure out which teams are real
+// partners vs. legacy / test rows before we lock the partner list down.
+export const auditTeamsSnapshot = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const teams = await ctx.db.query("teams").collect();
+    const out = [];
+    for (const t of teams) {
+      const memberships = await ctx.db
+        .query("partnerMembers")
+        .withIndex("by_team", (q) => q.eq("teamId", t._id))
+        .collect();
+      out.push({
+        _id: t._id,
+        name: t.name,
+        slug: t.slug,
+        kind: t.kind ?? null,
+        partnerTier: t.partnerTier ?? null,
+        partnerVerifiedAt: t.partnerVerifiedAt
+          ? new Date(t.partnerVerifiedAt).toISOString()
+          : null,
+        memberCount: memberships.length,
+      });
+    }
+    return out;
   },
 });
 
