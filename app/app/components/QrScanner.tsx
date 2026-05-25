@@ -79,6 +79,7 @@ async function acquireStream(): Promise<MediaStream> {
 export function QrScanner({ onScan, paused = false }: QrScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const onScanRef = useRef(onScan);
+  const pausedRef = useRef(paused);
   const streamRef = useRef<MediaStream | null>(null);
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
   const [error, setError] = useState<ScannerError | null>(null);
@@ -92,6 +93,13 @@ export function QrScanner({ onScan, paused = false }: QrScannerProps) {
   useEffect(() => {
     onScanRef.current = onScan;
   }, [onScan]);
+
+  // pause = swallow decode results, but leave the stream live. Tearing
+  // the camera down and restarting it every scan on iOS Safari was the
+  // source of repeat permission prompts and dead-camera states.
+  useEffect(() => {
+    pausedRef.current = paused;
+  }, [paused]);
 
   const stopCamera = useCallback(() => {
     try {
@@ -126,6 +134,7 @@ export function QrScanner({ onScan, paused = false }: QrScannerProps) {
     setPhase("running");
     try {
       await reader.decodeFromVideoElement(video, (result) => {
+        if (pausedRef.current) return;
         if (result) onScanRef.current(result.getText());
       });
     } catch {
@@ -202,32 +211,6 @@ export function QrScanner({ onScan, paused = false }: QrScannerProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Pause/resume from parent. Tear the stream down on pause; rebuild
-  // on unpause using the same silent attempt (we already have a
-  // permission grant by this point, so iOS shouldn't re-prompt).
-  useEffect(() => {
-    if (phase !== "running") return;
-    if (!paused) return;
-    stopCamera();
-    let cancelled = false;
-    return () => {
-      cancelled = true;
-      (async () => {
-        if (cancelled) return;
-        try {
-          const stream = await acquireStream();
-          if (cancelled) {
-            stream.getTracks().forEach((t) => t.stop());
-            return;
-          }
-          await attachAndDecode(stream);
-        } catch {
-          setPhase("needs_gesture");
-        }
-      })();
-    };
-  }, [paused, phase, stopCamera, attachAndDecode]);
-
   useEffect(() => {
     return () => stopCamera();
   }, [stopCamera]);
@@ -276,42 +259,49 @@ export function QrScanner({ onScan, paused = false }: QrScannerProps) {
     );
   }
 
-  if (phase === "resolving") {
-    return (
-      <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-black/40 border border-white/10 flex items-center justify-center">
-        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40 animate-pulse">
-          Starting camera…
-        </p>
-      </div>
-    );
-  }
-
-  if (phase === "needs_gesture") {
-    return (
-      <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-black/40 border border-white/10 flex items-center justify-center">
-        <button
-          type="button"
-          onClick={enableCamera}
-          disabled={requesting}
-          className="flex flex-col items-center gap-3 px-6 py-5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 transition-colors disabled:opacity-50"
-        >
-          <Camera className="size-7 text-white/80" strokeWidth={1.5} />
-          <span className="font-mono text-xs uppercase tracking-[0.2em] text-white/80">
-            {requesting ? "Requesting access…" : "Enable camera"}
-          </span>
-          <span className="text-[11px] text-white/40 max-w-[220px] text-center leading-snug">
-            iOS Safari asks again after every reload by default. Set
-            Settings → Safari → Camera → Allow to skip this step.
-          </span>
-        </button>
-      </div>
-    );
-  }
-
+  // The <video> element must exist on EVERY render — attachAndDecode
+  // bails out if videoRef.current is null, so removing the element from
+  // the tree during the "resolving" phase used to silently strand the
+  // stream and leave the spinner up forever.
   return (
     <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-black/40 border border-white/10">
-      <video ref={videoRef} className="w-full h-full object-cover" muted playsInline />
-      <div className="absolute inset-8 border-2 border-foreground/60 rounded-lg pointer-events-none" />
+      <video
+        ref={videoRef}
+        className={`w-full h-full object-cover ${
+          phase === "running" ? "" : "invisible"
+        }`}
+        muted
+        playsInline
+      />
+      {phase === "running" && (
+        <div className="absolute inset-8 border-2 border-foreground/60 rounded-lg pointer-events-none" />
+      )}
+      {phase === "resolving" && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40 animate-pulse">
+            Starting camera…
+          </p>
+        </div>
+      )}
+      {phase === "needs_gesture" && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <button
+            type="button"
+            onClick={enableCamera}
+            disabled={requesting}
+            className="flex flex-col items-center gap-3 px-6 py-5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 transition-colors disabled:opacity-50"
+          >
+            <Camera className="size-7 text-white/80" strokeWidth={1.5} />
+            <span className="font-mono text-xs uppercase tracking-[0.2em] text-white/80">
+              {requesting ? "Requesting access…" : "Enable camera"}
+            </span>
+            <span className="text-[11px] text-white/40 max-w-[220px] text-center leading-snug">
+              iOS Safari asks again after every reload by default. Set
+              Settings → Safari → Camera → Allow to skip this step.
+            </span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
