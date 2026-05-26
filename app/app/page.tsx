@@ -142,7 +142,7 @@ function SignInCard() {
         <Benefit
           icon={Users}
           title="Save the people you meet"
-          sub="Point your phone camera at someone's QR to open their profile and add them to your Contacts."
+          sub="Point your phone camera at someone's QR to open their profile and add them to your Leads."
         />
         <Benefit
           icon={QrCode}

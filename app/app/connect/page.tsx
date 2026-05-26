@@ -425,7 +425,7 @@ function ScannerMode({
           aria-live="polite"
           className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-3 z-30 rounded-full bg-emerald-500/95 text-white text-sm font-medium px-4 py-2 shadow-lg animate-fade-in"
         >
-          ✓ Saved {toast.name} to contacts
+          ✓ Saved {toast.name} to leads
         </div>
       )}
 
@@ -639,7 +639,7 @@ function ScanModal({
               href={`/app/contacts/${scan.contactId}`}
               className="w-full inline-flex items-center justify-center px-4 py-2.5 rounded-full ring-1 ring-white/20 font-mono text-xs text-white/80 hover:text-white hover:ring-white/30"
             >
-              Open contact
+              Open lead
             </Link>
             <button
               type="button"

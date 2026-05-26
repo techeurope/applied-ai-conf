@@ -22,12 +22,17 @@ const tabs: Tab[] = [
   { href: "/app", label: "Home", icon: Home },
   { href: "/app/agenda", label: "Agenda", icon: CalendarDays },
   { href: "/app/connect", label: "Connect", icon: IdCard },
-  { href: "/app/contacts", label: "Contacts", icon: Users, countKey: "contacts" },
   { href: "/app/settings", label: "Settings", icon: Settings },
 ];
 
 const adminTab: Tab = { href: "/app/admin", label: "Admin", icon: Shield };
 const teamTab: Tab = { href: "/app/team", label: "Team", icon: Briefcase };
+const leadsTab: Tab = {
+  href: "/app/contacts",
+  label: "Leads",
+  icon: Users,
+  countKey: "contacts",
+};
 const voucherTab: Tab = { href: "/app/voucher", label: "Voucher", icon: Ticket };
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -155,16 +160,21 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const visibleTabs = (() => {
     const base = [...tabs];
-    if (myTeam?.team) {
-      const contactsIdx = base.findIndex((t) => t.href === "/app/contacts");
-      base.splice(contactsIdx + 1, 0, teamTab);
+    // Team + Leads are partner-team-only (admins always get them too).
+    // Order is Connect → [Voucher] → Team → Leads → Settings, so the
+    // partner flow reads top-down: scan, then check the team rollup,
+    // then drill into individual leads.
+    const isAdmin = me?.accessLevel === "admin";
+    if (myTeam?.team || isAdmin) {
+      const settingsIdx = base.findIndex((t) => t.href === "/app/settings");
+      base.splice(settingsIdx, 0, teamTab, leadsTab);
     }
     if (vouchers && vouchers.length > 0) {
       // Slot Voucher after Connect so it's easy to flash at the lunch table.
       const connectIdx = base.findIndex((t) => t.href === "/app/connect");
       base.splice(connectIdx + 1, 0, voucherTab);
     }
-    if (me?.accessLevel === "admin") base.push(adminTab);
+    if (isAdmin) base.push(adminTab);
     return base;
   })();
 
@@ -303,8 +313,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                       { label: "Agenda", icon: CalendarDays },
                       { label: "Connect", icon: IdCard },
                       { label: "Voucher", icon: Ticket },
-                      { label: "Contacts", icon: Users },
                       { label: "Team", icon: Briefcase },
+                      { label: "Leads", icon: Users },
                       { label: "Settings", icon: Settings },
                       { label: "Admin", icon: Shield },
                     ].map(({ label, icon: Icon }) => (

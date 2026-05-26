@@ -103,7 +103,7 @@ export default function ContactsPage() {
     const filenameDate = new Date().toISOString().slice(0, 10);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `applied-ai-conf-contacts-${filenameDate}.csv`;
+    a.download = `applied-ai-conf-leads-${filenameDate}.csv`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -130,7 +130,7 @@ export default function ContactsPage() {
         <div className="flex items-center gap-2 flex-wrap">
           <div
             role="tablist"
-            aria-label="Sort contacts"
+            aria-label="Sort leads"
             className="inline-flex p-1 rounded-full border border-white/10 bg-white/[0.02]"
           >
             <SortButton active={sortKey === "recent"} onClick={() => setSortKey("recent")}>
@@ -181,11 +181,11 @@ export default function ContactsPage() {
 
       {contacts && contacts.length === 0 && (
         <div className="rounded-2xl glass-card p-8 text-center">
-          <p className="text-base text-white/80 mb-1">No contacts yet.</p>
+          <p className="text-base text-white/80 mb-1">No leads yet.</p>
           <p className="text-sm text-white/50 mb-6">
             {canScan
               ? "Scan someone's QR to add them."
-              : "Open someone's QR with your phone camera and tap \"Add to my contacts\" on their profile."}
+              : "Open someone's QR with your phone camera and tap \"Add to my leads\" on their profile."}
           </p>
           {canScan && (
             <Link
@@ -203,7 +203,7 @@ export default function ContactsPage() {
         contacts.length > 0 &&
         filteredAndSorted.length === 0 && (
           <p className="text-xs text-white/40 text-center py-6 font-mono">
-            No contacts match this filter.
+            No leads match this filter.
           </p>
         )}
 
