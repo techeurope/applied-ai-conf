@@ -47,7 +47,7 @@ export const AGENDA: AgendaSlot[] = [
 
   // ── 12:05–12:25 ──────────────────────────────────────────────
   { id: 'main-6', startTime: '12:05', endTime: '12:25', title: 'Giving a Voice to LLMs: Scaling Real-Time Voice Interaction', speakerName: 'Neil Zeghidour', stage: 'main', format: 'talk' },
-  { id: 'side-6', startTime: '12:05', endTime: '12:25', title: 'MCP vs Skills', speakerName: 'Rachel Nabors', stage: 'side', format: 'talk' },
+  { id: 'side-6', startTime: '12:05', endTime: '12:25', title: 'Stop Paying for Frontier Models', speakerName: 'Rachel Nabors', stage: 'side', format: 'talk' },
 
   // ── Lunch Break (12:30–13:30) ─────────────────────────────────
   { id: 'lunch', startTime: '12:30', endTime: '13:30', title: 'Lunch Break', stage: 'expo', format: 'break' },
@@ -67,7 +67,7 @@ export const AGENDA: AgendaSlot[] = [
   { id: 'break-2', startTime: '15:10', endTime: '15:30', title: 'Coffee Break', stage: 'expo', format: 'break' },
 
   // ── Post-coffee2: Both stages aligned (3 × 20 min) ───────────
-  { id: 'main-11', startTime: '15:30', endTime: '15:50', title: 'Building a Universal Agent for Legal', speakerNames: ['Zino Kader', 'Jakob Emmerling'], stage: 'main', format: 'talk' },
+  { id: 'main-11', startTime: '15:30', endTime: '15:50', title: 'Building a Universal Agent for Legal', speakerName: 'Jakob Emmerling', stage: 'main', format: 'talk' },
   { id: 'side-10', startTime: '15:30', endTime: '15:50', title: 'From Caching to Batching to Flex — How to optimize AI system for production', speakerNames: ['Lucia Loher', 'Patrick Löber'], stage: 'side', format: 'talk' },
 
   { id: 'main-12', startTime: '15:55', endTime: '16:15', title: 'Reinventing VEED for the agentic era', speakerName: 'Sabba Keynejad', stage: 'main', format: 'talk' },
