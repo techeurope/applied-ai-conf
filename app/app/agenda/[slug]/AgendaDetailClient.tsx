@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useMutation, usePreloadedQuery, useQuery } from "convex/react";
 import type { Preloaded } from "convex/react";
 import { Heart, ChevronLeft, Linkedin, ExternalLink, Ban } from "lucide-react";
@@ -264,10 +265,11 @@ function SpeakerCard({
     <article className="glass-card rounded-2xl p-4 space-y-3">
       <div className="flex items-start gap-4">
         {profile?.imageTransparent || profile?.image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={profile.imageTransparent ?? profile.image!}
             alt={profile.imageAlt ?? name}
+            width={80}
+            height={80}
             className="size-16 sm:size-20 rounded-2xl object-cover bg-white/5 shrink-0"
           />
         ) : (

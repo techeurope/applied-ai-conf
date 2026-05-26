@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Heart, Mic } from "lucide-react";
 import { useMutation, usePreloadedQuery, useQuery } from "convex/react";
 import type { Preloaded } from "convex/react";
@@ -578,15 +579,16 @@ export function AgendaList({
                       {images.slice(0, 2).map((img, i) => (
                         <div
                           key={i}
-                          className={`h-full ${
+                          className={`relative h-full ${
                             images.length === 1 ? "w-full" : "w-1/2"
                           } ${i > 0 ? "border-l border-white/10" : ""}`}
                         >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
+                          <Image
                             src={img.src}
                             alt={img.alt}
-                            className="w-full h-full object-cover object-top"
+                            fill
+                            sizes="96px"
+                            className="object-cover object-top"
                           />
                         </div>
                       ))}
