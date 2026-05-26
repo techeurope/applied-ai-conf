@@ -2,9 +2,17 @@
 
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
-import { useQuery } from "convex/react";
-import { Check, Coffee, Expand, UtensilsCrossed, type LucideIcon } from "lucide-react";
+import { useMutation, useQuery } from "convex/react";
+import {
+  Check,
+  Coffee,
+  ExternalLink,
+  Expand,
+  UtensilsCrossed,
+  type LucideIcon,
+} from "lucide-react";
 import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import { FullScreenQr } from "../components/FullScreenQr";
 
 const KIND_META: Record<string, { icon: LucideIcon; label: string }> = {
@@ -39,7 +47,7 @@ export default function VoucherPage() {
           // VOUCHERS · {vouchers.length}
         </p>
         <p className="text-sm text-white/60">
-          Show the QR to the vendor at the conference.
+          Use these at the counters at the conference.
         </p>
       </header>
 
@@ -56,21 +64,118 @@ function VoucherFull({
   voucher,
 }: {
   voucher: {
-    _id: string;
+    _id: Id<"vouchers">;
     kind: string;
     publicToken: string;
     redeemedAt?: number;
+    externalLabel?: string;
+    externalUrl?: string;
   };
 }) {
-  const [dataUrl, setDataUrl] = useState<string | null>(null);
-  const [origin, setOrigin] = useState<string | null>(null);
-  const [fullscreen, setFullscreen] = useState(false);
   const meta = KIND_META[voucher.kind] ?? {
     icon: UtensilsCrossed,
     label: voucher.kind,
   };
-  const Icon = meta.icon;
   const redeemed = !!voucher.redeemedAt;
+  const isExternalKind = voucher.kind.startsWith("lunch");
+
+  if (isExternalKind) {
+    return (
+      <ExternalVoucher voucher={voucher} meta={meta} redeemed={redeemed} />
+    );
+  }
+  return <QrVoucher voucher={voucher} meta={meta} redeemed={redeemed} />;
+}
+
+function ExternalVoucher({
+  voucher,
+  meta,
+  redeemed,
+}: {
+  voucher: {
+    _id: Id<"vouchers">;
+    kind: string;
+    externalLabel?: string;
+    externalUrl?: string;
+  };
+  meta: { icon: LucideIcon; label: string };
+  redeemed: boolean;
+}) {
+  const Icon = meta.icon;
+  const claimExternal = useMutation(api.vouchers.claimExternalForMyVoucher);
+  const [claiming, setClaiming] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (voucher.externalUrl || redeemed) return;
+    setClaiming(true);
+    setError(null);
+    claimExternal({ voucherId: voucher._id })
+      .catch((e: Error) => setError(e.message ?? "Could not claim voucher"))
+      .finally(() => setClaiming(false));
+  }, [voucher._id, voucher.externalUrl, redeemed, claimExternal]);
+
+  return (
+    <section className="glass-card rounded-3xl p-5 sm:p-6 space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="inline-flex items-center gap-2">
+          <Icon className="size-5 text-white/80" strokeWidth={1.75} />
+          <p className="font-mono text-base text-white">{meta.label}</p>
+        </div>
+        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/40">
+          €15 · 1× use
+        </span>
+      </div>
+
+      <p className="text-sm text-white/70">
+        This is your voucher for food at the conference.
+      </p>
+
+      {error ? (
+        <p className="text-sm text-red-300">{error}</p>
+      ) : voucher.externalUrl ? (
+        <a
+          href={voucher.externalUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center gap-2 w-full rounded-2xl bg-white text-stone-900 font-mono text-sm uppercase tracking-[0.18em] py-3.5 hover:bg-white/90 transition-colors"
+        >
+          Open voucher
+          <ExternalLink className="size-4" strokeWidth={2} />
+        </a>
+      ) : (
+        <div className="inline-flex items-center justify-center gap-2 w-full rounded-2xl bg-white/5 text-white/40 font-mono text-sm uppercase tracking-[0.18em] py-3.5">
+          {claiming ? "Preparing…" : "Loading…"}
+        </div>
+      )}
+
+      {voucher.externalLabel && (
+        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/30 text-center">
+          {voucher.externalLabel}
+        </p>
+      )}
+    </section>
+  );
+}
+
+function QrVoucher({
+  voucher,
+  meta,
+  redeemed,
+}: {
+  voucher: {
+    _id: Id<"vouchers">;
+    kind: string;
+    publicToken: string;
+    redeemedAt?: number;
+  };
+  meta: { icon: LucideIcon; label: string };
+  redeemed: boolean;
+}) {
+  const [dataUrl, setDataUrl] = useState<string | null>(null);
+  const [origin, setOrigin] = useState<string | null>(null);
+  const [fullscreen, setFullscreen] = useState(false);
+  const Icon = meta.icon;
 
   useEffect(() => {
     if (typeof window !== "undefined") setOrigin(window.location.origin);

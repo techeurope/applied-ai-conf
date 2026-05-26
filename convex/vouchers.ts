@@ -106,6 +106,68 @@ export const myVouchers = query({
   },
 });
 
+// Claim an external (caterer-provided) URL onto a voucher row. Called by the
+// UI on first view: if the voucher has no externalUrl yet, atomically pop the
+// next unclaimed voucherInventory row of the same kind and bind it. Idempotent
+// — re-calling for a voucher that already has externalUrl just returns it.
+export const claimExternalForMyVoucher = mutation({
+  args: { voucherId: v.id("vouchers") },
+  handler: async (ctx, { voucherId }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_workos_id", (q) => q.eq("workosUserId", identity.subject))
+      .first();
+    if (!user) throw new Error("User not found");
+
+    const voucher = await ctx.db.get(voucherId);
+    if (!voucher) throw new Error("Voucher not found");
+    if (voucher.userId !== user._id) throw new Error("Not your voucher");
+    if (voucher.externalUrl) {
+      return {
+        externalLabel: voucher.externalLabel,
+        externalUrl: voucher.externalUrl,
+        alreadyClaimed: true,
+      };
+    }
+
+    const inventory = await ctx.db
+      .query("voucherInventory")
+      .withIndex("by_kind_claimed_at", (q) =>
+        q.eq("kind", voucher.kind).eq("claimedAt", undefined),
+      )
+      .first();
+    if (!inventory) {
+      throw new Error("Out of vouchers for this kind. Please ask staff.");
+    }
+
+    const now = Date.now();
+    const email = (user.email ?? "").toLowerCase().trim();
+    await ctx.db.patch(inventory._id, {
+      claimedByUserId: user._id,
+      claimedByEmail: email || undefined,
+      claimedAt: now,
+    });
+    await ctx.db.patch(voucher._id, {
+      externalLabel: inventory.externalLabel,
+      externalUrl: inventory.externalUrl,
+      externalClaimedAt: now,
+    });
+    await writeAudit(ctx, user._id, "voucher.external_claim", {
+      voucherId: voucher._id,
+      inventoryId: inventory._id,
+      externalLabel: inventory.externalLabel,
+      kind: voucher.kind,
+    });
+    return {
+      externalLabel: inventory.externalLabel,
+      externalUrl: inventory.externalUrl,
+      alreadyClaimed: false,
+    };
+  },
+});
+
 // --- admin-facing ------------------------------------------------------------
 
 export const adminListForUser = query({
@@ -373,6 +435,62 @@ export const bootstrapRevokeAllVouchers = internalMutation({
       kind,
       vouchersRemoved: vouchersRemoved.length,
       logsRemoved: logsRemoved.length,
+    };
+  },
+});
+
+// Bulk-import a pool of external claim URLs (caterer Lightspeed cards, etc.).
+// Idempotent on externalLabel: rows already present are skipped, new ones are
+// inserted with claimedAt=undefined so the next attendee view consumes them
+// in insertion order.
+export const bootstrapImportVoucherInventory = internalMutation({
+  args: {
+    kind: v.string(),
+    rows: v.array(
+      v.object({
+        externalLabel: v.string(),
+        externalUrl: v.string(),
+      }),
+    ),
+  },
+  handler: async (ctx, { kind, rows }) => {
+    const now = Date.now();
+    let inserted = 0;
+    let skipped = 0;
+    for (const row of rows) {
+      const clash = await ctx.db
+        .query("voucherInventory")
+        .withIndex("by_external_label", (q) =>
+          q.eq("externalLabel", row.externalLabel),
+        )
+        .first();
+      if (clash) {
+        skipped += 1;
+        continue;
+      }
+      await ctx.db.insert("voucherInventory", {
+        kind,
+        externalLabel: row.externalLabel,
+        externalUrl: row.externalUrl,
+        importedAt: now,
+      });
+      inserted += 1;
+    }
+    return { kind, total: rows.length, inserted, skipped };
+  },
+});
+
+export const bootstrapVoucherInventoryStats = internalMutation({
+  args: { kind: v.string() },
+  handler: async (ctx, { kind }) => {
+    const all = await ctx.db.query("voucherInventory").collect();
+    const ofKind = all.filter((r) => r.kind === kind);
+    const claimed = ofKind.filter((r) => r.claimedAt !== undefined).length;
+    return {
+      kind,
+      total: ofKind.length,
+      claimed,
+      unclaimed: ofKind.length - claimed,
     };
   },
 });

@@ -298,11 +298,33 @@ export default defineSchema({
     redeemedAt: v.optional(v.number()),
     redeemedByUserId: v.optional(v.id("users")),
     note: v.optional(v.string()),
+    // For vouchers backed by external claim URLs (e.g. Delta Lightspeed gift
+    // cards). When set, the UI shows an "Open voucher" button that opens
+    // externalUrl instead of the internal QR.
+    externalLabel: v.optional(v.string()),
+    externalUrl: v.optional(v.string()),
+    externalClaimedAt: v.optional(v.number()),
   })
     .index("by_user", ["userId"])
     .index("by_user_kind", ["userId", "kind"])
     .index("by_email_kind", ["email", "kind"])
     .index("by_public_token", ["publicToken"]),
+
+  // Pool of external claim URLs (caterer-provided Lightspeed gift cards, etc.)
+  // Each row is consumed at most once: when a user opens their voucher for
+  // the matching kind and has no externalUrl bound yet, the next unclaimed
+  // row is atomically assigned to them.
+  voucherInventory: defineTable({
+    kind: v.string(), // "lunch"
+    externalLabel: v.string(), // "Delta - May 2026 - 500x15.1"
+    externalUrl: v.string(),
+    claimedByUserId: v.optional(v.id("users")),
+    claimedByEmail: v.optional(v.string()),
+    claimedAt: v.optional(v.number()),
+    importedAt: v.number(),
+  })
+    .index("by_external_label", ["externalLabel"])
+    .index("by_kind_claimed_at", ["kind", "claimedAt"]),
 
   sessions: defineTable({
     slug: v.string(),
