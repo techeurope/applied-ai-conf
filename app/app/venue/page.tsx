@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { withAuth } from "@workos-inc/authkit-nextjs";
-import { Accessibility, Coffee, ExternalLink, Lock, MapPin, Toilet, UtensilsCrossed, Wifi } from "lucide-react";
+import { Coffee, ExternalLink, Lock, MapPin, Toilet, UtensilsCrossed, Wifi } from "lucide-react";
 import { PageHeader, PageFooter } from "../_static/PageHeader";
 
 export const metadata = {
@@ -114,25 +114,6 @@ export default async function VenuePage() {
             ["Accessible", "Ask Help Desk"],
           ]}
         />
-      </section>
-
-      <section className="rounded-2xl ring-1 ring-white/10 bg-white/[0.02] p-5 space-y-3">
-        <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/40 flex items-center gap-1.5">
-          <Accessibility className="size-3" strokeWidth={2} />
-          // accessibility
-        </p>
-        <ul className="space-y-2 text-sm text-white/70 leading-relaxed">
-          <li>Step-free access from the main entrance.</li>
-          <li>Accessible restroom available — ask Help Desk if you can't find it.</li>
-          <li>Subtitles and quiet rooms available; flag your needs in the onboarding form.</li>
-          <li>
-            Anything we missed? Email{" "}
-            <a className="text-white underline underline-offset-4 hover:no-underline" href="mailto:hello@techeurope.io">
-              hello@techeurope.io
-            </a>{" "}
-            and we'll make it work.
-          </li>
-        </ul>
       </section>
 
       <section className="rounded-2xl ring-1 ring-white/10 bg-white/[0.02] p-5 space-y-2">
