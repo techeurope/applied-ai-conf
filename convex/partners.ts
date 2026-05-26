@@ -1741,10 +1741,10 @@ export const myTeamAnalytics = query({
       )
       .collect();
 
-    // Lead-status histogram (treat undefined and legacy "junk" as "unset").
+    // Lead-status histogram (treat undefined as "unset").
     const leadStatus = { hot: 0, warm: 0, cold: 0, unset: 0 };
     for (const c of contacts) {
-      const s = c.leadStatus && c.leadStatus !== "junk" ? c.leadStatus : "unset";
+      const s = c.leadStatus ?? "unset";
       leadStatus[s] += 1;
     }
 
