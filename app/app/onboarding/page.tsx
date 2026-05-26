@@ -3,18 +3,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { api } from "@convex/_generated/api";
-
-type ConsentKey = "conference_updates";
-
-const CONSENT_ITEMS: { key: ConsentKey; label: string; hint: string }[] = [
-  {
-    key: "conference_updates",
-    label: "Email me conference updates",
-    hint: "Schedule changes, post-event recap, transactional only. No marketing.",
-  },
-];
 
 const DRAFT_STORAGE_KEY = "aac:onboarding-draft:v2";
 
@@ -24,9 +13,8 @@ interface OnboardingDraft {
   company: string;
   linkedinUrl: string;
   bio: string;
-  consents: Record<ConsentKey, boolean>;
-  // Mandatory legal acceptance — distinct from the optional preference
-  // consents above. Must be an affirmative tick, so it defaults to false.
+  // Mandatory legal acceptance. Must be an affirmative tick, so it
+  // defaults to false.
   termsAccepted: boolean;
 }
 
@@ -36,9 +24,6 @@ const EMPTY_DRAFT: OnboardingDraft = {
   company: "",
   linkedinUrl: "",
   bio: "",
-  consents: {
-    conference_updates: true,
-  },
   termsAccepted: false,
 };
 
@@ -48,7 +33,7 @@ function loadDraft(): OnboardingDraft | null {
     const raw = window.localStorage.getItem(DRAFT_STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<OnboardingDraft>;
-    return { ...EMPTY_DRAFT, ...parsed, consents: { ...EMPTY_DRAFT.consents, ...(parsed.consents ?? {}) } };
+    return { ...EMPTY_DRAFT, ...parsed };
   } catch {
     return null;
   }
@@ -75,7 +60,6 @@ function clearDraft() {
 export default function OnboardingPage() {
   const router = useRouter();
   const ensure = useMutation(api.users.ensureFromWorkos);
-  const setConsent = useMutation(api.consents.set);
   const completeOnboarding = useMutation(api.users.completeOnboarding);
   const me = useQuery(api.users.me);
 
@@ -117,11 +101,6 @@ export default function OnboardingPage() {
     setSaving(true);
     try {
       await ensure({});
-      await Promise.all(
-        (Object.keys(form.consents) as ConsentKey[]).map((key) =>
-          setConsent({ key, granted: form.consents[key] }),
-        ),
-      );
       await completeOnboarding({
         name: form.name,
         role: form.role,
@@ -186,41 +165,6 @@ export default function OnboardingPage() {
           />
         </label>
       </div>
-
-      <fieldset className="space-y-2 pt-2">
-        <legend className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40 mb-2">
-          Preferences{" "}
-          <Link
-            href="/app/consent-details"
-            className="ml-2 normal-case tracking-normal underline text-white/40 hover:text-white"
-          >
-            full explanation
-          </Link>
-        </legend>
-        <ul className="space-y-2">
-          {CONSENT_ITEMS.map((item) => (
-            <li key={item.key}>
-              <label className="flex items-start gap-2.5 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={form.consents[item.key]}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      consents: { ...f.consents, [item.key]: e.target.checked },
-                    }))
-                  }
-                  className="mt-0.5 size-4 accent-white shrink-0"
-                />
-                <span className="block leading-snug">
-                  <span className="block text-sm text-white/80">{item.label}</span>
-                  <span className="block text-[11px] text-white/40">{item.hint}</span>
-                </span>
-              </label>
-            </li>
-          ))}
-        </ul>
-      </fieldset>
 
       <div className="pt-2">
         <label className="flex items-start gap-2.5 cursor-pointer rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3.5">

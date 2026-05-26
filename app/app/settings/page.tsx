@@ -1,26 +1,13 @@
 "use client";
 
 import { useMutation, useQuery } from "convex/react";
-import Link from "next/link";
 import { useAuth } from "@workos-inc/authkit-nextjs/components";
 import { api } from "@convex/_generated/api";
 import { useEffect, useState } from "react";
 
-type ConsentKey = "conference_updates";
-
-const CONSENT_ITEMS: { key: ConsentKey; label: string; hint: string }[] = [
-  {
-    key: "conference_updates",
-    label: "Email me conference updates",
-    hint: "Schedule changes, post-event recap, transactional only. No marketing.",
-  },
-];
-
 export default function SettingsPage() {
   const auth = useAuth();
   const me = useQuery(api.users.me);
-  const consents = useQuery(api.consents.list);
-  const setConsent = useMutation(api.consents.set);
   const deleteAccount = useMutation(api.users.deleteAccount);
   const updateProfile = useMutation(api.users.updateProfile);
 
@@ -29,45 +16,6 @@ export default function SettingsPage() {
       <p className="text-xs text-zinc-400">{me?.email}</p>
 
       <ProfileEditor me={me ?? undefined} updateProfile={updateProfile} />
-
-      <section className="space-y-3">
-        <h2 className="font-mono text-sm text-foreground">Preferences</h2>
-        <p className="text-xs text-zinc-500">
-          <Link href="/app/consent-details" className="underline">
-            Full explanation
-          </Link>
-        </p>
-        <ul className="space-y-2">
-          {CONSENT_ITEMS.map((item) => {
-            const c = consents?.find((x) => x.key === item.key);
-            const granted = c?.granted ?? false;
-            return (
-              <li key={item.key}>
-                <label className="flex items-start gap-2.5 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={granted}
-                    onChange={(e) =>
-                      setConsent({ key: item.key, granted: e.target.checked })
-                    }
-                    className="mt-0.5 size-4 accent-white shrink-0"
-                  />
-                  <span className="block leading-snug">
-                    <span className="block text-sm text-white/80">{item.label}</span>
-                    <span className="block text-[11px] text-white/40">{item.hint}</span>
-                  </span>
-                </label>
-              </li>
-            );
-          })}
-        </ul>
-        {me?.teamId && (
-          <p className="text-[11px] text-white/40">
-            You&apos;re on a partner team — scans are automatically shared with your
-            team. That can&apos;t be disabled.
-          </p>
-        )}
-      </section>
 
       <section className="space-y-3">
         <h2 className="font-mono text-sm text-foreground">Account</h2>
