@@ -112,6 +112,66 @@ export const updateLeadQualification = mutation({
   },
 });
 
+// Per-author note thread on a contact. Anyone who owns the contact
+// (personal contact) or is a member of the team that owns it (partner
+// team contact) can add a note. Authors are surfaced on read so the
+// UI can show who wrote what.
+export const addNote = mutation({
+  args: {
+    contactId: v.id("contacts"),
+    text: v.string(),
+  },
+  handler: async (ctx, { contactId, text }) => {
+    const user = await getMe(ctx);
+    const trimmed = text.trim();
+    if (!trimmed) throw new Error("Note can't be empty");
+    const contact = await ctx.db.get(contactId);
+    if (!contact) throw new Error("Contact not found");
+    const allowed =
+      (contact.ownerType === "user" && contact.ownerId === user._id) ||
+      (contact.ownerType === "team" && contact.ownerId === user.teamId);
+    if (!allowed) throw new Error("Not your contact");
+    const noteId = await ctx.db.insert("contactNotes", {
+      contactId,
+      byUserId: user._id,
+      text: trimmed,
+      createdAt: Date.now(),
+    });
+    return noteId;
+  },
+});
+
+export const notesForContact = query({
+  args: { contactId: v.id("contacts") },
+  handler: async (ctx, { contactId }) => {
+    const user = await getMe(ctx);
+    const contact = await ctx.db.get(contactId);
+    if (!contact) return [];
+    const allowed =
+      (contact.ownerType === "user" && contact.ownerId === user._id) ||
+      (contact.ownerType === "team" && contact.ownerId === user.teamId);
+    if (!allowed) return [];
+    const notes = await ctx.db
+      .query("contactNotes")
+      .withIndex("by_contact", (q) => q.eq("contactId", contactId))
+      .order("desc")
+      .collect();
+    const out = [];
+    for (const n of notes) {
+      const author = await ctx.db.get(n.byUserId);
+      out.push({
+        _id: n._id,
+        text: n.text,
+        createdAt: n.createdAt,
+        byUserId: n.byUserId,
+        authorName: author?.name ?? "Unknown",
+        authorIsMe: n.byUserId === user._id,
+      });
+    }
+    return out;
+  },
+});
+
 export const updateNotes = mutation({
   args: {
     contactId: v.id("contacts"),

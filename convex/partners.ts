@@ -1323,17 +1323,86 @@ export const myTeamLeads = query({
       .withIndex("by_workos_id", (q) => q.eq("workosUserId", identity.subject))
       .first();
     if (!me?.teamId) return [];
+    const teamId = me.teamId;
+
+    // Map every team member's userId → name once, so scanner + note-author
+    // attribution doesn't cost a user lookup per row. Scanners and note
+    // authors are always team members, but fall back to a direct get just
+    // in case (e.g. someone scanned then left the team).
+    const memberRows = await ctx.db
+      .query("partnerMembers")
+      .withIndex("by_team", (q) => q.eq("teamId", teamId))
+      .collect();
+    const teamMemberIds = new Set(
+      memberRows.map((m) => m.userId as unknown as string),
+    );
+    const nameById = new Map<string, string>();
+    for (const m of memberRows) {
+      const u = await ctx.db.get(m.userId);
+      if (u) nameById.set(u._id as unknown as string, u.name ?? "Unknown");
+    }
+    const nameFor = async (uid: Id<"users">): Promise<string> => {
+      const key = uid as unknown as string;
+      const cached = nameById.get(key);
+      if (cached) return cached;
+      const u = await ctx.db.get(uid);
+      const name = u?.name ?? "Unknown";
+      nameById.set(key, name);
+      return name;
+    };
+
     const contacts = await ctx.db
       .query("contacts")
       .withIndex("by_owner", (q) =>
-        q.eq("ownerType", "team").eq("ownerId", me.teamId as string),
+        q.eq("ownerType", "team").eq("ownerId", teamId as string),
       )
       .order("desc")
       .collect();
+
     return await Promise.all(
       contacts.map(async (c) => {
         const lead = await ctx.db.get(c.contactedUserId);
-        return { contact: c, lead };
+
+        // Everyone on the team who scanned this lead, oldest first — so the
+        // first entry is whoever met them first.
+        const scanRows = await ctx.db
+          .query("scanEvents")
+          .withIndex("by_scanned", (q) =>
+            q.eq("scannedUserId", c.contactedUserId),
+          )
+          .collect();
+        const teamScans = scanRows
+          .filter((s) => teamMemberIds.has(s.scannerUserId as unknown as string))
+          .sort((a, b) => a.ts - b.ts);
+        const scanners = await Promise.all(
+          teamScans.map(async (s) => ({
+            name: await nameFor(s.scannerUserId),
+            ts: s.ts,
+          })),
+        );
+
+        // Distinct note authors, in the order they first commented.
+        const noteRows = await ctx.db
+          .query("contactNotes")
+          .withIndex("by_contact", (q) => q.eq("contactId", c._id))
+          .collect();
+        const commenters: string[] = [];
+        const seenAuthors = new Set<string>();
+        for (const n of noteRows) {
+          const key = n.byUserId as unknown as string;
+          if (seenAuthors.has(key)) continue;
+          seenAuthors.add(key);
+          commenters.push(await nameFor(n.byUserId));
+        }
+
+        return {
+          contact: c,
+          lead,
+          scanners,
+          firstScan: scanners[0] ?? null,
+          commenters,
+          noteCount: noteRows.length,
+        };
       }),
     );
   },
@@ -1518,6 +1587,33 @@ export const bootstrapBackfillPartnerTeams = internalMutation({
       }
     }
     return { assigned, total: users.length };
+  },
+});
+
+// Drop a user from every partner team they're on (by email). Used
+// from CLI to manufacture a "regular attendee" state on dev so the
+// scanner-gate can be exercised end-to-end without needing a brand
+// new account.
+export const bootstrapRemoveUserFromTeams = internalMutation({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    const normalized = email.toLowerCase().trim();
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", normalized))
+      .first();
+    if (!user) return { error: "user_not_found", email: normalized };
+    const memberships = await ctx.db
+      .query("partnerMembers")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+    for (const m of memberships) await ctx.db.delete(m._id);
+    await ctx.db.patch(user._id, { teamId: undefined });
+    return {
+      email: normalized,
+      userId: user._id,
+      removedFromMemberships: memberships.length,
+    };
   },
 });
 

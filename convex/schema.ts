@@ -147,6 +147,19 @@ export default defineSchema({
     .index("by_owner", ["ownerType", "ownerId"])
     .index("by_contacted", ["contactedUserId"]),
 
+  // Per-author notes on a contact. Multiple teammates scanning the same
+  // attendee can each leave their own note without overwriting each
+  // other. The shared contacts.notes field stays for legacy / single-
+  // user contacts; new partner scans write here.
+  contactNotes: defineTable({
+    contactId: v.id("contacts"),
+    byUserId: v.id("users"),
+    text: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_contact", ["contactId", "createdAt"])
+    .index("by_user", ["byUserId"]),
+
   scanEvents: defineTable({
     scannerUserId: v.id("users"),
     scannedUserId: v.id("users"),

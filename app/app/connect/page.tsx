@@ -8,11 +8,21 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import { Expand, IdCard, ImageUp, Mic, ScanLine, Shield } from "lucide-react";
 import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import { UserQR } from "../components/UserQR";
 import { QrScanner } from "../components/QrScanner";
 import { FullScreenQr } from "../components/FullScreenQr";
 
 type Mode = "badge" | "scanner";
+
+const LEAD_STATUSES = ["hot", "warm", "cold", "junk"] as const;
+type LeadStatus = (typeof LEAD_STATUSES)[number];
+const LEAD_STYLES: Record<LeadStatus, string> = {
+  hot: "bg-rose-500/20 text-rose-200 ring-rose-500/40",
+  warm: "bg-amber-500/20 text-amber-200 ring-amber-500/40",
+  cold: "bg-sky-500/20 text-sky-200 ring-sky-500/40",
+  junk: "bg-zinc-500/20 text-zinc-300 ring-zinc-500/40",
+};
 
 function parseConnectUrl(text: string): string | null {
   try {
@@ -247,6 +257,12 @@ function PillBadge({
 
 type RecordScan = ReturnType<typeof useMutation<typeof api.scans.record>>;
 
+type ScanHistory = {
+  priorScanCount: number;
+  recentPriorScans: Array<{ scannerName: string; ts: number; isMe: boolean }>;
+  leadStatus: LeadStatus | null;
+};
+
 type RecentScan = {
   contactId: string;
   scannedUserId: string;
@@ -255,6 +271,7 @@ type RecentScan = {
   company?: string;
   publicToken?: string;
   at: number;
+  history: ScanHistory;
 };
 
 function ScannerMode({
@@ -262,9 +279,27 @@ function ScannerMode({
 }: {
   recordScan: RecordScan;
 }) {
+  const addNote = useMutation(api.contacts.addNote);
+  const updateLead = useMutation(api.contacts.updateLeadQualification);
   const [status, setStatus] = useState<"idle" | "saving" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [recent, setRecent] = useState<RecentScan[]>([]);
+  // The just-scanned attendee, popped over the camera until the user
+  // dismisses or adds a note. While this is set the camera stays
+  // paused so we don't queue more scans behind the modal.
+  const [activeScan, setActiveScan] = useState<RecentScan | null>(null);
+  // Confirmation toast shown briefly after the modal closes so the
+  // partner has visual feedback that the contact was saved.
+  const [toast, setToast] = useState<{ name: string } | null>(null);
+  useEffect(() => {
+    if (!toast) return;
+    const id = window.setTimeout(() => setToast(null), 2500);
+    return () => window.clearTimeout(id);
+  }, [toast]);
+  const dismissModal = useCallback(() => {
+    if (activeScan) setToast({ name: activeScan.name });
+    setActiveScan(null);
+  }, [activeScan]);
   // Cooldown so the camera doesn't re-decode the same QR a dozen times
   // while it's still in frame. Holds the publicToken just scanned.
   const lastScanRef = useRef<{ token: string; ts: number } | null>(null);
@@ -272,7 +307,7 @@ function ScannerMode({
 
   const handleScan = useCallback(
     async (text: string) => {
-      if (status === "saving") return;
+      if (status === "saving" || activeScan) return;
       const token = parseConnectUrl(text);
       if (!token) {
         setStatus("error");
@@ -295,23 +330,31 @@ function ScannerMode({
           clientId,
         });
         if ("scanned" in result && result.scanned) {
+          const history: ScanHistory = "history" in result && result.history
+            ? {
+                priorScanCount: result.history.priorScanCount,
+                recentPriorScans: result.history.recentPriorScans,
+                leadStatus:
+                  (result.history.leadStatus as LeadStatus | null) ?? null,
+              }
+            : { priorScanCount: 0, recentPriorScans: [], leadStatus: null };
+          const entry: RecentScan = {
+            contactId: result.contactId,
+            scannedUserId: result.scanned._id,
+            name: result.scanned.name,
+            role: result.scanned.role,
+            company: result.scanned.company,
+            publicToken: result.scanned.publicToken,
+            at: Date.now(),
+            history,
+          };
           setRecent((prev) => {
             const filtered = prev.filter(
-              (r) => r.scannedUserId !== result.scanned._id,
+              (r) => r.scannedUserId !== entry.scannedUserId,
             );
-            return [
-              {
-                contactId: result.contactId,
-                scannedUserId: result.scanned._id,
-                name: result.scanned.name,
-                role: result.scanned.role,
-                company: result.scanned.company,
-                publicToken: result.scanned.publicToken,
-                at: Date.now(),
-              },
-              ...filtered,
-            ].slice(0, 20);
+            return [entry, ...filtered].slice(0, 20);
           });
+          setActiveScan(entry);
         }
         setStatus("idle");
       } catch (err) {
@@ -319,7 +362,7 @@ function ScannerMode({
         setErrorMessage(extractErrorMessage(err, "Could not save scan"));
       }
     },
-    [recordScan, status],
+    [recordScan, status, activeScan],
   );
 
   const handleFile = useCallback(
@@ -350,8 +393,41 @@ function ScannerMode({
   );
 
   return (
-    <section className="space-y-3">
-      <QrScanner onScan={handleScan} paused={status === "saving"} />
+    <section className="space-y-3 relative">
+      <QrScanner
+        onScan={handleScan}
+        paused={status === "saving" || !!activeScan}
+      />
+
+      {activeScan && (
+        <ScanModal
+          scan={activeScan}
+          onClose={dismissModal}
+          onSaveNote={async (text) => {
+            await addNote({
+              contactId: activeScan.contactId as Id<"contacts">,
+              text,
+            });
+            dismissModal();
+          }}
+          onSetLeadStatus={async (next) => {
+            await updateLead({
+              contactId: activeScan.contactId as Id<"contacts">,
+              leadStatus: next,
+            });
+          }}
+        />
+      )}
+
+      {toast && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-3 z-30 rounded-full bg-emerald-500/95 text-white text-sm font-medium px-4 py-2 shadow-lg animate-fade-in"
+        >
+          ✓ Saved {toast.name} to contacts
+        </div>
+      )}
 
       <button
         type="button"
@@ -451,4 +527,201 @@ function ScannerMode({
       )}
     </section>
   );
+}
+
+function ScanModal({
+  scan,
+  onClose,
+  onSaveNote,
+  onSetLeadStatus,
+}: {
+  scan: RecentScan;
+  onClose: () => void;
+  onSaveNote: (text: string) => Promise<void>;
+  onSetLeadStatus: (next: LeadStatus | "clear") => Promise<void>;
+}) {
+  const [mode, setMode] = useState<"view" | "note">("view");
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [pickedStatus, setPickedStatus] = useState<LeadStatus | null>(
+    scan.history.leadStatus,
+  );
+  const [leadBusy, setLeadBusy] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (mode === "note") textareaRef.current?.focus();
+  }, [mode]);
+
+  async function handleSave() {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    setBusy(true);
+    setErr(null);
+    try {
+      await onSaveNote(trimmed);
+    } catch (e) {
+      setErr(extractErrorMessage(e, "Could not save note"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handlePickStatus(s: LeadStatus) {
+    setLeadBusy(true);
+    setErr(null);
+    try {
+      const next = pickedStatus === s ? "clear" : s;
+      await onSetLeadStatus(next);
+      setPickedStatus(next === "clear" ? null : s);
+    } catch (e) {
+      setErr(extractErrorMessage(e, "Could not update lead"));
+    } finally {
+      setLeadBusy(false);
+    }
+  }
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="absolute inset-0 z-20 flex items-center justify-center bg-black/70 backdrop-blur-sm rounded-xl"
+    >
+      <div className="w-full max-w-sm m-3 rounded-2xl bg-zinc-900 ring-1 ring-emerald-400/30 p-5 space-y-4 shadow-2xl">
+        <div className="space-y-1">
+          <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-300/80">
+            Just scanned
+          </div>
+          <div className="text-lg font-medium text-white">{scan.name}</div>
+          {(scan.role || scan.company) && (
+            <div className="text-sm text-white/60">
+              {[scan.role, scan.company].filter(Boolean).join(" · ")}
+            </div>
+          )}
+        </div>
+
+        <ScanHistoryBanner history={scan.history} />
+
+        <div className="space-y-2">
+          <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">
+            How was this lead?
+          </div>
+          <div className="grid grid-cols-4 gap-1.5">
+            {LEAD_STATUSES.map((s) => (
+              <button
+                key={s}
+                type="button"
+                disabled={leadBusy}
+                onClick={() => handlePickStatus(s)}
+                className={`font-mono text-[10px] uppercase tracking-[0.18em] py-2 rounded-md ring-1 transition-colors disabled:opacity-50 ${
+                  pickedStatus === s
+                    ? LEAD_STYLES[s]
+                    : "ring-white/15 text-white/60 hover:text-white hover:ring-white/30"
+                }`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {mode === "view" ? (
+          <div className="flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={() => setMode("note")}
+              className="w-full inline-flex items-center justify-center px-4 py-3 rounded-full bg-white text-black font-mono text-sm font-medium"
+            >
+              Add note
+            </button>
+            <Link
+              href={`/app/contacts/${scan.contactId}`}
+              className="w-full inline-flex items-center justify-center px-4 py-2.5 rounded-full ring-1 ring-white/20 font-mono text-xs text-white/80 hover:text-white hover:ring-white/30"
+            >
+              Open contact
+            </Link>
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full inline-flex items-center justify-center px-4 py-2.5 font-mono text-xs uppercase tracking-[0.18em] text-white/50 hover:text-white"
+            >
+              Dismiss
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <textarea
+              ref={textareaRef}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Quick note for your team — what did you talk about?"
+              rows={4}
+              className="w-full rounded-xl bg-white/[0.04] ring-1 ring-white/10 px-3 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-white/30 resize-none"
+            />
+            {err && <p className="text-xs text-rose-200 font-mono">{err}</p>}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={busy || !text.trim()}
+                className="flex-1 inline-flex items-center justify-center px-4 py-2.5 rounded-full bg-white text-black font-mono text-sm font-medium disabled:opacity-50"
+              >
+                {busy ? "Saving…" : "OK"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("view");
+                  setText("");
+                  setErr(null);
+                }}
+                disabled={busy}
+                className="px-4 py-2.5 rounded-full ring-1 ring-white/20 font-mono text-xs text-white/70 hover:text-white disabled:opacity-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ScanHistoryBanner({ history }: { history: ScanHistory }) {
+  if (history.priorScanCount === 0) {
+    return (
+      <div className="rounded-md bg-emerald-500/10 ring-1 ring-emerald-400/20 px-3 py-2 text-xs text-emerald-100">
+        First time meeting them.
+      </div>
+    );
+  }
+  const last = history.recentPriorScans[0];
+  const lastLabel = last ? `${last.isMe ? "you" : last.scannerName} · ${relativeTime(last.ts)}` : null;
+  return (
+    <div className="rounded-md bg-amber-500/10 ring-1 ring-amber-400/20 px-3 py-2 text-xs text-amber-100 space-y-1">
+      <div className="font-medium">
+        Already scanned {history.priorScanCount === 1 ? "once" : `${history.priorScanCount} times`}
+        {lastLabel ? ` — last by ${lastLabel}` : ""}.
+      </div>
+      {history.recentPriorScans.length > 1 && (
+        <ul className="text-[11px] text-amber-200/70 space-y-0.5">
+          {history.recentPriorScans.slice(1).map((s, i) => (
+            <li key={i}>
+              {s.isMe ? "you" : s.scannerName} · {relativeTime(s.ts)}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function relativeTime(ts: number): string {
+  const diff = Math.max(0, Date.now() - ts);
+  if (diff < 60_000) return "just now";
+  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)} min ago`;
+  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
+  return `${Math.floor(diff / 86_400_000)}d ago`;
 }

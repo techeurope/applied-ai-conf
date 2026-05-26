@@ -89,7 +89,7 @@ export default function TeamLeadsPage() {
       </div>
 
       <ul className="divide-y divide-white/5 rounded-2xl ring-1 ring-white/5 overflow-hidden">
-        {visible.map(({ contact, lead }) => {
+        {visible.map(({ contact, lead, firstScan, scanners, commenters }) => {
           if (!lead) return null;
           const notesEditing = editingNotes === contact._id;
           const descEditing = editingDesc === contact._id;
@@ -109,6 +109,38 @@ export default function TeamLeadsPage() {
                   {new Date(contact.lastScanAt).toLocaleDateString()}
                 </div>
               </div>
+
+              {(firstScan || commenters.length > 0) && (
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[10px] text-white/40">
+                  {firstScan && (
+                    <span>
+                      <span className="text-white/30">scanned by</span>{" "}
+                      <span className="text-white/70">{firstScan.name}</span>
+                      <span className="text-white/30">
+                        {" "}
+                        · {new Date(firstScan.ts).toLocaleDateString()}
+                      </span>
+                      {scanners.length > 1 && (
+                        <span
+                          className="text-white/30"
+                          title={scanners.map((s) => s.name).join(", ")}
+                        >
+                          {" "}
+                          +{scanners.length - 1} more
+                        </span>
+                      )}
+                    </span>
+                  )}
+                  {commenters.length > 0 && (
+                    <span>
+                      <span className="text-white/30">notes by</span>{" "}
+                      <span className="text-white/70">
+                        {commenters.join(", ")}
+                      </span>
+                    </span>
+                  )}
+                </div>
+              )}
 
               <div className="flex flex-wrap gap-1">
                 {STATUS_LIST.map((s) => (

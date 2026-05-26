@@ -79,6 +79,35 @@ export const record = mutation({
     }
 
     const now = Date.now();
+    // Snapshot prior scan history BEFORE inserting the new row, so the
+    // modal can say "already scanned N times" without having to count
+    // back the current scan. For team scanners we look across the
+    // whole team; for solo users it's just their own scans.
+    const priorScans = await ctx.db
+      .query("scanEvents")
+      .withIndex("by_scanned", (q) => q.eq("scannedUserId", scannedUserId))
+      .collect();
+    const teamPriorScans = scanner.teamId
+      ? await Promise.all(
+          priorScans.map(async (s) => {
+            const u = await ctx.db.get(s.scannerUserId);
+            return { ev: s, scannerTeamId: u?.teamId, scannerName: u?.name };
+          }),
+        ).then((rows) => rows.filter((r) => r.scannerTeamId === scanner.teamId))
+      : priorScans
+          .filter((s) => s.scannerUserId === scanner._id)
+          .map((s) => ({ ev: s, scannerName: scanner.name }));
+    const priorScanCount = teamPriorScans.length;
+    // Last 3 (newest first) for the modal — beyond that it's just noise.
+    const recentPriorScans = teamPriorScans
+      .sort((a, b) => b.ev.ts - a.ev.ts)
+      .slice(0, 3)
+      .map((r) => ({
+        scannerName: r.scannerName ?? "Unknown",
+        ts: r.ev.ts,
+        isMe: r.ev.scannerUserId === scanner._id,
+      }));
+
     const scanEventId = await ctx.db.insert("scanEvents", {
       scannerUserId: scanner._id,
       scannedUserId,
@@ -98,9 +127,11 @@ export const record = mutation({
       .first();
 
     let contactId;
+    let leadStatus: string | undefined;
     if (existingContact) {
       await ctx.db.patch(existingContact._id, { lastScanAt: now });
       contactId = existingContact._id;
+      leadStatus = existingContact.leadStatus;
     } else {
       contactId = await ctx.db.insert("contacts", {
         ownerType,
@@ -123,6 +154,11 @@ export const record = mutation({
         role: scanned.role,
         company: scanned.company,
         publicToken: scanned.publicToken,
+      },
+      history: {
+        priorScanCount,
+        recentPriorScans,
+        leadStatus: leadStatus ?? null,
       },
     };
   },
