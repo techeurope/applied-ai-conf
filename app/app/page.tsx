@@ -65,8 +65,6 @@ export default function AppHome() {
         </div>
 
         <footer className="pt-4 border-t border-white/10 flex flex-wrap gap-x-5 gap-y-2 text-sm text-white/40">
-          <Link href="/app/faq" className="hover:text-white">FAQ</Link>
-          <Link href="/app/about" className="hover:text-white">About</Link>
           <Link href="/code-of-conduct" className="hover:text-white">Code of conduct</Link>
           <Link href="/privacy" className="hover:text-white">Privacy</Link>
           <Link href="/imprint" className="hover:text-white">Imprint</Link>
