@@ -31,9 +31,10 @@ export const record = mutation({
         "Your ticket isn't verified yet. Visit /app/link-ticket first.",
       );
     }
-    // Scanner is partner-only — regular attendees don't get lead capture.
-    // Admins always pass.
-    if (!scanner.teamId && scanner.accessLevel !== "admin") {
+    // Scanner is partner-team-only — you must be on a team to capture leads.
+    // Without a teamId every scan creates a personal contact the lead-
+    // qualification flow rejects, so we gate scanning here (no admin bypass).
+    if (!scanner.teamId) {
       throw new ConvexError(
         "Lead-capture scanning is for partner team members only.",
       );

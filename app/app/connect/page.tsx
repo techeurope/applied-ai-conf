@@ -81,10 +81,10 @@ export default function ConnectPage() {
     return <p className="font-mono text-xs text-white/40">Not signed in.</p>;
   }
 
-  // Scanner is partner-team-only. Regular attendees see Badge mode only,
-  // with no mode toggle. Admins always get the toggle.
-  const isAdmin = me.accessLevel === "admin";
-  const canScan = isAdmin || !!me.teamId;
+  // Scanner is partner-team-only — you must be on a team to capture leads.
+  // Everyone else (including admins without a team) sees Badge mode only;
+  // a non-team scan would create a personal contact the lead flow can't act on.
+  const canScan = !!me.teamId;
   const effectiveMode: Mode = canScan ? mode : "badge";
 
   return (
