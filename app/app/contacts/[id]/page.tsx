@@ -81,6 +81,14 @@ export default function ContactDetailPage({
         <p className="text-sm text-zinc-400">
           {[user?.role, user?.company].filter(Boolean).join(" · ")}
         </p>
+        {user?.email && (
+          <a
+            href={`mailto:${user.email}`}
+            className="block font-mono text-xs underline text-zinc-300 mt-1 break-all"
+          >
+            {user.email}
+          </a>
+        )}
         {user?.linkedinUrl && (
           <a
             href={user.linkedinUrl}
