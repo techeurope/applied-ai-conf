@@ -1094,6 +1094,11 @@ export const acceptTeamInvite = mutation({
         joinedAt: now,
       });
       await dedupePartnerMember(ctx, invite.teamId, user._id);
+    } else if (invite.role === "owner" && existing.role !== "owner") {
+      // Already a member (e.g. added via a bulk tool that defaults to
+      // "member") but the invite grants owner — upgrade rather than silently
+      // keeping the lower role.
+      await ctx.db.patch(existing._id, { role: "owner" });
     }
     const patch: Record<string, unknown> = { teamId: invite.teamId };
     if (!user.ticketLinkedAt) patch.ticketLinkedAt = now;
@@ -1708,3 +1713,41 @@ export const auditTeamsSnapshot = internalQuery({
 });
 
 // --- per-partner analytics removed (see Notion ticket) ----------------------
+
+// One-shot repair: some partners were added to their team as "member" (via a
+// bulk add-by-email tool that defaults to member) even though they were
+// invited as "owner". Walk every partner-team membership and, where the
+// person has an owner invite for that team but their membership role is lower,
+// upgrade them to owner. Idempotent — re-running only touches still-mismatched
+// rows. Run via: npx convex run --prod partners:bootstrapSyncOwnerRolesFromInvites
+export const bootstrapSyncOwnerRolesFromInvites = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const members = await ctx.db.query("partnerMembers").collect();
+    const upgraded: Array<{ email: string; teamId: string }> = [];
+    for (const m of members) {
+      if (m.role === "owner") continue;
+      const user = await ctx.db.get(m.userId);
+      const email = (user?.email ?? "").toLowerCase().trim();
+      if (!email) continue;
+      const invites = await ctx.db
+        .query("partnerInvites")
+        .withIndex("by_email", (q) => q.eq("email", email))
+        .collect();
+      const ownerInvite = invites.find(
+        (i) => i.teamId === m.teamId && i.role === "owner",
+      );
+      if (!ownerInvite) continue;
+      await ctx.db.patch(m._id, { role: "owner" });
+      // Tidy the invite so it no longer shows as pending.
+      if (!ownerInvite.consumedAt) {
+        await ctx.db.patch(ownerInvite._id, {
+          consumedAt: Date.now(),
+          consumedByUserId: m.userId,
+        });
+      }
+      upgraded.push({ email, teamId: m.teamId as unknown as string });
+    }
+    return { upgraded: upgraded.length, details: upgraded };
+  },
+});
