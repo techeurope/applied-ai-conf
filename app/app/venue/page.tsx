@@ -58,19 +58,49 @@ export default async function VenuePage() {
         </div>
       </section>
 
-      {/* Floor plan preview (static) */}
+      {/* Floor plan — inside The Delta Campus */}
       <section className="space-y-3">
         <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/40">
-          // floor plan
+          // floor plan · delta campus
         </p>
-        <div className="rounded-2xl ring-1 ring-white/10 bg-[#07090f] overflow-hidden relative">
+        <div className="rounded-2xl ring-1 ring-white/10 bg-[#0C0C0E] overflow-hidden p-3 sm:p-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/venue/floorplan-bg.png"
-            alt="Floor plan of The Delta Campus"
-            className="w-full h-auto block opacity-75"
+            src="/venue/floorplan-delta.svg"
+            alt="Floor plan of The Delta Campus: Main Stage (left), Side Stage (bottom right), Registration (center right), Bar with coffee (top), Booths (top right)"
+            className="w-full h-auto block"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+        </div>
+        <p className="text-xs text-white/55 leading-relaxed">
+          Coffee is served at the bar throughout the day. Lunch is in a
+          separate building, Kalle Halle — see the walking route below.
+        </p>
+      </section>
+
+      {/* Walking route to lunch */}
+      <section className="space-y-3">
+        <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-amber-200/80 flex items-center gap-1.5">
+          <UtensilsCrossed className="size-3" strokeWidth={2} />
+          // walk to lunch · kalle halle
+        </p>
+        <div className="rounded-2xl ring-1 ring-white/10 bg-[#0C0C0E] overflow-hidden p-3 sm:p-4">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/venue/floorplan-kalle-halle.svg"
+            alt="Walking route from The Delta Campus to Kalle Halle for lunch. Red arrows mark the path outside."
+            className="w-full h-auto block"
+          />
+        </div>
+        <div className="flex flex-wrap gap-2 pt-1">
+          <a
+            href="https://maps.google.com/?q=Kalle+Halle+Berlin"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-full ring-1 ring-white/20 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-white hover:bg-white/[0.06]"
+          >
+            Open Kalle Halle in Maps
+            <ExternalLink className="size-3" strokeWidth={1.75} />
+          </a>
         </div>
       </section>
 
@@ -93,7 +123,7 @@ export default async function VenuePage() {
           label="LUNCH"
           rows={[
             ["When", "12:30 – 13:30"],
-            ["Where", "Expo Hall"],
+            ["Where", "Kalle Halle (5 min walk)"],
           ]}
           note="Meat, vegetarian, vegan, gluten-free. Allergens labelled at the counter."
         />
@@ -103,8 +133,9 @@ export default async function VenuePage() {
           rows={[
             ["Morning break", "10:30 – 10:50"],
             ["Afternoon break", "15:10 – 15:30"],
+            ["Where", "At the bar"],
           ]}
-          note="Plus coffee available all day in the expo hall."
+          note="Coffee is available at the bar throughout the day."
         />
         <Info
           icon={Toilet}
