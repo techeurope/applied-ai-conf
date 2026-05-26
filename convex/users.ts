@@ -510,6 +510,12 @@ export const updateProfile = mutation({
   args: profilePatchArgs,
   handler: async (ctx, patch) => {
     const user = await requireActiveUser(ctx);
+    // Talk headline is speaker-only. The settings UI hides the field for
+    // non-speakers, but re-check here so it can't be set by calling the
+    // mutation directly.
+    if (!user.isSpeaker && patch.headline !== undefined) {
+      delete patch.headline;
+    }
     await ctx.db.patch(user._id, patch);
     return user._id;
   },

@@ -138,7 +138,10 @@ function ProfileEditor({
             { key: "linkedinUrl", label: "LinkedIn URL", placeholder: "https://linkedin.com/in/..." },
             { key: "headline", label: "Talk headline (speakers)", placeholder: "Title of your talk" },
           ] as const
-        ).map(({ key, label, placeholder }) => (
+        ).map(({ key, label, placeholder }) => {
+          // Talk headline is speaker-only; non-speakers never see the field.
+          if (key === "headline" && !me?.isSpeaker) return null;
+          return (
           <label key={key} className="block space-y-1">
             <span className="block font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
               {label}
@@ -151,7 +154,8 @@ function ProfileEditor({
               className="w-full px-3 py-2 bg-zinc-900/60 border border-white/10 rounded-md text-sm focus:outline-none focus:border-white/30"
             />
           </label>
-        ))}
+          );
+        })}
         <label className="block space-y-1">
           <span className="block font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
             Bio
