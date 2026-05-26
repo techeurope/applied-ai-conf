@@ -76,7 +76,6 @@ function ProfileEditor({
     role: "",
     company: "",
     linkedinUrl: "",
-    headline: "",
     bio: "",
   });
   const [hydrated, setHydrated] = useState(false);
@@ -95,7 +94,6 @@ function ProfileEditor({
       role: me.role ?? "",
       company: me.company ?? "",
       linkedinUrl: me.linkedinUrl ?? "",
-      headline: me.headline ?? "",
       bio: me.bio ?? "",
     });
     setHydrated(true);
@@ -111,7 +109,6 @@ function ProfileEditor({
         role: form.role || undefined,
         company: form.company || undefined,
         linkedinUrl: form.linkedinUrl || undefined,
-        headline: form.headline || undefined,
         bio: form.bio || undefined,
       });
       setMsg("Saved");
@@ -136,12 +133,8 @@ function ProfileEditor({
             { key: "role", label: "Role", placeholder: "Founding Engineer" },
             { key: "company", label: "Company", placeholder: "{Tech: Europe}" },
             { key: "linkedinUrl", label: "LinkedIn URL", placeholder: "https://linkedin.com/in/..." },
-            { key: "headline", label: "Talk headline (speakers)", placeholder: "Title of your talk" },
           ] as const
-        ).map(({ key, label, placeholder }) => {
-          // Talk headline is speaker-only; non-speakers never see the field.
-          if (key === "headline" && !me?.isSpeaker) return null;
-          return (
+        ).map(({ key, label, placeholder }) => (
           <label key={key} className="block space-y-1">
             <span className="block font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
               {label}
@@ -154,8 +147,7 @@ function ProfileEditor({
               className="w-full px-3 py-2 bg-zinc-900/60 border border-white/10 rounded-md text-sm focus:outline-none focus:border-white/30"
             />
           </label>
-          );
-        })}
+        ))}
         <label className="block space-y-1">
           <span className="block font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
             Bio
