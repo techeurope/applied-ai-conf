@@ -18,7 +18,12 @@ export type LiveSessionSlot = {
 };
 
 function speakerLines(slot: Pick<LiveSessionSlot, "speakerName" | "speakerNames">) {
-  const names = slot.speakerNames ?? (slot.speakerName ? [slot.speakerName] : []);
+  const names =
+    slot.speakerNames && slot.speakerNames.length > 0
+      ? slot.speakerNames
+      : slot.speakerName
+        ? [slot.speakerName]
+        : [];
   if (names.length === 0) return { speaker: "", company: "" };
   const last = (SPEAKERS as Speaker[]).find((s) => s.name === names[names.length - 1]);
   return { speaker: names.join(" & "), company: last?.company ?? "" };

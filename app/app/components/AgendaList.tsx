@@ -64,7 +64,12 @@ function speakerLines(slot: Pick<Slot, "speakerName" | "speakerNames">): {
   company: string;
   images: Array<{ src: string; alt: string }>;
 } {
-  const names = slot.speakerNames ?? (slot.speakerName ? [slot.speakerName] : []);
+  const names =
+    slot.speakerNames && slot.speakerNames.length > 0
+      ? slot.speakerNames
+      : slot.speakerName
+        ? [slot.speakerName]
+        : [];
   if (names.length === 0) return { speaker: "", company: "", images: [] };
   const profiles = names.map((n) => SPEAKERS.find((s) => s.name === n));
   const lastProfile = profiles[profiles.length - 1];

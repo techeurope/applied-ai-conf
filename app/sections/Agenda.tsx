@@ -104,7 +104,13 @@ const SLOT_BG: Record<SessionFormat, string> = {
 
 // ── Slot cell content ───────────────────────────────────────────
 function SlotCell({ slot }: { slot: AgendaSlot }) {
-  const speakers = (slot.speakerNames ?? (slot.speakerName ? [slot.speakerName] : []))
+  const speakerNames =
+    slot.speakerNames && slot.speakerNames.length > 0
+      ? slot.speakerNames
+      : slot.speakerName
+        ? [slot.speakerName]
+        : [];
+  const speakers = speakerNames
     .map((name) => SPEAKERS.find((s) => s.name === name))
     .filter(Boolean);
   const isTBA =
