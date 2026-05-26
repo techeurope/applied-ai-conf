@@ -32,7 +32,7 @@ export default function VoucherPage() {
   useEffect(() => {
     if (vouchers === undefined) return;
     if (ensuredRef.current) return;
-    const hasLunch = vouchers.some((v) => v.kind.startsWith("lunch"));
+    const hasLunch = vouchers.some((v) => v.kind === "lunch");
     if (hasLunch) return;
     ensuredRef.current = true;
     ensureAndClaim({ kind: "lunch" }).catch((e: Error) => {
@@ -96,7 +96,7 @@ function VoucherFull({
     label: voucher.kind,
   };
   const redeemed = !!voucher.redeemedAt;
-  const isExternalKind = voucher.kind.startsWith("lunch");
+  const isExternalKind = voucher.kind === "lunch";
 
   if (isExternalKind) {
     return (

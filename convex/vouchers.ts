@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import {
   mutation,
   query,
@@ -125,7 +125,7 @@ export const ensureAndClaimForMyVoucher = mutation({
       throw new Error("Account is not active");
     }
     if (!user.ticketLinkedAt && user.accessLevel !== "admin") {
-      throw new Error("Link your ticket first to get a voucher");
+      throw new ConvexError("Link your ticket first to get a voucher");
     }
 
     const email = (user.email ?? "").toLowerCase().trim();
@@ -175,7 +175,7 @@ export const ensureAndClaimForMyVoucher = mutation({
       )
       .first();
     if (!inventory) {
-      throw new Error("Out of vouchers for this kind. Please ask staff.");
+      throw new ConvexError("Out of vouchers for this kind. Please ask staff.");
     }
     const now = Date.now();
     await ctx.db.patch(inventory._id, {
@@ -236,7 +236,7 @@ export const claimExternalForMyVoucher = mutation({
       )
       .first();
     if (!inventory) {
-      throw new Error("Out of vouchers for this kind. Please ask staff.");
+      throw new ConvexError("Out of vouchers for this kind. Please ask staff.");
     }
 
     const now = Date.now();
