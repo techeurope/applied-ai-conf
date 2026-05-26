@@ -4,12 +4,11 @@ import Link from "next/link";
 import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
-import { BarChart3, Send, Ban } from "lucide-react";
+import { Send, Ban } from "lucide-react";
 
 export default function TeamDashboardPage() {
   const team = useQuery(api.partners.myTeam);
   const members = useQuery(api.partners.myTeamMembers);
-  const leads = useQuery(api.partners.myTeamLeads);
   const pendingInvites = useQuery(api.partners.myTeamPendingInvites);
   const ownerInvite = useMutation(api.partners.ownerInviteMember);
   const setRole = useMutation(api.partners.setMemberRole);
@@ -33,7 +32,6 @@ export default function TeamDashboardPage() {
   }
 
   const verified = !!team.team.partnerVerifiedAt;
-  const leadCount = leads?.length ?? 0;
   const memberCount = members?.length ?? 0;
 
   return (
@@ -62,33 +60,6 @@ export default function TeamDashboardPage() {
           How does this work? ›
         </Link>
       </header>
-
-      <section className="grid grid-cols-2 gap-3">
-        <Stat label="Leads" value={leadCount} href="/app/contacts" />
-        <Stat label="Members" value={memberCount} />
-      </section>
-
-      <section className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        <Link
-          href="/app/team/leads"
-          className="glass-card rounded-2xl px-4 py-4 hover:bg-white/10 flex flex-col gap-1"
-        >
-          <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/60">
-            Shared leads →
-          </span>
-          <span className="text-sm">View and edit notes on every scan from your team.</span>
-        </Link>
-        <Link
-          href="/app/team/analytics"
-          className="glass-card rounded-2xl px-4 py-4 hover:bg-white/10 flex flex-col gap-1"
-        >
-          <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/60 inline-flex items-center gap-1.5">
-            <BarChart3 className="size-3.5" strokeWidth={1.75} />
-            Analytics →
-          </span>
-          <span className="text-sm">Scan timeline, lead status, and per-member leaderboard.</span>
-        </Link>
-      </section>
 
       <section className="glass-card rounded-2xl p-5 space-y-3">
         <h2 className="font-mono text-sm font-bold">Team members ({memberCount})</h2>
@@ -256,41 +227,4 @@ function relativeTime(ts: number): string {
   if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
   if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
   return `${Math.floor(diff / 86_400_000)}d ago`;
-}
-
-
-function Stat({
-  label,
-  value,
-  small,
-  href,
-}: {
-  label: string;
-  value: number | string;
-  small?: boolean;
-  href?: string;
-}) {
-  const inner = (
-    <>
-      <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
-        {label}
-      </div>
-      <div className={`font-mono font-bold text-white ${small ? "text-sm" : "text-2xl"}`}>
-        {value}
-      </div>
-    </>
-  );
-  if (href) {
-    return (
-      <Link
-        href={href}
-        className="glass-card rounded-2xl px-4 py-3 block hover:bg-white/10 transition-colors"
-      >
-        {inner}
-      </Link>
-    );
-  }
-  return (
-    <div className="glass-card rounded-2xl px-4 py-3">{inner}</div>
-  );
 }

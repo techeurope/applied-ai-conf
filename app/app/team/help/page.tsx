@@ -5,7 +5,6 @@ import { useQuery } from "convex/react";
 import {
   IdCard,
   Users,
-  BarChart3,
   ScanLine,
   Mail,
   ChevronLeft,
@@ -116,48 +115,6 @@ export default function TeamHelpPage() {
           and type at the same time, the last save wins — write longer notes
           one at a time.
         </p>
-      </Section>
-
-      <Section icon={BarChart3} title="// ANALYTICS">
-        <p>
-          <Link
-            href="/app/team/analytics"
-            className="underline text-white hover:text-white/80"
-          >
-            /app/team/analytics
-          </Link>{" "}
-          shows you how your team is doing:
-        </p>
-        <ul className="space-y-1.5 list-none">
-          <Bullet>
-            <strong>Unique leads</strong> — distinct attendees scanned (re-scans
-            of the same person don&apos;t double-count)
-          </Bullet>
-          <Bullet>
-            <strong>Total scans</strong> — every scan event, including
-            re-scans
-          </Bullet>
-          <Bullet>
-            <strong>Active scanners / Members</strong> — how many of your
-            teammates have scanned at least once
-          </Bullet>
-          <Bullet>
-            <strong>Hot rate</strong> — the percent of leads marked Hot. The
-            quickest measure of qualified pipeline from the booth.
-          </Bullet>
-          <Bullet>
-            <strong>Lead status bar</strong> — distribution across Hot / Warm
-            / Cold / unset
-          </Bullet>
-          <Bullet>
-            <strong>Scans by hour</strong> — bar chart over the conference
-            day, peak hour highlighted
-          </Bullet>
-          <Bullet>
-            <strong>Leaderboard</strong> — per-teammate unique leads + total
-            scans, sorted
-          </Bullet>
-        </ul>
       </Section>
 
       <Section icon={Mail} title="// INVITING TEAMMATES">
