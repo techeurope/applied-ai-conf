@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { useMutation, useQuery } from "convex/react";
 import {
@@ -22,6 +22,23 @@ const KIND_META: Record<string, { icon: LucideIcon; label: string }> = {
 
 export default function VoucherPage() {
   const vouchers = useQuery(api.vouchers.myVouchers);
+  const ensureAndClaim = useMutation(api.vouchers.ensureAndClaimForMyVoucher);
+  const ensuredRef = useRef(false);
+  const [ensureError, setEnsureError] = useState<string | null>(null);
+
+  // JIT-mint a lunch voucher the first time someone visits this page without
+  // one. Triggered once per page mount; the reactive myVouchers query picks
+  // up the result and re-renders.
+  useEffect(() => {
+    if (vouchers === undefined) return;
+    if (ensuredRef.current) return;
+    const hasLunch = vouchers.some((v) => v.kind.startsWith("lunch"));
+    if (hasLunch) return;
+    ensuredRef.current = true;
+    ensureAndClaim({ kind: "lunch" }).catch((e: Error) => {
+      setEnsureError(e.message ?? "Could not get your voucher");
+    });
+  }, [vouchers, ensureAndClaim]);
 
   if (vouchers === undefined) {
     return <p className="font-mono text-xs text-white/40 pt-6">Loading…</p>;
@@ -33,9 +50,11 @@ export default function VoucherPage() {
         <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
           // VOUCHERS
         </p>
-        <p className="text-sm text-white/60">
-          You don&apos;t have any vouchers right now.
-        </p>
+        {ensureError ? (
+          <p className="text-sm text-red-300">{ensureError}</p>
+        ) : (
+          <p className="text-sm text-white/60">Preparing your voucher…</p>
+        )}
       </div>
     );
   }
