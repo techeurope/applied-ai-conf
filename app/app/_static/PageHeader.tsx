@@ -41,11 +41,9 @@ export function PageHeader({
 export function PageFooter() {
   return (
     <footer className="pt-6 mt-2 border-t border-white/5 flex flex-wrap gap-x-5 gap-y-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/40">
-      <Link href="/app/about" className="hover:text-white">about</Link>
       <Link href="/app/programme" className="hover:text-white">programme</Link>
       <Link href="/app/venue" className="hover:text-white">venue</Link>
       <Link href="/app/travel" className="hover:text-white">travel</Link>
-      <Link href="/app/faq" className="hover:text-white">faq</Link>
       <Link href="/code-of-conduct" className="hover:text-white">code of conduct</Link>
       <Link href="/" className="hover:text-white ml-auto">‹ techeurope.io</Link>
     </footer>
