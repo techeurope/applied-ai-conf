@@ -28,6 +28,9 @@ export default function ContactDetailPage({
   const noteThread = useQuery(api.contacts.notesForContact, {
     contactId: id as Id<"contacts">,
   });
+  const scanners = useQuery(api.contacts.scannersForContact, {
+    contactId: id as Id<"contacts">,
+  });
   const entry = contacts?.find((c) => c.contact._id === id);
 
   const [tags, setTags] = useState<string[]>([]);
@@ -49,9 +52,9 @@ export default function ContactDetailPage({
   if (!entry) {
     return (
       <div className="space-y-4">
-        <p className="text-sm text-zinc-400">Contact not found.</p>
+        <p className="text-sm text-zinc-400">Lead not found.</p>
         <Link href="/app/contacts" className="font-mono text-xs underline">
-          ← Back to contacts
+          ← Back to leads
         </Link>
       </div>
     );
@@ -71,7 +74,7 @@ export default function ContactDetailPage({
   return (
     <div className="space-y-5 pt-2">
       <Link href="/app/contacts" className="font-mono text-xs text-zinc-500 hover:text-zinc-300">
-        ← Contacts
+        ← Leads
       </Link>
 
       <header className="space-y-1">
@@ -93,6 +96,28 @@ export default function ContactDetailPage({
 
       {user?.bio && (
         <p className="text-sm text-zinc-300 leading-relaxed">{user.bio}</p>
+      )}
+
+      {scanners && scanners.length > 0 && (
+        <section className="space-y-1.5">
+          <div className="font-mono text-[10px] uppercase tracking-widest text-zinc-500">
+            Scanned by
+          </div>
+          <ul className="space-y-0.5">
+            {scanners.map((s, i) => (
+              <li
+                key={i}
+                className="flex items-baseline gap-2 text-sm text-white/80"
+              >
+                <span className="text-white">{s.isMe ? "You" : s.name}</span>
+                <span className="font-mono text-[10px] text-white/40">
+                  {new Date(s.ts).toLocaleString()}
+                  {i === 0 && scanners.length > 1 ? " · first" : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       {contact.ownerType === "team" && (

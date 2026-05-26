@@ -172,6 +172,68 @@ export const notesForContact = query({
   },
 });
 
+// Who scanned this contact, oldest first — so the first entry is whoever
+// met them first. For a team lead we count everyone on the team; for a
+// personal contact only the owner (personal contacts come from the public
+// "add" path and rarely have scan events, so this is usually empty).
+export const scannersForContact = query({
+  args: { contactId: v.id("contacts") },
+  handler: async (ctx, { contactId }) => {
+    const user = await getMe(ctx);
+    const contact = await ctx.db.get(contactId);
+    if (!contact) return [];
+    const allowed =
+      (contact.ownerType === "user" && contact.ownerId === user._id) ||
+      (contact.ownerType === "team" && contact.ownerId === user.teamId);
+    if (!allowed) return [];
+
+    const nameById = new Map<string, string>();
+    let isRelevantScanner: (scannerUserId: Id<"users">) => boolean;
+    if (contact.ownerType === "team") {
+      const memberRows = await ctx.db
+        .query("partnerMembers")
+        .withIndex("by_team", (q) =>
+          q.eq("teamId", contact.ownerId as unknown as Id<"teams">),
+        )
+        .collect();
+      const memberIds = new Set(
+        memberRows.map((m) => m.userId as unknown as string),
+      );
+      for (const m of memberRows) {
+        const u = await ctx.db.get(m.userId);
+        if (u) nameById.set(u._id as unknown as string, u.name ?? "Unknown");
+      }
+      isRelevantScanner = (id) => memberIds.has(id as unknown as string);
+    } else {
+      isRelevantScanner = (id) =>
+        (id as unknown as string) === (user._id as unknown as string);
+    }
+
+    const scanRows = await ctx.db
+      .query("scanEvents")
+      .withIndex("by_scanned", (q) =>
+        q.eq("scannedUserId", contact.contactedUserId),
+      )
+      .collect();
+    const relevant = scanRows
+      .filter((s) => isRelevantScanner(s.scannerUserId))
+      .sort((a, b) => a.ts - b.ts);
+
+    const out: Array<{ name: string; ts: number; isMe: boolean }> = [];
+    for (const s of relevant) {
+      const key = s.scannerUserId as unknown as string;
+      let name = nameById.get(key);
+      if (!name) {
+        const u = await ctx.db.get(s.scannerUserId);
+        name = u?.name ?? "Unknown";
+        nameById.set(key, name);
+      }
+      out.push({ name, ts: s.ts, isMe: s.scannerUserId === user._id });
+    }
+    return out;
+  },
+});
+
 export const updateNotes = mutation({
   args: {
     contactId: v.id("contacts"),
