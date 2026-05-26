@@ -234,13 +234,13 @@ export default function TeamHelpPage() {
           </Bullet>
           <Bullet>
             <strong>Still stuck?</strong> Find a crew member in a black
-            shirt at the venue, or email{" "}
-            <a
-              href="mailto:hello@techeurope.io"
+            shirt, or head to the{" "}
+            <Link
+              href="/app/venue"
               className="text-white underline hover:text-white/80"
             >
-              hello@techeurope.io
-            </a>
+              help desk near the entrance
+            </Link>
             .
           </Bullet>
         </ul>

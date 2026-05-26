@@ -9,7 +9,6 @@ import {
   CalendarHeart,
   Coffee,
   LifeBuoy,
-  Mail,
   MapPin,
   PlaneTakeoff,
   QrCode,
@@ -343,15 +342,15 @@ function HelpCard() {
   return (
     <CardShell>
       <CardHeader icon={LifeBuoy} title="Help" hasArrow={false} />
-      <a
-        href="mailto:hello@techeurope.io"
-        className="inline-flex items-center gap-1.5 text-white hover:text-emerald-200 transition-colors"
-      >
-        <Mail className="size-3.5" strokeWidth={1.75} />
-        hello@techeurope.io
-      </a>
-      <p className="text-sm text-white/60 mt-2 leading-snug">
-        Or grab any crew member — they're the ones in black t-shirts.
+      <p className="text-sm text-white/60 leading-snug">
+        Head to the{" "}
+        <Link
+          href="/app/venue"
+          className="text-white underline underline-offset-2 hover:text-emerald-200 transition-colors"
+        >
+          help desk near the entrance
+        </Link>
+        , or grab any crew member — they're the ones in black t-shirts.
       </p>
     </CardShell>
   );
