@@ -6,3 +6,4 @@ export * from './partner';
 export * from './navigation';
 export * from './partnership';
 export * from './agenda';
+export * from './host';

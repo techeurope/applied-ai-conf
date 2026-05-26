@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useMemo } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { SectionHeading } from "@/components";
 import { AGENDA } from "@/data/agenda";
 import { SPEAKERS } from "@/data/speakers";
-import type { AgendaSlot, SessionFormat } from "@/types";
+import { MAIN_STAGE_HOST, SIDE_STAGE_HOST } from "@/data/hosts";
+import type { AgendaSlot, Host, SessionFormat } from "@/types";
 
 // ── Grid constants ──────────────────────────────────────────────
 const MINUTES_PER_ROW = 5;
@@ -280,6 +282,22 @@ function DesktopGrid({ isVisible }: { isVisible: boolean }) {
         </div>
       </div>
 
+      {/* Stage host row — sits right under the sticky stage headers */}
+      <div
+        className="border-b border-white/[0.08]"
+        style={{ display: "grid", gridTemplateColumns: gridCols }}
+      >
+        <div />
+        <div className="pl-4 py-3">
+          {MAIN_STAGE_HOST && <HostCard host={MAIN_STAGE_HOST} />}
+        </div>
+        <div />
+        <div />
+        <div className="pl-4 py-3">
+          {SIDE_STAGE_HOST && <HostCard host={SIDE_STAGE_HOST} />}
+        </div>
+      </div>
+
       {/* The timetable grid */}
       <div
         className="grid"
@@ -390,6 +408,60 @@ function MobileView({ activeStage, isVisible }: { activeStage: "main" | "side"; 
   );
 }
 
+// ── Host card (shown under stage header) ────────────────────────
+function HostCard({ host }: { host: Host }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full bg-white/[0.04] ring-1 ring-white/10">
+        <Image
+          src={host.imageTransparent}
+          alt={host.imageAlt}
+          fill
+          className="object-cover object-top"
+          sizes="56px"
+        />
+      </div>
+      <div className="min-w-0">
+        <span className="text-[10px] font-mono uppercase tracking-widest text-gray-500">
+          Hosted by
+        </span>
+        {host.linkedinUrl ? (
+          <Link
+            href={host.linkedinUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block text-sm font-semibold text-white hover:text-gray-300 transition-colors"
+          >
+            {host.name}
+          </Link>
+        ) : (
+          <p className="text-sm font-semibold text-white">{host.name}</p>
+        )}
+        <p className="text-xs text-gray-400 leading-snug">
+          {host.role}
+          {host.company && (
+            <>
+              {" · "}
+              {host.companyUrl ? (
+                <Link
+                  href={host.companyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-gray-300 transition-colors"
+                >
+                  {host.company}
+                </Link>
+              ) : (
+                host.company
+              )}
+            </>
+          )}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 // ── Export ───────────────────────────────────────────────────────
 export default function Agenda() {
   const ref = useRef<HTMLElement>(null);
@@ -425,6 +497,18 @@ export default function Agenda() {
         </div>
 
         <DesktopGrid isVisible={isVisible} />
+
+        {/* Mobile: host card above the slots, matched to active stage */}
+        {(() => {
+          const host = activeStage === "main" ? MAIN_STAGE_HOST : SIDE_STAGE_HOST;
+          if (!host) return null;
+          return (
+            <div className="lg:hidden mb-4 pb-4 border-b border-white/[0.08]">
+              <HostCard host={host} />
+            </div>
+          );
+        })()}
+
         <MobileView activeStage={activeStage} isVisible={isVisible} />
       </div>
     </section>
