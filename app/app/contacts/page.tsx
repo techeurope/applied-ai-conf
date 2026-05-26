@@ -7,7 +7,7 @@ import { api } from "@convex/_generated/api";
 import { ChevronDown, Check, Download } from "lucide-react";
 
 type SortKey = "recent" | "name";
-type StatusFilter = "all" | "unscored" | "hot" | "warm" | "cold" | "junk";
+type StatusFilter = "all" | "unscored" | "hot" | "warm" | "cold";
 
 // Lightweight fuzzy match: substring first (cheap + most common case),
 // then a subsequence check so "tipi" matches "Tim Pietrusky". Both
@@ -23,13 +23,12 @@ function matchesFuzzy(query: string, target: string): boolean {
   return qi === query.length;
 }
 
-const LEAD_STATUSES = ["hot", "warm", "cold", "junk"] as const;
+const LEAD_STATUSES = ["hot", "warm", "cold"] as const;
 type LeadStatus = (typeof LEAD_STATUSES)[number];
 const LEAD_STYLES: Record<LeadStatus, string> = {
   hot: "bg-rose-500/20 text-rose-200 ring-rose-500/40",
   warm: "bg-amber-500/20 text-amber-200 ring-amber-500/40",
   cold: "bg-sky-500/20 text-sky-200 ring-sky-500/40",
-  junk: "bg-zinc-500/20 text-zinc-300 ring-zinc-500/40",
 };
 
 export default function ContactsPage() {
@@ -113,7 +112,7 @@ export default function ContactsPage() {
   // Quick per-status counts so the filter pills can show how many
   // contacts each bucket holds.
   const counts = useMemo(() => {
-    const base = { hot: 0, warm: 0, cold: 0, junk: 0, unscored: 0 };
+    const base = { hot: 0, warm: 0, cold: 0, unscored: 0 };
     if (!contacts) return base;
     for (const { contact } of contacts) {
       if (!contact.leadStatus) base.unscored += 1;
@@ -271,7 +270,6 @@ const STATUS_DOT: Record<LeadStatus, string> = {
   hot: "bg-rose-400",
   warm: "bg-amber-400",
   cold: "bg-sky-400",
-  junk: "bg-zinc-400",
 };
 
 function FilterDropdown({
@@ -282,7 +280,7 @@ function FilterDropdown({
 }: {
   value: StatusFilter;
   onChange: (next: StatusFilter) => void;
-  counts: { hot: number; warm: number; cold: number; junk: number; unscored: number };
+  counts: { hot: number; warm: number; cold: number; unscored: number };
   totalCount: number;
 }) {
   const [open, setOpen] = useState(false);
@@ -314,7 +312,6 @@ function FilterDropdown({
     { key: "hot", label: "Hot", count: counts.hot, dot: STATUS_DOT.hot },
     { key: "warm", label: "Warm", count: counts.warm, dot: STATUS_DOT.warm },
     { key: "cold", label: "Cold", count: counts.cold, dot: STATUS_DOT.cold },
-    { key: "junk", label: "Junk", count: counts.junk, dot: STATUS_DOT.junk },
     { key: "unscored", label: "Unscored", count: counts.unscored },
   ];
   const current = items.find((i) => i.key === value) ?? items[0];

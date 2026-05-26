@@ -107,7 +107,7 @@ export default function TeamHelpPage() {
           <Bullet>When they were first scanned + by whom</Bullet>
           <Bullet>A <strong>notes field</strong> any teammate can edit</Bullet>
           <Bullet>
-            A <strong>lead status</strong> tag — Hot / Warm / Cold / Junk —
+            A <strong>lead status</strong> tag — Hot / Warm / Cold —
             for triage after the event
           </Bullet>
         </ul>
@@ -147,7 +147,7 @@ export default function TeamHelpPage() {
           </Bullet>
           <Bullet>
             <strong>Lead status bar</strong> — distribution across Hot / Warm
-            / Cold / Junk / unset
+            / Cold / unset
           </Bullet>
           <Bullet>
             <strong>Scans by hour</strong> — bar chart over the conference

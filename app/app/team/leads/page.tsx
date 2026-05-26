@@ -5,14 +5,13 @@ import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
 
-const STATUS_LIST = ["hot", "warm", "cold", "junk"] as const;
+const STATUS_LIST = ["hot", "warm", "cold"] as const;
 type LeadStatus = (typeof STATUS_LIST)[number];
 
 const STATUS_STYLES: Record<LeadStatus, string> = {
   hot: "bg-rose-500/20 text-rose-200 ring-rose-500/30",
   warm: "bg-amber-500/20 text-amber-200 ring-amber-500/30",
   cold: "bg-sky-500/20 text-sky-200 ring-sky-500/30",
-  junk: "bg-zinc-500/20 text-zinc-300 ring-zinc-500/30",
 };
 
 export default function TeamLeadsPage() {

@@ -6,13 +6,12 @@ import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import Link from "next/link";
 
-const LEAD_STATUSES = ["hot", "warm", "cold", "junk"] as const;
+const LEAD_STATUSES = ["hot", "warm", "cold"] as const;
 type LeadStatus = (typeof LEAD_STATUSES)[number];
 const LEAD_STYLES: Record<LeadStatus, string> = {
   hot: "bg-rose-500/20 text-rose-200 ring-rose-500/40",
   warm: "bg-amber-500/20 text-amber-200 ring-amber-500/40",
   cold: "bg-sky-500/20 text-sky-200 ring-sky-500/40",
-  junk: "bg-zinc-500/20 text-zinc-300 ring-zinc-500/40",
 };
 
 export default function ContactDetailPage({

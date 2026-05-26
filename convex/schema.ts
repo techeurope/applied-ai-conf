@@ -133,6 +133,9 @@ export default defineSchema({
     fitScore: v.optional(v.number()),
     fitThreads: v.optional(v.array(v.string())),
     // Partner-team-only lead qualification (ignored on personal contacts).
+    // "junk" is retained here only so a small number of legacy records stay
+    // valid; it is no longer assignable (removed from the mutation validator
+    // and every UI category list).
     leadStatus: v.optional(
       v.union(
         v.literal("hot"),

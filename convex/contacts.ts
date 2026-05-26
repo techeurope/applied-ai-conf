@@ -76,7 +76,7 @@ export const add = mutation({
   },
 });
 
-// Partner-team-only: qualify a lead with a status (hot/warm/cold/junk) and a
+// Partner-team-only: qualify a lead with a status (hot/warm/cold) and a
 // longer description.  Personal contacts ignore these fields; they live on the
 // contacts row but are surfaced only in the team-leads UI.
 export const updateLeadQualification = mutation({
@@ -87,7 +87,6 @@ export const updateLeadQualification = mutation({
         v.literal("hot"),
         v.literal("warm"),
         v.literal("cold"),
-        v.literal("junk"),
         v.literal("clear"),
       ),
     ),

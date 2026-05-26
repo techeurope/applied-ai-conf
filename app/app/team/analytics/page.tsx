@@ -8,7 +8,6 @@ const STATUS_COLOR: Record<string, string> = {
   hot: "bg-rose-400/80 text-rose-100 ring-rose-300/40",
   warm: "bg-amber-400/80 text-amber-100 ring-amber-300/40",
   cold: "bg-sky-400/70 text-sky-100 ring-sky-300/40",
-  junk: "bg-zinc-500/60 text-zinc-100 ring-zinc-400/40",
   unset: "bg-white/10 text-white/60 ring-white/15",
 };
 
@@ -44,7 +43,6 @@ export default function TeamAnalyticsPage() {
     analytics.leadStatus.hot +
     analytics.leadStatus.warm +
     analytics.leadStatus.cold +
-    analytics.leadStatus.junk +
     analytics.leadStatus.unset;
 
   return (
@@ -85,7 +83,7 @@ export default function TeamAnalyticsPage() {
         ) : (
           <>
             <div className="flex w-full h-3 rounded-full overflow-hidden ring-1 ring-white/10">
-              {(["hot", "warm", "cold", "junk", "unset"] as const).map(
+              {(["hot", "warm", "cold", "unset"] as const).map(
                 (key) => {
                   const n = analytics.leadStatus[key];
                   if (n === 0) return null;
@@ -97,9 +95,7 @@ export default function TeamAnalyticsPage() {
                         ? "bg-amber-400"
                         : key === "cold"
                           ? "bg-sky-400"
-                          : key === "junk"
-                            ? "bg-zinc-500"
-                            : "bg-white/15";
+                          : "bg-white/15";
                   return (
                     <div
                       key={key}
@@ -112,7 +108,7 @@ export default function TeamAnalyticsPage() {
               )}
             </div>
             <ul className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-              {(["hot", "warm", "cold", "junk", "unset"] as const).map(
+              {(["hot", "warm", "cold", "unset"] as const).map(
                 (key) => (
                   <li
                     key={key}
