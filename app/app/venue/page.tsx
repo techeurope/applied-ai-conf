@@ -18,7 +18,7 @@ export default async function VenuePage() {
         lede={
           <>
             Donaustraße 44, 12043 Berlin (Neukölln). A converted industrial
-            space designed for builders, with two stages, an expo hall, and
+            space designed for builders, with two stages, a bar, and
             room to think. Four to seven minutes on foot from U Rathaus
             Neukölln (U7), U Boddinstraße (U8), or U Karl-Marx-Straße (U7).
           </>

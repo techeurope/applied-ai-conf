@@ -246,7 +246,7 @@ function VenueCard() {
       <div className="absolute inset-0">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/venue/floorplan-bg.png"
+          src="/venue/floorplan-delta.svg"
           alt=""
           className="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:opacity-45 transition-opacity"
         />
@@ -319,7 +319,7 @@ function LunchCard() {
         12:30 — 13:30
       </p>
       <p className="text-sm text-white/60 mt-1">
-        Expo Hall · veg, vegan and GF labelled at the counter.
+        Kalle Halle (5 min walk) · veg, vegan and GF labelled at the counter.
       </p>
       <Link
         href="/app/voucher"
