@@ -55,7 +55,7 @@ export const AGENDA: AgendaSlot[] = [
   // ── Post-lunch: Main stage (4 × 20 min) ────────────────────────
   { id: 'main-7', startTime: '13:30', endTime: '13:50', title: 'Building Sandcastles for Agents: Safe Execution at Production Scale', speakerName: 'Simon Edwardsson', stage: 'main', format: 'talk' },
   { id: 'main-8', startTime: '13:55', endTime: '14:15', title: 'Cache Money: How Prompt Caching Cut Our LLM Bills in Half', speakerName: 'Balázs Csomor', stage: 'main', format: 'talk' },
-  { id: 'main-9', startTime: '14:20', endTime: '14:40', title: "Deploying Intelligence into the World's Largest Enterprises", speakerName: 'Henry Thompson', stage: 'main', format: 'talk' },
+  { id: 'main-9', startTime: '14:20', endTime: '14:40', title: 'Deploying Context Graphs into the Fortune 500: Lessons Building the Context Layer for Large Enterprise', speakerName: 'Henry Thompson', stage: 'main', format: 'talk' },
   { id: 'main-10', startTime: '14:45', endTime: '15:05', title: 'Prompt Learning: Distilling Expensive Reasoning Into Fast Production Prompts', speakerName: 'Oğuz Gültepe', stage: 'main', format: 'talk' },
 
   // ── Post-lunch: Demo stage (3 × 30 min) ───────────────────────
@@ -84,7 +84,7 @@ export const AGENDA: AgendaSlot[] = [
   { id: 'side-13', startTime: '17:00', endTime: '17:20', title: 'Build Your Own Background Agent: The infra that scales it to millions', speakerName: 'Lucy Zhang', stage: 'side', format: 'talk' },
 
   { id: 'main-15', startTime: '17:25', endTime: '17:45', title: 'Model Routing in Production: What We Learned the Hard Way', speakerName: 'Bruno Show', stage: 'main', format: 'talk' },
-  { id: 'side-14', startTime: '17:25', endTime: '17:45', title: 'To be announced', speakerName: 'Sacha Uzan', stage: 'side', format: 'talk' },
+  { id: 'side-14', startTime: '17:25', endTime: '17:45', title: 'Turning the World into Your Context Window: Rebuilding Web Search to Make AI Reliable in Production', speakerName: 'Sacha Uzan', stage: 'side', format: 'talk' },
 
   // ── Closing (17:50–18:30) ─────────────────────────────────────
   { id: 'keynote-close', startTime: '17:50', endTime: '18:20', title: 'Shipping Fin to Production: What Worked, What Broke, What Changed', speakerName: 'Des Traynor', stage: 'main', format: 'keynote' },
