@@ -123,7 +123,7 @@ export default async function VenuePage() {
           label="LUNCH"
           rows={[
             ["When", "12:30 – 13:30"],
-            ["Where", "Kalle Halle (5 min walk)"],
+            ["Where", "Kalle Halle (right next door)"],
           ]}
           note="Meat, vegetarian, vegan, gluten-free. Allergens labelled at the counter."
         />

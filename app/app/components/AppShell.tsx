@@ -33,7 +33,7 @@ const leadsTab: Tab = {
   icon: Users,
   countKey: "contacts",
 };
-const voucherTab: Tab = { href: "/app/voucher", label: "Voucher", icon: Ticket };
+const voucherTab: Tab = { href: "/app/voucher", label: "Lunch", icon: Ticket };
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -312,7 +312,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                       { label: "Home", icon: Home },
                       { label: "Agenda", icon: CalendarDays },
                       { label: "Connect", icon: IdCard },
-                      { label: "Voucher", icon: Ticket },
+                      { label: "Lunch", icon: Ticket },
                       { label: "Team", icon: Briefcase },
                       { label: "Leads", icon: Users },
                       { label: "Settings", icon: Settings },

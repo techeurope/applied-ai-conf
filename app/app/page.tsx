@@ -319,7 +319,7 @@ function LunchCard() {
         12:30 — 13:30
       </p>
       <p className="text-sm text-white/60 mt-1">
-        Kalle Halle (5 min walk) · veg, vegan and GF labelled at the counter.
+        Kalle Halle, the building right next door · veg, vegan and GF labelled at the counter.
       </p>
       <Link
         href="/app/voucher"
