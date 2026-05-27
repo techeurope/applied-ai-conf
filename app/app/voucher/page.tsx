@@ -19,6 +19,7 @@ import type { Id } from "@convex/_generated/dataModel";
 import { FullScreenQr } from "../components/FullScreenQr";
 import { useOnlineStatus } from "../components/OnlineStatus";
 import { friendlyError } from "@/lib/friendlyError";
+import { useCachedQuery } from "@/lib/useCachedQuery";
 
 const KIND_META: Record<string, { icon: LucideIcon; label: string }> = {
   lunch: { icon: UtensilsCrossed, label: "Lunch" },
@@ -27,7 +28,11 @@ const KIND_META: Record<string, { icon: LucideIcon; label: string }> = {
 
 export default function VoucherPage() {
   const online = useOnlineStatus();
-  const vouchers = useQuery(api.vouchers.myVouchers);
+  const vouchers = useCachedQuery(
+    api.vouchers.myVouchers,
+    {},
+    "vouchers.myVouchers",
+  );
   const ensureAndClaim = useMutation(api.vouchers.ensureAndClaimForMyVoucher);
   const ensuredRef = useRef(false);
   const [ensureError, setEnsureError] = useState<string | null>(null);

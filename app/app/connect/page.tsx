@@ -14,6 +14,7 @@ import { QrScanner } from "../components/QrScanner";
 import { FullScreenQr } from "../components/FullScreenQr";
 import { useOnlineStatus } from "../components/OnlineStatus";
 import { friendlyError } from "@/lib/friendlyError";
+import { useCachedQuery } from "@/lib/useCachedQuery";
 
 type Mode = "badge" | "scanner";
 
@@ -59,8 +60,8 @@ function extractErrorMessage(err: unknown, fallback: string): string {
 }
 
 export default function ConnectPage() {
-  const me = useQuery(api.users.me);
-  const myTeam = useQuery(api.partners.myTeam);
+  const me = useCachedQuery(api.users.me, {}, "users.me");
+  const myTeam = useCachedQuery(api.partners.myTeam, {}, "partners.myTeam");
   const router = useRouter();
   const params = useSearchParams();
   const recordScan = useMutation(api.scans.record);

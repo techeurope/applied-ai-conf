@@ -13,6 +13,7 @@ import { StatusPill } from "./StatusPill";
 import { OnlineStatusProvider, OfflineChip } from "./OnlineStatus";
 import { ConvexErrorBoundary } from "./ConvexErrorBoundary";
 import { CacheWarmer } from "./CacheWarmer";
+import { useCachedQuery } from "@/lib/useCachedQuery";
 
 type Tab = {
   href: string;
@@ -42,11 +43,22 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const auth = useAuth();
-  const me = useQuery(api.users.me);
-  const myTeam = useQuery(api.partners.myTeam);
-  const contacts = useQuery(api.contacts.list);
-  const vouchers = useQuery(api.vouchers.myVouchers);
-  const pendingTeamInvite = useQuery(api.partners.myPendingTeamInvite);
+  // Cache the AppShell's gating queries to localStorage so the nav, badge
+  // QR, and voucher tab survive an offline reload. Snapshots are tolerated
+  // as "last-known" — overwritten on the next live response.
+  const me = useCachedQuery(api.users.me, {}, "users.me");
+  const myTeam = useCachedQuery(api.partners.myTeam, {}, "partners.myTeam");
+  const contacts = useCachedQuery(api.contacts.list, {}, "contacts.list");
+  const vouchers = useCachedQuery(
+    api.vouchers.myVouchers,
+    {},
+    "vouchers.myVouchers",
+  );
+  const pendingTeamInvite = useCachedQuery(
+    api.partners.myPendingTeamInvite,
+    {},
+    "partners.myPendingTeamInvite",
+  );
   const ensureUser = useMutation(api.users.ensureFromWorkos);
   // Routes that don't require authentication. The landing + public agenda
   // are obviously public. The team accept/join pages are also reachable

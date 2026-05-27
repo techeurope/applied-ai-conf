@@ -5,6 +5,7 @@ import { useQuery } from "convex/react";
 import { ArrowUpRight, CheckCircle2, Ticket } from "lucide-react";
 import { api } from "@convex/_generated/api";
 import { FullScreenQr } from "./FullScreenQr";
+import { useCachedQuery } from "@/lib/useCachedQuery";
 
 type CheckInData = NonNullable<
   ReturnType<typeof useQuery<typeof api.luma.myCheckIn>>
@@ -18,7 +19,7 @@ type CheckInData = NonNullable<
 // ticket not linked, or the Luma sync hasn't run since the backfill).
 export function LumaCheckInCard() {
   const data: ReturnType<typeof useQuery<typeof api.luma.myCheckIn>> =
-    useQuery(api.luma.myCheckIn);
+    useCachedQuery(api.luma.myCheckIn, {}, "luma.myCheckIn");
   const [open, setOpen] = useState(false);
 
   if (data === undefined) return <LumaCheckInSkeleton />;
