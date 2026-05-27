@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
@@ -21,7 +21,6 @@ export default function ContactDetailPage({
 }) {
   const { id } = use(params);
   const contacts = useQuery(api.contacts.list);
-  const updateNotes = useMutation(api.contacts.updateNotes);
   const addNote = useMutation(api.contacts.addNote);
   const updateLead = useMutation(api.contacts.updateLeadQualification);
   const noteThread = useQuery(api.contacts.notesForContact, {
@@ -32,17 +31,9 @@ export default function ContactDetailPage({
   });
   const entry = contacts?.find((c) => c.contact._id === id);
 
-  const [tags, setTags] = useState<string[]>([]);
-  const [saving, setSaving] = useState(false);
   const [newNote, setNewNote] = useState("");
   const [postingNote, setPostingNote] = useState(false);
   const [leadBusy, setLeadBusy] = useState(false);
-
-  useEffect(() => {
-    if (entry?.contact) {
-      setTags(entry.contact.tags ?? []);
-    }
-  }, [entry?.contact]);
 
   if (contacts === undefined) {
     return <p className="font-mono text-xs text-zinc-500">Loading…</p>;
@@ -60,15 +51,6 @@ export default function ContactDetailPage({
   }
 
   const { user, contact } = entry;
-
-  async function handleSaveTags() {
-    setSaving(true);
-    try {
-      await updateNotes({ contactId: id as Id<"contacts">, tags });
-    } finally {
-      setSaving(false);
-    }
-  }
 
   return (
     <div className="space-y-5 pt-2">
@@ -228,27 +210,6 @@ export default function ContactDetailPage({
             {postingNote ? "Posting…" : "Add note"}
           </button>
         </form>
-      </section>
-
-      <section className="space-y-2">
-        <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-500">
-          Tags
-        </label>
-        <input
-          type="text"
-          value={tags.join(", ")}
-          onChange={(e) => setTags(e.target.value.split(",").map((t) => t.trim()).filter(Boolean))}
-          placeholder="follow-up, infra, hiring"
-          className="w-full px-3 py-2 bg-zinc-900/60 border border-white/10 rounded-md text-sm focus:outline-none focus:border-white/30"
-        />
-        <button
-          type="button"
-          onClick={handleSaveTags}
-          disabled={saving}
-          className="px-4 py-2 bg-foreground text-background font-mono text-xs rounded-md disabled:opacity-50"
-        >
-          {saving ? "Saving…" : "Save tags"}
-        </button>
       </section>
 
       <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-600">
