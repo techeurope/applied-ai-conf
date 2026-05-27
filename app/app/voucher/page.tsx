@@ -178,7 +178,7 @@ function ExternalVoucher({
       )}
 
       <Link
-        href="/app/venue"
+        href="/app/venue#kalle-halle"
         className="block rounded-2xl bg-white/[0.03] ring-1 ring-white/10 p-4 space-y-2 hover:bg-white/[0.05] transition-colors"
       >
         <p className="text-sm text-white/70">

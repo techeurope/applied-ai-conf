@@ -78,7 +78,7 @@ export default async function VenuePage() {
       </section>
 
       {/* Walking route to lunch */}
-      <section className="space-y-3">
+      <section id="kalle-halle" className="space-y-3 scroll-mt-24">
         <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-amber-200/80 flex items-center gap-1.5">
           <UtensilsCrossed className="size-3" strokeWidth={2} />
           // walk to lunch · kalle halle
