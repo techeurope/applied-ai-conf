@@ -3,7 +3,7 @@ import type { Host } from '@/types';
 export const HOSTS: Host[] = [
   {
     name: 'David Asabina',
-    role: 'Engineer & Interim CTO',
+    role: 'Freelance engineer & tech due diligence advisor for investors and founders',
     stage: 'main',
     company: 'Asabina',
     companyUrl: 'https://asabina.de',
