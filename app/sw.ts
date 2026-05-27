@@ -29,8 +29,15 @@ declare global {
 
 declare const self: ServiceWorkerGlobalScope;
 
+// Precache is intentionally skipped. The precache manifest is keyed on the
+// webpack build's chunk hashes; if the same SW is served by a different
+// bundler (e.g. the dev server using turbopack), those URLs 404 and the
+// install hangs forever. Runtime caching (stale-while-revalidate for /app
+// pages, cache-first for assets) populates the same cache after the
+// first visit, with negligible difference in offline-reload behavior.
+// Force-touch the manifest so the linter doesn't complain.
+void self.__SW_MANIFEST;
 const serwist = new Serwist({
-  precacheEntries: self.__SW_MANIFEST,
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
