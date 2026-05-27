@@ -1,4 +1,19 @@
 import type { NextConfig } from "next";
+import withSerwistInit from "@serwist/next";
+
+// Service worker for /app (the conference companion). Lets the app shell
+// reload while offline — the browser doesn't fall back to its built-in
+// "no network" page. Scope is /app/*, so the marketing site is untouched.
+// `app/sw.ts` defines the precache + runtime caching strategies.
+const withSerwist = withSerwistInit({
+  swSrc: "app/sw.ts",
+  swDest: "public/sw.js",
+  cacheOnNavigation: true,
+  reloadOnOnline: true,
+  // Disable the SW in dev to avoid the usual "stale bundle" trap during
+  // hot-reload. Prod (next start, Vercel) registers it normally.
+  disable: process.env.NODE_ENV === "development",
+});
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["conf.localhost", "*.conf.localhost"],
@@ -30,4 +45,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSerwist(nextConfig);

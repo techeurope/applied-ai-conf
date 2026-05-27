@@ -17,6 +17,8 @@ import Link from "next/link";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { FullScreenQr } from "../components/FullScreenQr";
+import { useOnlineStatus } from "../components/OnlineStatus";
+import { friendlyError } from "@/lib/friendlyError";
 
 const KIND_META: Record<string, { icon: LucideIcon; label: string }> = {
   lunch: { icon: UtensilsCrossed, label: "Lunch" },
@@ -24,6 +26,7 @@ const KIND_META: Record<string, { icon: LucideIcon; label: string }> = {
 };
 
 export default function VoucherPage() {
+  const online = useOnlineStatus();
   const vouchers = useQuery(api.vouchers.myVouchers);
   const ensureAndClaim = useMutation(api.vouchers.ensureAndClaimForMyVoucher);
   const ensuredRef = useRef(false);
@@ -31,17 +34,19 @@ export default function VoucherPage() {
 
   // JIT-mint a lunch voucher the first time someone visits this page without
   // one. Triggered once per page mount; the reactive myVouchers query picks
-  // up the result and re-renders.
+  // up the result and re-renders. Skipped offline — no point firing a
+  // mutation that's guaranteed to fail.
   useEffect(() => {
     if (vouchers === undefined) return;
+    if (!online) return;
     if (ensuredRef.current) return;
     const hasLunch = vouchers.some((v) => v.kind === "lunch");
     if (hasLunch) return;
     ensuredRef.current = true;
     ensureAndClaim({ kind: "lunch" }).catch((e: Error) => {
-      setEnsureError(e.message ?? "Could not get your voucher");
+      setEnsureError(friendlyError(e));
     });
-  }, [vouchers, ensureAndClaim]);
+  }, [vouchers, ensureAndClaim, online]);
 
   if (vouchers === undefined) {
     return <p className="font-mono text-xs text-white/40 pt-6">Loading…</p>;
@@ -53,7 +58,11 @@ export default function VoucherPage() {
         <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
           // VOUCHERS
         </p>
-        {ensureError ? (
+        {!online ? (
+          <p className="text-sm text-white/60">
+            You&apos;re offline. Reconnect to load your voucher.
+          </p>
+        ) : ensureError ? (
           <p className="text-sm text-red-300">{ensureError}</p>
         ) : (
           <p className="text-sm text-white/60">Preparing your voucher…</p>
@@ -124,18 +133,20 @@ function ExternalVoucher({
   redeemed: boolean;
 }) {
   const Icon = meta.icon;
+  const online = useOnlineStatus();
   const claimExternal = useMutation(api.vouchers.claimExternalForMyVoucher);
   const [claiming, setClaiming] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (voucher.externalUrl || redeemed) return;
+    if (!online) return;
     setClaiming(true);
     setError(null);
     claimExternal({ voucherId: voucher._id })
-      .catch((e: Error) => setError(e.message ?? "Could not claim voucher"))
+      .catch((e: Error) => setError(friendlyError(e)))
       .finally(() => setClaiming(false));
-  }, [voucher._id, voucher.externalUrl, redeemed, claimExternal]);
+  }, [voucher._id, voucher.externalUrl, redeemed, claimExternal, online]);
 
   return (
     <section className="glass-card rounded-3xl p-5 sm:p-6 space-y-4">
@@ -153,7 +164,11 @@ function ExternalVoucher({
         This is your voucher for food at the conference.
       </p>
 
-      {error ? (
+      {!online && !voucher.externalUrl ? (
+        <p className="text-sm text-white/60">
+          You&apos;re offline. Reconnect to load your voucher link.
+        </p>
+      ) : error ? (
         <p className="text-sm text-red-300">{error}</p>
       ) : voucher.externalUrl ? (
         <a

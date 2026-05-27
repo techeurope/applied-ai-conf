@@ -3,6 +3,7 @@ import { AuthKitProvider } from "@workos-inc/authkit-nextjs/components";
 import { withAuth } from "@workos-inc/authkit-nextjs";
 import { ConvexClientProvider } from "./ConvexClientProvider";
 import { AppShell } from "./components/AppShell";
+import { SwRegistration } from "./components/SwRegistration";
 
 export const metadata: Metadata = {
   title: "Applied AI Conf",
@@ -37,6 +38,7 @@ export default async function AppLayout({
   return (
     <AuthKitProvider initialAuth={initialAuth}>
       <ConvexClientProvider>
+        <SwRegistration />
         <AppShell>{children}</AppShell>
       </ConvexClientProvider>
     </AuthKitProvider>

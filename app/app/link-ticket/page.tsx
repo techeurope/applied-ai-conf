@@ -5,9 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
+import { useOnlineStatus } from "../components/OnlineStatus";
+import { friendlyError } from "@/lib/friendlyError";
 
 export default function LinkTicketPage() {
   const router = useRouter();
+  const online = useOnlineStatus();
   const me = useQuery(api.users.me);
   const status = useQuery(api.ticket.status);
   const requestEmailCode = useAction(api.ticket.requestEmailCode);
@@ -112,7 +115,7 @@ export default function LinkTicketPage() {
       setStep("code");
       setInfo(`Code sent to ${res.sentTo}. It expires in 15 minutes.`);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed");
+      setError(friendlyError(e));
     } finally {
       setBusy(false);
     }
@@ -132,7 +135,7 @@ export default function LinkTicketPage() {
       }
       router.push("/app");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed");
+      setError(friendlyError(e));
     } finally {
       setBusy(false);
     }
@@ -146,7 +149,7 @@ export default function LinkTicketPage() {
       await redeemClaim({ code: claimCode });
       router.push("/app");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed");
+      setError(friendlyError(e));
     } finally {
       setBusy(false);
     }
@@ -173,6 +176,11 @@ export default function LinkTicketPage() {
         )}
       </header>
 
+      {!online && (
+        <div className="rounded-xl border border-amber-400/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-100">
+          You&apos;re offline. Reconnect to verify your ticket.
+        </div>
+      )}
       {error && (
         <div className="rounded-xl bg-red-500/10 ring-1 ring-red-500/30 px-4 py-3 text-sm text-red-100">
           {error}
@@ -201,7 +209,7 @@ export default function LinkTicketPage() {
           </label>
           <button
             type="submit"
-            disabled={busy || !lumaEmail.trim()}
+            disabled={busy || !online || !lumaEmail.trim()}
             className="inline-flex items-center justify-center px-7 py-3.5 rounded-full bg-white text-black font-mono text-sm font-medium ring-1 ring-white/30 disabled:opacity-50"
           >
             {busy ? "Checking…" : "Continue"}
@@ -252,7 +260,7 @@ export default function LinkTicketPage() {
           <div className="flex gap-2">
             <button
               type="submit"
-              disabled={busy || code.length !== 6}
+              disabled={busy || !online || code.length !== 6}
               className="inline-flex items-center justify-center px-7 py-3.5 rounded-full bg-white text-black font-mono text-sm font-medium ring-1 ring-white/30 disabled:opacity-50"
             >
               {busy ? "Verifying…" : "Verify"}
@@ -295,7 +303,7 @@ export default function LinkTicketPage() {
             />
             <button
               type="submit"
-              disabled={busy || !claimCode.trim()}
+              disabled={busy || !online || !claimCode.trim()}
               className="inline-flex items-center px-5 py-2.5 rounded-full ring-1 ring-white/30 font-mono text-xs disabled:opacity-50"
             >
               {busy ? "…" : "Redeem code"}

@@ -10,6 +10,8 @@ import type { ReactNode } from "react";
 import { api } from "@convex/_generated/api";
 import { applyDemoClockFromUrl } from "@/lib/conference-time";
 import { StatusPill } from "./StatusPill";
+import { OnlineStatusProvider, OfflineChip } from "./OnlineStatus";
+import { ConvexErrorBoundary } from "./ConvexErrorBoundary";
 
 type Tab = {
   href: string;
@@ -209,6 +211,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, []);
 
   return (
+    <OnlineStatusProvider>
     <div
       className="min-h-[100dvh] bg-background text-foreground flex flex-col selection:bg-white/20"
       style={headerH ? ({ "--app-header-h": `${headerH}px` } as React.CSSProperties) : undefined}
@@ -242,6 +245,9 @@ export function AppShell({ children }: { children: ReactNode }) {
               </span>
               <span className="ml-2 shrink-0">
                 <StatusPill />
+              </span>
+              <span className="ml-2 shrink-0">
+                <OfflineChip />
               </span>
             </div>
             <div className="flex items-center gap-4">
@@ -337,20 +343,23 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
 
       <main className="flex-1 w-full">
-        {blockedByAuth ? (
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12 text-center text-sm text-white/50">
-            Sign in required — redirecting…
-          </div>
-        ) : pathname === "/app" ? (
-          // The /app home owns its full-width layout.
-          children
-        ) : (
-          // Every other /app/* route shares the same wide rail as the home and
-          // admin so they can use horizontal space (two-column lists, tables,
-          // photo + meta layouts, etc).
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 pb-12">{children}</div>
-        )}
+        <ConvexErrorBoundary>
+          {blockedByAuth ? (
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12 text-center text-sm text-white/50">
+              Sign in required — redirecting…
+            </div>
+          ) : pathname === "/app" ? (
+            // The /app home owns its full-width layout.
+            children
+          ) : (
+            // Every other /app/* route shares the same wide rail as the home and
+            // admin so they can use horizontal space (two-column lists, tables,
+            // photo + meta layouts, etc).
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 pb-12">{children}</div>
+          )}
+        </ConvexErrorBoundary>
       </main>
     </div>
+    </OnlineStatusProvider>
   );
 }

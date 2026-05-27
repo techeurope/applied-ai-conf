@@ -12,6 +12,8 @@ import type { Id } from "@convex/_generated/dataModel";
 import { UserQR } from "../components/UserQR";
 import { QrScanner } from "../components/QrScanner";
 import { FullScreenQr } from "../components/FullScreenQr";
+import { useOnlineStatus } from "../components/OnlineStatus";
+import { friendlyError } from "@/lib/friendlyError";
 
 type Mode = "badge" | "scanner";
 
@@ -47,7 +49,12 @@ function extractErrorMessage(err: unknown, fallback: string): string {
     }
     return err.message || fallback;
   }
-  if (err instanceof Error) return err.message;
+  if (err instanceof Error) {
+    // friendlyError catches network/Convex transport failures and rewrites
+    // them as "You're offline …". For everything else it returns the raw
+    // message, which is what extractErrorMessage already did.
+    return friendlyError(err);
+  }
   return fallback;
 }
 
@@ -278,6 +285,7 @@ function ScannerMode({
 }: {
   recordScan: RecordScan;
 }) {
+  const online = useOnlineStatus();
   const addNote = useMutation(api.contacts.addNote);
   const updateLead = useMutation(api.contacts.updateLeadQualification);
   const [status, setStatus] = useState<"idle" | "saving" | "error">("idle");
@@ -395,8 +403,14 @@ function ScannerMode({
     <section className="space-y-3 relative">
       <QrScanner
         onScan={handleScan}
-        paused={status === "saving" || !!activeScan}
+        paused={status === "saving" || !!activeScan || !online}
       />
+
+      {!online && (
+        <div className="rounded-xl border border-amber-400/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-100">
+          You&apos;re offline. Scans aren&apos;t saved until you reconnect.
+        </div>
+      )}
 
       {activeScan && (
         <ScanModal

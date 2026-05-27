@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useMutation, usePreloadedQuery, useQuery } from "convex/react";
 import type { Preloaded } from "convex/react";
-import { Heart, ChevronLeft, Linkedin, ExternalLink, Ban } from "lucide-react";
+import { Heart, ChevronLeft, Ban } from "lucide-react";
 import { api } from "@convex/_generated/api";
 import { SPEAKERS } from "@/data/speakers";
 import type { Speaker } from "@/types";
@@ -230,11 +230,13 @@ export function AgendaDetailClient({
       )}
 
       {slot.description && (
-        <section className="space-y-2">
+        <section className="space-y-3">
           <Heading>// ABOUT THIS SESSION</Heading>
-          <p className="text-sm sm:text-base text-white/80 leading-relaxed whitespace-pre-line">
-            {slot.description}
-          </p>
+          <div className="glass-card rounded-2xl p-4 sm:p-5">
+            <p className="text-sm sm:text-base text-white/80 leading-relaxed whitespace-pre-line">
+              {slot.description}
+            </p>
+          </div>
         </section>
       )}
 
@@ -261,19 +263,21 @@ function SpeakerCard({
   name: string;
   profile: Speaker | undefined;
 }) {
-  return (
-    <article className="glass-card rounded-2xl p-4 space-y-3">
-      <div className="flex items-start gap-4">
-        {profile?.imageTransparent || profile?.image ? (
+  const photoSrc = profile?.imageTransparent || profile?.image;
+  const inner = (
+    <article className="group flex items-start gap-4 sm:gap-5 rounded-2xl bg-white/[0.03] ring-1 ring-white/[0.06] p-4 sm:p-5 transition-all duration-300 hover:bg-white/[0.07] hover:ring-white/15">
+      {/* Photo */}
+      <div className="relative h-28 w-28 sm:h-44 sm:w-44 shrink-0 overflow-hidden rounded-xl bg-white/[0.04] ring-1 ring-white/[0.08]">
+        {photoSrc ? (
           <Image
-            src={profile.imageTransparent ?? profile.image!}
-            alt={profile.imageAlt ?? name}
-            width={80}
-            height={80}
-            className="size-16 sm:size-20 rounded-2xl object-cover bg-white/5 shrink-0"
+            src={photoSrc}
+            alt={profile?.imageAlt ?? name}
+            fill
+            className="object-cover object-top"
+            sizes="(max-width: 640px) 112px, 176px"
           />
         ) : (
-          <div className="size-16 sm:size-20 rounded-2xl bg-white/5 ring-1 ring-white/10 flex items-center justify-center font-mono text-lg text-white/60 shrink-0">
+          <div className="flex h-full w-full items-center justify-center font-mono text-2xl text-white/60">
             {profile?.initial ??
               name
                 .split(/\s+/)
@@ -283,77 +287,76 @@ function SpeakerCard({
                 .toUpperCase()}
           </div>
         )}
-        <div className="min-w-0 flex-1">
-          <p className="font-mono text-base text-white">{name}</p>
-          {profile?.title && (
-            <p className="text-sm text-white/70">{profile.title}</p>
-          )}
-          {profile?.company && (
-            <p className="text-xs text-white/60">
-              {profile.companyUrl ? (
-                <a
-                  href={profile.companyUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 hover:text-white"
-                >
-                  {profile.company}
-                  <ExternalLink className="size-3" strokeWidth={1.75} />
-                </a>
-              ) : (
-                profile.company
-              )}
-            </p>
-          )}
-        </div>
       </div>
 
-      {profile && (profile.building || profile.vertical) && (
-        <dl className="grid grid-cols-1 gap-2">
-          {profile.building && (
-            <div>
-              <dt className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
-                Building
-              </dt>
-              <dd className="text-sm text-white/80 mt-0.5">{profile.building}</dd>
-            </div>
+      {/* Info */}
+      <div className="min-w-0 flex-1 space-y-1.5">
+        <div className="flex items-center gap-1.5">
+          <h3 className="font-mono text-base sm:text-lg font-semibold text-white leading-tight">
+            {name}
+          </h3>
+          {profile?.linkedinUrl && (
+            <svg
+              className="h-3.5 w-3.5 shrink-0 text-white/30 transition-colors duration-200 group-hover:text-white/70"
+              viewBox="0 0 12 12"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M3.5 8.5l5-5M4 3.5h4.5V8" />
+            </svg>
           )}
-          {profile.vertical && (
-            <div>
-              <dt className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
-                Vertical
-              </dt>
-              <dd className="text-sm text-white/80 mt-0.5">{profile.vertical}</dd>
-            </div>
-          )}
-        </dl>
-      )}
-
-      {profile?.bio && (
-        <p className="text-sm text-white/70 leading-relaxed whitespace-pre-line">
-          {profile.bio}
-        </p>
-      )}
-
-      {profile?.linkedinUrl && (
-        <a
-          href={profile.linkedinUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-white/60 hover:text-white"
-        >
-          <Linkedin className="size-3.5" strokeWidth={1.75} />
-          LinkedIn
-        </a>
-      )}
-
-      {!profile && (
-        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/30">
-          No profile available
-        </p>
-      )}
+        </div>
+        {(profile?.title || profile?.company) && (
+          <p className="text-sm text-white/70">
+            {profile?.title}
+            {profile?.title && profile?.company && (
+              <span className="text-white/40"> · </span>
+            )}
+            {profile?.company && (
+              <span className="text-white/60">{profile.company}</span>
+            )}
+          </p>
+        )}
+        {profile?.building && (
+          <p className="text-sm text-white/60 leading-relaxed">
+            {profile.building}
+          </p>
+        )}
+        {profile?.vertical && (
+          <span className="inline-block mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-white/50 px-2 py-0.5 rounded-full ring-1 ring-white/10">
+            {profile.vertical}
+          </span>
+        )}
+        {profile?.bio && (
+          <p className="text-sm text-white/70 leading-relaxed whitespace-pre-line pt-1">
+            {profile.bio}
+          </p>
+        )}
+        {!profile && (
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/30">
+            No profile available
+          </p>
+        )}
+      </div>
     </article>
   );
+
+  if (profile?.linkedinUrl) {
+    return (
+      <a
+        href={profile.linkedinUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block"
+      >
+        {inner}
+      </a>
+    );
+  }
+  return inner;
 }
 
 function Heading({ children }: { children: React.ReactNode }) {
