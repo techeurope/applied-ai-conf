@@ -13,7 +13,7 @@ import { StatusPill } from "./StatusPill";
 import { OnlineStatusProvider, OfflineChip } from "./OnlineStatus";
 import { ConvexErrorBoundary } from "./ConvexErrorBoundary";
 import { CacheWarmer } from "./CacheWarmer";
-import { useCachedQuery } from "@/lib/useCachedQuery";
+import { useCachedQuery, clearAllCachedQueries } from "@/lib/useCachedQuery";
 
 type Tab = {
   href: string;
@@ -140,9 +140,23 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (me?.deactivatedAt) {
+      clearAllCachedQueries();
       auth.signOut({ returnTo: "/app?kicked=1" });
     }
   }, [auth, me?.deactivatedAt]);
+
+  // Belt-and-braces: if the WorkOS session expires mid-session (or someone
+  // opens the tab signed-out), nuke any leftover cached queries so the
+  // next visitor doesn't see the previous user's nav.
+  const prevAuthedRef = useRef<boolean | null>(null);
+  useEffect(() => {
+    if (auth.loading) return;
+    const isAuthed = !!auth.user;
+    if (prevAuthedRef.current === true && !isAuthed) {
+      clearAllCachedQueries();
+    }
+    prevAuthedRef.current = isAuthed;
+  }, [auth.loading, auth.user]);
 
   // Newly-signed-in invitee with a pending team invite → route them to the
   // explicit Accept / Decline page. Takes precedence over the verified
@@ -268,7 +282,10 @@ export function AppShell({ children }: { children: ReactNode }) {
               {auth.user ? (
                 <button
                   type="button"
-                  onClick={() => auth.signOut({ returnTo: "/app" })}
+                  onClick={() => {
+                    clearAllCachedQueries();
+                    auth.signOut({ returnTo: "/app" });
+                  }}
                   className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-white/40 hover:text-white transition-colors"
                 >
                   <LogOut className="size-3.5" strokeWidth={1.75} />

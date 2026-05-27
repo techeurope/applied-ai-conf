@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@workos-inc/authkit-nextjs/components";
 import { useQuery } from "convex/react";
 import type { FunctionReference } from "convex/server";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -16,14 +17,22 @@ import { useEffect, useMemo, useRef, useState } from "react";
 // (badge QR, voucher QR, agenda, nav tabs all stay rendered with last-
 // known values) and overwritten as soon as the live query returns.
 //
+// **Cache is scoped by WorkOS user id.** User A's cached nav, vouchers,
+// and team membership never leak to user B on the same device. Anonymous
+// (signed-out) visitors get no cache reads or writes at all.
+//
 // Do NOT use for queries that contain secrets or sensitive data — local
 // storage is plaintext.
 const CACHE_PREFIX = "cq:v1:";
 
-function readCache<T>(key: string): T | undefined {
+function scopedKey(userId: string, key: string): string {
+  return `${CACHE_PREFIX}${userId}:${key}`;
+}
+
+function readCache<T>(scoped: string): T | undefined {
   if (typeof window === "undefined") return undefined;
   try {
-    const raw = window.localStorage.getItem(CACHE_PREFIX + key);
+    const raw = window.localStorage.getItem(scoped);
     if (!raw) return undefined;
     const parsed = JSON.parse(raw) as { v: T };
     return parsed.v;
@@ -32,15 +41,31 @@ function readCache<T>(key: string): T | undefined {
   }
 }
 
-function writeCache<T>(key: string, value: T): void {
+function writeCache<T>(scoped: string, value: T): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.setItem(
-      CACHE_PREFIX + key,
+      scoped,
       JSON.stringify({ v: value, t: Date.now() }),
     );
   } catch {
     // Quota / disabled storage — ignore. Cache is best-effort.
+  }
+}
+
+// Wipe every cached query snapshot — used when a user signs out so the
+// next visitor on the same device can't read their values.
+export function clearAllCachedQueries(): void {
+  if (typeof window === "undefined") return;
+  try {
+    const toRemove: string[] = [];
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const k = window.localStorage.key(i);
+      if (k && k.startsWith(CACHE_PREFIX)) toRemove.push(k);
+    }
+    for (const k of toRemove) window.localStorage.removeItem(k);
+  } catch {
+    // ignore
   }
 }
 
@@ -54,21 +79,29 @@ export function useCachedQuery<Query extends FunctionReference<"query">>(
   cacheKey: string,
 ): Query["_returnType"] | undefined {
   type R = Query["_returnType"];
-  // Read cached value once on first render. After that, the live response
-  // (when it arrives) wins.
+  const auth = useAuth();
+  const userId = auth.user?.id ?? null;
+
+  // Read cached value once on first render — but only if we know which
+  // user we're rendering for. Signed-out / loading-auth → no cache read.
   const initial = useRef<R | undefined>(undefined);
-  if (initial.current === undefined) {
-    initial.current = readCache<R>(cacheKey);
+  const initialReadRef = useRef<boolean>(false);
+  if (!initialReadRef.current && userId) {
+    initialReadRef.current = true;
+    initial.current = readCache<R>(scopedKey(userId, cacheKey));
   }
 
   const live = useQuery(query, args) as R | undefined;
 
   useEffect(() => {
-    if (live !== undefined && live !== null) {
-      writeCache(cacheKey, live);
-    }
-  }, [live, cacheKey]);
+    if (!userId) return;
+    if (live === undefined || live === null) return;
+    writeCache(scopedKey(userId, cacheKey), live);
+  }, [live, cacheKey, userId]);
 
+  // No user → never serve cached data (it could belong to a different user
+  // on a shared device). Live data still passes through.
+  if (!userId) return live;
   return live !== undefined ? live : initial.current;
 }
 
@@ -79,10 +112,18 @@ export function useIsServingFromCache<R>(
   liveValue: R | undefined,
   cacheKey: string,
 ): boolean {
+  const auth = useAuth();
+  const userId = auth.user?.id ?? null;
   const [hasCached, setHasCached] = useState(false);
   useMemo(() => {
     if (typeof window === "undefined") return;
-    setHasCached(window.localStorage.getItem(CACHE_PREFIX + cacheKey) !== null);
-  }, [cacheKey]);
+    if (!userId) {
+      setHasCached(false);
+      return;
+    }
+    setHasCached(
+      window.localStorage.getItem(scopedKey(userId, cacheKey)) !== null,
+    );
+  }, [cacheKey, userId]);
   return liveValue === undefined && hasCached;
 }
