@@ -7,7 +7,9 @@ import {
   ArrowRight,
   ArrowUpRight,
   CalendarHeart,
+  Check,
   Coffee,
+  Copy,
   LifeBuoy,
   MapPin,
   PlaneTakeoff,
@@ -55,9 +57,9 @@ export default function AppHome() {
 
         {/* Bento grid of info cards. */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <WiFiCard />
           <VenueCard />
           <TravelCard />
-          <WiFiCard />
           <LunchCard />
           <HelpCard />
         </div>
@@ -234,7 +236,7 @@ function VenueCard() {
   return (
     <Link
       href="/app/venue"
-      className="group relative block rounded-2xl ring-1 ring-white/10 bg-white/[0.025] overflow-hidden transition-all hover:ring-sky-300/30 sm:col-span-2"
+      className="group relative block rounded-2xl ring-1 ring-white/10 bg-white/[0.025] overflow-hidden transition-all hover:ring-sky-300/30"
     >
       {/* Floor plan thumbnail layer */}
       <div className="absolute inset-0">
@@ -287,23 +289,50 @@ function TravelCard() {
 function WiFiCard() {
   const auth = useAuth();
   const signedIn = !!auth.user;
+  const [copied, setCopied] = useState(false);
+  const password = "Reach3-Never-Bean-Supper";
+
+  async function copyPassword() {
+    try {
+      await navigator.clipboard.writeText(password);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* clipboard unavailable — ignore */
+    }
+  }
+
   return (
-    <CardShell>
+    <CardShell className="sm:col-span-2">
       <CardHeader icon={Wifi} title="Wi-Fi" hasArrow={false} hint="guest" />
       {signedIn ? (
         <>
           <dl className="space-y-1.5 text-sm">
             <div className="flex items-baseline gap-3">
-              <dt className="text-white/45 w-[68px] shrink-0">Network</dt>
-              <dd className="font-mono text-white truncate">Delta Campus Events</dd>
+              <dt className="text-white/45 w-[78px] shrink-0">Network</dt>
+              <dd className="font-mono text-white">Delta Campus Events</dd>
             </div>
             <div className="flex items-baseline gap-3">
-              <dt className="text-white/45 w-[68px] shrink-0">Password</dt>
-              <dd className="font-mono text-white truncate">Reach3-Never-Bean-Supper</dd>
+              <dt className="text-white/45 w-[78px] shrink-0">Password</dt>
+              <dd>
+                <button
+                  type="button"
+                  onClick={copyPassword}
+                  aria-label="Copy Wi-Fi password"
+                  className="inline-flex items-center gap-2 font-mono text-white hover:text-white/80 transition-colors"
+                >
+                  <span className="break-all text-left">{password}</span>
+                  {copied ? (
+                    <Check className="size-3.5 shrink-0 text-emerald-300" strokeWidth={2} />
+                  ) : (
+                    <Copy className="size-3.5 shrink-0 text-white/40" strokeWidth={1.75} />
+                  )}
+                </button>
+              </dd>
             </div>
           </dl>
           <p className="text-xs text-white/40 mt-3">
-            Also posted at registration on the day.
+            {copied ? "Password copied." : "Tap the password to copy. Also posted at registration."}
           </p>
         </>
       ) : (
