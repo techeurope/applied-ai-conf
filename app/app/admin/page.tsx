@@ -29,11 +29,16 @@ export default function AdminOverviewPage() {
         <Stat label="Admins" value={totals?.admins ?? "—"} />
         <Stat label="Deactivated" value={totals?.deactivated ?? "—"} />
       </section>
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Stat
           label="Registered"
           value={stats?.registered ?? "—"}
           hint="Attendees who onboarded (excl. staff)"
+        />
+        <Stat
+          label="Not onboarded"
+          value={stats ? stats.accounts - stats.registered : "—"}
+          hint="Signed in, didn't finish onboarding"
         />
         <Stat
           label="Ticket linked"
