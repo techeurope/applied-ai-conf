@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { useMutation, useQuery } from "convex/react";
 import {
+  ArrowRight,
   Check,
   Coffee,
   ExternalLink,
@@ -12,6 +13,7 @@ import {
   UtensilsCrossed,
   type LucideIcon,
 } from "lucide-react";
+import Link from "next/link";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { FullScreenQr } from "../components/FullScreenQr";
@@ -175,21 +177,19 @@ function ExternalVoucher({
         </p>
       )}
 
-      <div className="rounded-2xl bg-white/[0.03] ring-1 ring-white/10 p-4 space-y-2">
+      <Link
+        href="/app/venue"
+        className="block rounded-2xl bg-white/[0.03] ring-1 ring-white/10 p-4 space-y-2 hover:bg-white/[0.05] transition-colors"
+      >
         <p className="text-sm text-white/70">
           Lunch is at Kalle Halle, the building right next door.
         </p>
-        <a
-          href="https://maps.google.com/?q=Kalle+Halle+Berlin"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-white/80 hover:text-white"
-        >
+        <span className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-white/80">
           <MapPin className="size-3.5" strokeWidth={1.75} />
-          Open Kalle Halle in Maps
-          <ExternalLink className="size-3" strokeWidth={1.75} />
-        </a>
-      </div>
+          Walking route &amp; map
+          <ArrowRight className="size-3" strokeWidth={1.75} />
+        </span>
+      </Link>
     </section>
   );
 }
