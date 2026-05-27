@@ -344,8 +344,9 @@ function LunchCard() {
       )}
       <p className="flex items-center gap-1.5 text-xs text-white/40 mt-2.5">
         <Coffee className="size-3" strokeWidth={1.75} />
-        Coffee breaks at <span className="font-mono tabular-nums text-white/65">10:30</span> &{" "}
-        <span className="font-mono tabular-nums text-white/65">15:10</span>
+        Coffee breaks at <span className="font-mono tabular-nums text-white/65">10:30</span>,{" "}
+        <span className="font-mono tabular-nums text-white/65">15:10</span> &{" "}
+        <span className="font-mono tabular-nums text-white/65">16:40</span>
       </p>
     </CardShell>
   );
