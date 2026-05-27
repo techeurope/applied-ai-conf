@@ -31,13 +31,32 @@ export function SwRegistration() {
       return;
     }
 
-    navigator.serviceWorker
-      .register("/sw.js", { scope: "/app" })
-      .catch((err) => {
-        // Non-fatal: the app still works without offline support.
-        // eslint-disable-next-line no-console
-        console.warn("[sw] register failed", err);
-      });
+    // Clean up any service workers registered at a scope other than /app/
+    // (leftovers from earlier experiments). A SW at "/" intercepts every
+    // request across the origin — including marketing pages and Next.js
+    // chunk URLs — and floods the console with `no-response` errors when
+    // its runtime cache strategies fall through. Only the /app/-scoped
+    // SW is intentional.
+    (async () => {
+      try {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        for (const reg of regs) {
+          const scopePath = new URL(reg.scope).pathname;
+          if (!scopePath.startsWith("/app")) {
+            await reg.unregister();
+          }
+        }
+      } catch {
+        // best-effort cleanup; non-fatal
+      }
+      navigator.serviceWorker
+        .register("/sw.js", { scope: "/app" })
+        .catch((err) => {
+          // Non-fatal: the app still works without offline support.
+          // eslint-disable-next-line no-console
+          console.warn("[sw] register failed", err);
+        });
+    })();
   }, []);
   return null;
 }
