@@ -13,7 +13,6 @@ import {
   PlaneTakeoff,
   QrCode,
   Ticket,
-  Users,
   UtensilsCrossed,
   Wifi,
 } from "lucide-react";
@@ -135,11 +134,6 @@ function SignInCard() {
           icon={CalendarHeart}
           title="Build your personal agenda"
           sub="Favorite the talks you want to see. The app flags clashes when two of your picks run in parallel."
-        />
-        <Benefit
-          icon={Users}
-          title="Save the people you meet"
-          sub="Point your phone camera at someone's QR to open their profile and add them to your Leads."
         />
         <Benefit
           icon={QrCode}
