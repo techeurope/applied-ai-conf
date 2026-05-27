@@ -20,7 +20,11 @@ export default function AdminOverviewPage() {
   return (
     <div className="space-y-6">
       <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Stat label="Attendees" value={totals?.all ?? "—"} hint="App accounts" />
+        <Stat
+          label="Attendees"
+          value={stats?.accounts ?? "—"}
+          hint="Attendee accounts (excl. staff)"
+        />
         <Stat label="Speakers" value={totals?.speakers ?? "—"} />
         <Stat label="Admins" value={totals?.admins ?? "—"} />
         <Stat label="Deactivated" value={totals?.deactivated ?? "—"} />
