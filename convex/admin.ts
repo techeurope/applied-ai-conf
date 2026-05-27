@@ -397,16 +397,29 @@ export const listUsers = query({
 // of those linked tickets are approved on Luma. Distinct from the Luma page,
 // which counts raw Luma approvals regardless of whether the person ever signed
 // into the app.
+//
+// Staff (accessLevel "admin") are excluded everywhere here: they get app access
+// via their role, not a real ticket, so counting them inflates "registered" and
+// leaves phantom gaps in "ticket linked". This is the attendee picture only.
 export const overviewStats = query({
   args: {},
   handler: async (ctx) => {
     await requireAdmin(ctx);
 
     const users = await ctx.db.query("users").collect();
-    const live = users.filter((u) => !u.deletedAt);
-    const registered = live.filter((u) => u.onboardingCompletedAt).length;
+    const adminIds = new Set(
+      users
+        .filter((u) => !u.deletedAt && u.accessLevel === "admin")
+        .map((u) => String(u._id)),
+    );
+    const attendees = users.filter(
+      (u) => !u.deletedAt && !adminIds.has(String(u._id)),
+    );
+    const registered = attendees.filter((u) => u.onboardingCompletedAt).length;
 
-    const links = await ctx.db.query("ticketLinks").collect();
+    const links = (await ctx.db.query("ticketLinks").collect()).filter(
+      (l) => !adminIds.has(String(l.userId)),
+    );
 
     // Guest ids that hold an approved Luma ticket. lumaAttendees has no index
     // on approvalStatus, so we scan the cached set (small, synced every 5 min)
@@ -419,7 +432,7 @@ export const overviewStats = query({
     );
 
     return {
-      accounts: live.length,
+      accounts: attendees.length,
       registered,
       ticketLinked: links.length,
       linkedApproved: links.filter((l) => approvedGuestIds.has(l.lumaGuestId))

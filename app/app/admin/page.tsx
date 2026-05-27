@@ -29,17 +29,17 @@ export default function AdminOverviewPage() {
         <Stat
           label="Registered"
           value={stats?.registered ?? "—"}
-          hint="Finished app onboarding"
+          hint="Attendees who onboarded (excl. staff)"
         />
         <Stat
           label="Ticket linked"
           value={stats?.ticketLinked ?? "—"}
-          hint="Linked a Luma ticket to their account"
+          hint="Attendees with a linked ticket"
         />
         <Stat
           label="Approved ticket"
           value={stats?.linkedApproved ?? "—"}
-          hint="Linked ticket is approved on Luma"
+          hint="Linked ticket approved on Luma"
         />
       </section>
 
