@@ -291,22 +291,32 @@ function TravelCard() {
 }
 
 function WiFiCard() {
+  const auth = useAuth();
+  const signedIn = !!auth.user;
   return (
     <CardShell>
       <CardHeader icon={Wifi} title="Wi-Fi" hasArrow={false} hint="guest" />
-      <dl className="space-y-1.5 text-sm">
-        <div className="flex items-baseline gap-3">
-          <dt className="text-white/45 w-[68px] shrink-0">Network</dt>
-          <dd className="font-mono text-white truncate">TBA</dd>
-        </div>
-        <div className="flex items-baseline gap-3">
-          <dt className="text-white/45 w-[68px] shrink-0">Password</dt>
-          <dd className="font-mono text-white truncate">TBA</dd>
-        </div>
-      </dl>
-      <p className="text-xs text-white/40 mt-3">
-        Posted at registration on the day.
-      </p>
+      {signedIn ? (
+        <>
+          <dl className="space-y-1.5 text-sm">
+            <div className="flex items-baseline gap-3">
+              <dt className="text-white/45 w-[68px] shrink-0">Network</dt>
+              <dd className="font-mono text-white truncate">Delta Campus Events</dd>
+            </div>
+            <div className="flex items-baseline gap-3">
+              <dt className="text-white/45 w-[68px] shrink-0">Password</dt>
+              <dd className="font-mono text-white truncate">Reach3-Never-Bean-Supper</dd>
+            </div>
+          </dl>
+          <p className="text-xs text-white/40 mt-3">
+            Also posted at registration on the day.
+          </p>
+        </>
+      ) : (
+        <p className="text-sm text-white/60">
+          Please log in to see the Wi-Fi.
+        </p>
+      )}
     </CardShell>
   );
 }
