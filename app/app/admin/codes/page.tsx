@@ -113,8 +113,22 @@ export default function AdminCodesPage() {
     }
   }
 
+  const codeTotals = codes
+    ? {
+        all: codes.length,
+        unclaimed: codes.filter((c) => !c.claimedAt && !c.revokedAt).length,
+        claimed: codes.filter((c) => c.claimedAt).length,
+      }
+    : null;
+
   return (
     <div className="space-y-6">
+      <section className="grid grid-cols-3 gap-3">
+        <Stat label="Codes total" value={codeTotals?.all ?? "—"} hint="Including revoked" />
+        <Stat label="Unclaimed" value={codeTotals?.unclaimed ?? "—"} hint="Still usable" />
+        <Stat label="Claimed" value={codeTotals?.claimed ?? "—"} hint="Redeemed by a user" />
+      </section>
+
       <section className="glass-card rounded-2xl p-5 space-y-3">
         <h2 className="font-mono text-sm font-bold">Generate claim code</h2>
         <p className="text-xs text-white/60">
@@ -275,6 +289,26 @@ export default function AdminCodesPage() {
           )}
         </ul>
       </section>
+    </div>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: number | string;
+  hint?: string;
+}) {
+  return (
+    <div className="glass-card rounded-2xl px-4 py-3">
+      <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
+        {label}
+      </div>
+      <div className="font-mono text-2xl font-bold text-white">{value}</div>
+      {hint && <div className="text-[11px] text-white/40 mt-0.5">{hint}</div>}
     </div>
   );
 }

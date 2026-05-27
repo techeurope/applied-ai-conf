@@ -392,6 +392,43 @@ export const listUsers = query({
   },
 });
 
+// Overview funnel for the admin dashboard: how many people actually have an
+// app account and finished onboarding, how many linked a ticket, and how many
+// of those linked tickets are approved on Luma. Distinct from the Luma page,
+// which counts raw Luma approvals regardless of whether the person ever signed
+// into the app.
+export const overviewStats = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+
+    const users = await ctx.db.query("users").collect();
+    const live = users.filter((u) => !u.deletedAt);
+    const registered = live.filter((u) => u.onboardingCompletedAt).length;
+
+    const links = await ctx.db.query("ticketLinks").collect();
+
+    // Guest ids that hold an approved Luma ticket. lumaAttendees has no index
+    // on approvalStatus, so we scan the cached set (small, synced every 5 min)
+    // and build a lookup to cross against the ticket links.
+    const lumaRows = await ctx.db.query("lumaAttendees").collect();
+    const approvedGuestIds = new Set(
+      lumaRows
+        .filter((r) => r.approvalStatus === "approved")
+        .map((r) => r.lumaGuestId),
+    );
+
+    return {
+      accounts: live.length,
+      registered,
+      ticketLinked: links.length,
+      linkedApproved: links.filter((l) => approvedGuestIds.has(l.lumaGuestId))
+        .length,
+      lumaApproved: approvedGuestIds.size,
+    };
+  },
+});
+
 export const getUser = query({
   args: { userId: v.id("users") },
   handler: async (ctx, { userId }) => {
