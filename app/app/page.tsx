@@ -322,6 +322,10 @@ function WiFiCard() {
 }
 
 function LunchCard() {
+  const auth = useAuth();
+  const signedIn = !!auth.user;
+  const ctaClass =
+    "inline-flex items-center gap-1.5 rounded-full ring-1 ring-amber-300/30 bg-amber-400/[0.06] hover:bg-amber-400/[0.10] hover:ring-amber-300/50 px-3 py-1 mt-3 text-xs text-amber-200 transition-colors";
   return (
     <CardShell>
       <CardHeader icon={UtensilsCrossed} title="Lunch" hasArrow={false} />
@@ -331,14 +335,19 @@ function LunchCard() {
       <p className="text-sm text-white/60 mt-1">
         Kalle Halle, the building right next door · veg, vegan and GF labelled at the counter.
       </p>
-      <Link
-        href="/app/voucher"
-        className="inline-flex items-center gap-1.5 rounded-full ring-1 ring-amber-300/30 bg-amber-400/[0.06] hover:bg-amber-400/[0.10] hover:ring-amber-300/50 px-3 py-1 mt-3 text-xs text-amber-200 transition-colors"
-      >
-        <Ticket className="size-3" strokeWidth={1.75} />
-        Show your voucher
-        <ArrowRight className="size-3" strokeWidth={1.75} />
-      </Link>
+      {signedIn ? (
+        <Link href="/app/voucher" className={ctaClass}>
+          <Ticket className="size-3" strokeWidth={1.75} />
+          Show your voucher
+          <ArrowRight className="size-3" strokeWidth={1.75} />
+        </Link>
+      ) : (
+        <a href="/api/auth/sign-in?return_to=%2Fapp%2Fvoucher" className={ctaClass}>
+          <Ticket className="size-3" strokeWidth={1.75} />
+          Log in to see your lunch voucher
+          <ArrowRight className="size-3" strokeWidth={1.75} />
+        </a>
+      )}
       <p className="flex items-center gap-1.5 text-xs text-white/40 mt-2.5">
         <Coffee className="size-3" strokeWidth={1.75} />
         Coffee breaks at <span className="font-mono tabular-nums text-white/65">10:30</span> &{" "}
