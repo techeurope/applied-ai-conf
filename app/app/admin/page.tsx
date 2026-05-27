@@ -29,7 +29,7 @@ export default function AdminOverviewPage() {
         <Stat label="Admins" value={totals?.admins ?? "—"} />
         <Stat label="Deactivated" value={totals?.deactivated ?? "—"} />
       </section>
-      <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <section className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <Stat
           label="Registered"
           value={stats?.registered ?? "—"}
@@ -43,12 +43,7 @@ export default function AdminOverviewPage() {
         <Stat
           label="Ticket linked"
           value={stats?.ticketLinked ?? "—"}
-          hint="Attendees with a linked ticket"
-        />
-        <Stat
-          label="Approved ticket"
-          value={stats?.linkedApproved ?? "—"}
-          hint="Linked ticket approved on Luma"
+          hint="Has an (approved) ticket — can access the app"
         />
       </section>
 
