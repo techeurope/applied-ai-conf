@@ -110,8 +110,8 @@ export default async function VenuePage() {
             icon={Wifi}
             label="WI-FI"
             rows={[
-              ["Network", "TBA"],
-              ["Password", "TBA"],
+              ["Network", "Delta Campus Events"],
+              ["Password", "Reach3-Never-Bean-Supper"],
             ]}
             note="Credentials are also posted at registration on the day."
           />
