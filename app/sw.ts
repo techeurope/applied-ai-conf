@@ -17,7 +17,7 @@ import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
 import {
   Serwist,
   CacheFirst,
-  StaleWhileRevalidate,
+  NetworkFirst,
   NetworkOnly,
 } from "serwist";
 
@@ -55,14 +55,22 @@ const serwist = new Serwist({
     ],
   },
   runtimeCaching: [
-    // 1) Convex websocket / HTTPS: never cache. Force the network path.
+    // 1) Admin area: never cache. Admins need fresh data, and the page
+    //    bundles contain user-bound destructive controls we don't want
+    //    served stale to a delegate or to the same admin after a deploy.
+    //    Must come before the /app/* rule (first match wins).
+    {
+      matcher: ({ url }) => url.pathname.startsWith("/app/admin"),
+      handler: new NetworkOnly(),
+    },
+    // 2) Convex websocket / HTTPS: never cache. Force the network path.
     {
       matcher: ({ url }) =>
         url.hostname.endsWith(".convex.cloud") ||
         url.hostname.endsWith(".convex.site"),
       handler: new NetworkOnly(),
     },
-    // 2) WorkOS auth endpoints: never cache (security-sensitive, includes
+    // 3) WorkOS auth endpoints: never cache (security-sensitive, includes
     //    OAuth callbacks and token refresh).
     {
       matcher: ({ url }) =>
@@ -70,18 +78,21 @@ const serwist = new Serwist({
         url.pathname.startsWith("/api/auth/"),
       handler: new NetworkOnly(),
     },
-    // 3) App pages under /app: stale-while-revalidate. The first visit
-    //    populates the cache; subsequent reloads use the cached HTML
-    //    immediately and revalidate in the background.
+    // 4) App pages under /app: NetworkFirst with a short timeout. Online
+    //    users always see the freshest deploy; offline users fall back to
+    //    the cached HTML. Matches both navigation requests (destination
+    //    "document") and programmatic fetches (destination "") so the
+    //    client-side CacheWarmer can populate this cache on first load.
     {
       matcher: ({ request, url }) =>
-        request.destination === "document" &&
-        url.pathname.startsWith("/app"),
-      handler: new StaleWhileRevalidate({
+        url.pathname.startsWith("/app") &&
+        (request.destination === "document" || request.destination === ""),
+      handler: new NetworkFirst({
         cacheName: "app-pages",
+        networkTimeoutSeconds: 4,
       }),
     },
-    // 4) Images, fonts, and other static assets: cache-first.
+    // 5) Images, fonts, and other static assets: cache-first.
     {
       matcher: ({ request }) =>
         request.destination === "image" ||
@@ -92,7 +103,7 @@ const serwist = new Serwist({
         cacheName: "static-assets",
       }),
     },
-    // 5) Everything else: serwist's defaults (StaleWhileRevalidate for
+    // 6) Everything else: serwist's defaults (StaleWhileRevalidate for
     //    same-origin, NetworkFirst for cross-origin).
     ...defaultCache,
   ],

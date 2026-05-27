@@ -12,6 +12,7 @@ import { applyDemoClockFromUrl } from "@/lib/conference-time";
 import { StatusPill } from "./StatusPill";
 import { OnlineStatusProvider, OfflineChip } from "./OnlineStatus";
 import { ConvexErrorBoundary } from "./ConvexErrorBoundary";
+import { CacheWarmer } from "./CacheWarmer";
 
 type Tab = {
   href: string;
@@ -212,6 +213,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <OnlineStatusProvider>
+    <CacheWarmer />
     <div
       className="min-h-[100dvh] bg-background text-foreground flex flex-col selection:bg-white/20"
       style={headerH ? ({ "--app-header-h": `${headerH}px` } as React.CSSProperties) : undefined}
