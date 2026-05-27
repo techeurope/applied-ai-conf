@@ -134,7 +134,7 @@ export function AgendaDetailClient({
           <span
             className={`font-mono text-[10px] uppercase tracking-[0.18em] px-2 py-0.5 rounded-full ring-1 ${stageClass}`}
           >
-            {slot.stage}
+            {slot.slug === "lunch" ? "Kalle Halle" : slot.stage}
           </span>
           <span className="font-mono text-[11px] uppercase tracking-widest text-white/60">
             {slot.startTime}–{slot.endTime}

@@ -616,7 +616,7 @@ export function AgendaList({
                           <span
                             className={`font-mono text-[10px] uppercase tracking-[0.18em] px-2 py-0.5 rounded-full ring-1 shrink-0 ${stageClass}`}
                           >
-                            {slot.stage}
+                            {slot.slug === "lunch" ? "Kalle Halle" : slot.stage}
                           </span>
                         )}
                         {speaker && (
