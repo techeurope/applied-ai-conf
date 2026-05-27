@@ -15,6 +15,7 @@ const subTabs = [
   { href: "/app/admin/codes", label: "Claim codes" },
   { href: "/app/admin/stage", label: "Stage" },
   { href: "/app/admin/audit", label: "Audit" },
+  { href: "/app/admin/playbook", label: "Playbook" },
 ];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
