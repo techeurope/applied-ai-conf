@@ -90,6 +90,17 @@ function TodayCard({
   else if (peek.nextMain) items.push({ slot: peek.nextMain, isLive: false });
   if (peek.liveSide) items.push({ slot: peek.liveSide, isLive: true });
   else if (peek.nextSide) items.push({ slot: peek.nextSide, isLive: false });
+  // Surface a break when it's live (e.g. lunch) so attendees see what's
+  // actually happening between sessions. Don't double-up: skip the break
+  // slot if either stage already shows one starting at the same time
+  // (rare, but Opening Remarks + Coffee Break clashing would be noisy).
+  if (peek.liveBreak) {
+    items.push({ slot: peek.liveBreak, isLive: true });
+  } else if (peek.nextBreak && items.length < 2) {
+    // Only show "next break" when there's nothing else to show — keeps the
+    // grid from getting cluttered when talks are imminent.
+    items.push({ slot: peek.nextBreak, isLive: false });
+  }
 
   return (
     <section className="space-y-3">
