@@ -30,6 +30,7 @@ import type * as ticket from "../ticket.js";
 import type * as transfer_test from "../transfer_test.js";
 import type * as users from "../users.js";
 import type * as vouchers from "../vouchers.js";
+import type * as workos_recovery from "../workos_recovery.js";
 
 import type {
   ApiFromModules,
@@ -60,6 +61,7 @@ declare const fullApi: ApiFromModules<{
   transfer_test: typeof transfer_test;
   users: typeof users;
   vouchers: typeof vouchers;
+  workos_recovery: typeof workos_recovery;
 }>;
 
 /**
