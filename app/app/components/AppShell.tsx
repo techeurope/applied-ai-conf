@@ -198,7 +198,17 @@ export function AppShell({ children }: { children: ReactNode }) {
       const settingsIdx = base.findIndex((t) => t.href === "/app/settings");
       base.splice(settingsIdx, 0, teamTab, leadsTab);
     }
-    if (vouchers && vouchers.length > 0) {
+    // Lunch tab is visible for anyone who's *eligible* for a voucher
+    // (ticket-linked or admin), not just users who already have one in the
+    // db. The voucher is JIT-minted on first visit to /app/voucher, so a
+    // brand-new attendee would otherwise see no Lunch tab until they
+    // happened to click the home-page link first — which is exactly the
+    // bug being fixed. Mirror the server-side guard in
+    // ensureAndClaimForMyVoucher so we don't surface a tab that throws.
+    const hasTicketOrAdmin =
+      !!(me?.ticketLinkedAt || me?.accessLevel === "admin");
+    const hasExistingVoucher = !!(vouchers && vouchers.length > 0);
+    if (hasTicketOrAdmin || hasExistingVoucher) {
       // Slot Voucher after Connect so it's easy to flash at the lunch table.
       const connectIdx = base.findIndex((t) => t.href === "/app/connect");
       base.splice(connectIdx + 1, 0, voucherTab);
