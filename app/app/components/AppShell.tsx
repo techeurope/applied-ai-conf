@@ -223,6 +223,16 @@ export function AppShell({ children }: { children: ReactNode }) {
   const tabsReady =
     me !== undefined && myTeam !== undefined && vouchers !== undefined;
 
+  // Defer the skeleton → real-tabs swap until after hydration. `useCachedQuery`
+  // hydrates from localStorage synchronously on the client, so the first
+  // client render can already see `tabsReady === true` while the server
+  // (no localStorage) rendered the skeleton. Gating on `mounted` keeps SSR
+  // and the first client render identical, then swaps post-mount.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const counts = {
     contacts: contacts?.length,
   } as const;
@@ -316,7 +326,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           {!hideNav && (
             <nav aria-label="Primary" className="-mx-4 sm:-mx-6 border-t border-white/5">
               <ul className="flex overflow-x-auto no-scrollbar px-4 sm:px-6">
-                {tabsReady
+                {mounted && tabsReady
                   ? visibleTabs.map(({ href, label, icon: Icon, countKey }) => {
                       // /app must be exact-match so it doesn't light up on every
                       // nested route.
