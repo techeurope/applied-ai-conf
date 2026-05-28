@@ -29,21 +29,35 @@ export default function AdminOverviewPage() {
         <Stat label="Admins" value={totals?.admins ?? "—"} />
         <Stat label="Deactivated" value={totals?.deactivated ?? "—"} />
       </section>
+      {/* Three numbers against the same denominator (signed-up accounts)
+          so the relationship is obvious. Previously "Not onboarded"
+          looked contradictory next to "Ticket linked" because the user
+          had to mentally figure out whether 131 > 129 meant 2 unlinked
+          or 2 unonboarded. Now: each tile's hint shows the gap
+          explicitly. */}
       <section className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <Stat
-          label="Onboarded"
-          value={stats?.registered ?? "—"}
-          hint="Attendees who finished onboarding (excl. staff)"
-        />
-        <Stat
-          label="Not onboarded"
-          value={stats ? stats.accounts - stats.registered : "—"}
-          hint="Signed in, didn't finish onboarding"
+          label="Signed up"
+          value={stats?.accounts ?? "—"}
+          hint="Attendee accounts (excl. staff)"
         />
         <Stat
           label="Ticket linked"
           value={stats?.ticketLinked ?? "—"}
-          hint="Has an (approved) ticket — can access the app"
+          hint={
+            stats
+              ? `${stats.accounts - stats.ticketLinked} of ${stats.accounts} not linked (Luma only — claim codes count separately)`
+              : "Has an approved Luma ticket linked"
+          }
+        />
+        <Stat
+          label="Onboarded"
+          value={stats?.registered ?? "—"}
+          hint={
+            stats
+              ? `${stats.accounts - stats.registered} of ${stats.accounts} not onboarded`
+              : "Completed onboarding"
+          }
         />
       </section>
 
