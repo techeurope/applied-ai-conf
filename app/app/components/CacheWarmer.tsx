@@ -17,7 +17,6 @@ const WARM_ROUTES = [
   "/app/voucher",
   "/app/venue",
   "/app/connect",
-  "/app/faq",
   "/app/travel",
   "/app/programme",
 ];
