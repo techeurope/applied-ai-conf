@@ -127,81 +127,96 @@ export const ensureAndClaimForMyVoucher = mutation({
     if (!user.ticketLinkedAt && user.accessLevel !== "admin") {
       throw new ConvexError("Link your ticket first to get a voucher");
     }
-
-    const email = (user.email ?? "").toLowerCase().trim();
-
-    // 1. Find or mint the voucher row.
-    let voucher = await ctx.db
-      .query("vouchers")
-      .withIndex("by_user_kind", (q) => q.eq("userId", user._id).eq("kind", kind))
-      .first();
-    if (!voucher && email) {
-      // Email dedupe: a previous account under this email may have an
-      // orphaned voucher row (rare — bootstrap cascades delete). Trust the
-      // user_id check above; fall through to mint.
-    }
-    if (!voucher) {
-      const { token } = await reserveVoucherToken(ctx, email, kind);
-      const newId = await ctx.db.insert("vouchers", {
-        userId: user._id,
-        email: email || undefined,
-        kind,
-        publicToken: token,
-        issuedAt: Date.now(),
-      });
-      voucher = await ctx.db.get(newId);
-      if (!voucher) throw new Error("Voucher mint failed");
-      await writeAudit(ctx, user._id, "voucher.jit_mint", {
-        voucherId: voucher._id,
-        kind,
-      });
-    }
-
-    // 2. If already bound to an external URL, idempotent return.
-    if (voucher.externalUrl) {
-      return {
-        voucherId: voucher._id,
-        externalLabel: voucher.externalLabel,
-        externalUrl: voucher.externalUrl,
-        alreadyClaimed: true,
-      };
-    }
-
-    // 3. Pop the next unclaimed inventory row + bind atomically.
-    const inventory = await ctx.db
-      .query("voucherInventory")
-      .withIndex("by_kind_claimed_at", (q) =>
-        q.eq("kind", kind).eq("claimedAt", undefined),
-      )
-      .first();
-    if (!inventory) {
-      throw new ConvexError("Out of vouchers for this kind. Please ask staff.");
-    }
-    const now = Date.now();
-    await ctx.db.patch(inventory._id, {
-      claimedByUserId: user._id,
-      claimedByEmail: email || undefined,
-      claimedAt: now,
-    });
-    await ctx.db.patch(voucher._id, {
-      externalLabel: inventory.externalLabel,
-      externalUrl: inventory.externalUrl,
-      externalClaimedAt: now,
-    });
-    await writeAudit(ctx, user._id, "voucher.external_claim", {
-      voucherId: voucher._id,
-      inventoryId: inventory._id,
-      externalLabel: inventory.externalLabel,
-      kind,
-    });
-    return {
-      voucherId: voucher._id,
-      externalLabel: inventory.externalLabel,
-      externalUrl: inventory.externalUrl,
-      alreadyClaimed: false,
-    };
+    return await mintAndBindVoucherForUser(ctx, user, kind);
   },
 });
+
+// Shared core: mint the voucher row if missing, then bind an external URL
+// from inventory. Exported so other mutations (e.g. completeOnboarding)
+// can pre-mint vouchers without going through the full user-facing
+// `ensureAndClaimForMyVoucher` mutation (which does its own auth lookup).
+// Caller is responsible for verifying the user can have a voucher.
+//
+// Throws ConvexError("Out of vouchers …") if inventory is empty for this
+// kind. Callers that want to tolerate that should wrap in try/catch.
+export async function mintAndBindVoucherForUser(
+  ctx: MutationCtx,
+  user: Doc<"users">,
+  kind: string,
+): Promise<{
+  voucherId: Doc<"vouchers">["_id"];
+  externalLabel?: string;
+  externalUrl?: string;
+  alreadyClaimed: boolean;
+}> {
+  const email = (user.email ?? "").toLowerCase().trim();
+
+  // 1. Find or mint the voucher row.
+  let voucher = await ctx.db
+    .query("vouchers")
+    .withIndex("by_user_kind", (q) => q.eq("userId", user._id).eq("kind", kind))
+    .first();
+  if (!voucher) {
+    const { token } = await reserveVoucherToken(ctx, email, kind);
+    const newId = await ctx.db.insert("vouchers", {
+      userId: user._id,
+      email: email || undefined,
+      kind,
+      publicToken: token,
+      issuedAt: Date.now(),
+    });
+    voucher = await ctx.db.get(newId);
+    if (!voucher) throw new Error("Voucher mint failed");
+    await writeAudit(ctx, user._id, "voucher.jit_mint", {
+      voucherId: voucher._id,
+      kind,
+    });
+  }
+
+  // 2. If already bound to an external URL, idempotent return.
+  if (voucher.externalUrl) {
+    return {
+      voucherId: voucher._id,
+      externalLabel: voucher.externalLabel,
+      externalUrl: voucher.externalUrl,
+      alreadyClaimed: true,
+    };
+  }
+
+  // 3. Pop the next unclaimed inventory row + bind atomically.
+  const inventory = await ctx.db
+    .query("voucherInventory")
+    .withIndex("by_kind_claimed_at", (q) =>
+      q.eq("kind", kind).eq("claimedAt", undefined),
+    )
+    .first();
+  if (!inventory) {
+    throw new ConvexError("Out of vouchers for this kind. Please ask staff.");
+  }
+  const now = Date.now();
+  await ctx.db.patch(inventory._id, {
+    claimedByUserId: user._id,
+    claimedByEmail: email || undefined,
+    claimedAt: now,
+  });
+  await ctx.db.patch(voucher._id, {
+    externalLabel: inventory.externalLabel,
+    externalUrl: inventory.externalUrl,
+    externalClaimedAt: now,
+  });
+  await writeAudit(ctx, user._id, "voucher.external_claim", {
+    voucherId: voucher._id,
+    inventoryId: inventory._id,
+    externalLabel: inventory.externalLabel,
+    kind,
+  });
+  return {
+    voucherId: voucher._id,
+    externalLabel: inventory.externalLabel,
+    externalUrl: inventory.externalUrl,
+    alreadyClaimed: false,
+  };
+}
 
 // Claim an external (caterer-provided) URL onto a voucher row. Called by the
 // UI on first view: if the voucher has no externalUrl yet, atomically pop the

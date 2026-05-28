@@ -11,6 +11,7 @@ import { generatePublicToken } from "./_tokens";
 import { tryAutoLink } from "./ticket";
 import { consumePartnerInviteIfAny } from "./partners";
 import { consumeAdminInviteIfAny } from "./admin";
+import { mintAndBindVoucherForUser } from "./vouchers";
 
 async function ensureUniquePublicToken(ctx: any): Promise<string> {
   for (let attempt = 0; attempt < 8; attempt++) {
@@ -533,6 +534,41 @@ export const completeOnboarding = mutation({
       termsAcceptedAt: now,
       termsAcceptedVersion: CURRENT_TERMS_VERSION,
     });
+    // Pre-mint the lunch voucher so it's already in the user's
+    // `myVouchers` snapshot by the time AppShell next renders. With the
+    // voucher row + bound external URL persisted, the CacheWarmer
+    // populates /app/voucher's HTML + chunks into the SW cache, and
+    // useCachedQuery snapshots the voucher data to localStorage — so the
+    // user can flash the lunch QR offline at the counter without ever
+    // having to manually visit /app/voucher while online first.
+    //
+    // Best-effort: ticket may not be linked yet (claim-code flow, partner
+    // invite flow before accept), or inventory may be temporarily empty.
+    // Don't fail onboarding if the mint can't complete; the user can still
+    // tap Lunch later and the page's own JIT-mint will retry.
+    const refreshedUser = (await ctx.db.get(user._id)) as Doc<"users"> | null;
+    if (
+      refreshedUser &&
+      !refreshedUser.deletedAt &&
+      !refreshedUser.deactivatedAt &&
+      (refreshedUser.ticketLinkedAt || refreshedUser.accessLevel === "admin")
+    ) {
+      try {
+        await mintAndBindVoucherForUser(ctx, refreshedUser, "lunch");
+      } catch (err) {
+        // Out-of-inventory or any other voucher error must not block
+        // onboarding. The voucher page retries the bind on visit.
+        await ctx.db.insert("auditLog", {
+          actorUserId: user._id,
+          action: "voucher.onboarding_mint_skipped",
+          targetUserId: user._id,
+          metadata: JSON.stringify({
+            reason: err instanceof Error ? err.message : String(err),
+          }),
+          createdAt: now,
+        });
+      }
+    }
     return user._id;
   },
 });
