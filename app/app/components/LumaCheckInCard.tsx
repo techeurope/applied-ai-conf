@@ -6,6 +6,7 @@ import { ArrowUpRight, CheckCircle2, Ticket } from "lucide-react";
 import { api } from "@convex/_generated/api";
 import { FullScreenQr } from "./FullScreenQr";
 import { useCachedQuery } from "@/lib/useCachedQuery";
+import { useHasHydrated } from "@/lib/use-has-hydrated";
 
 type CheckInData = NonNullable<
   ReturnType<typeof useQuery<typeof api.luma.myCheckIn>>
@@ -21,8 +22,14 @@ export function LumaCheckInCard() {
   const data: ReturnType<typeof useQuery<typeof api.luma.myCheckIn>> =
     useCachedQuery(api.luma.myCheckIn, {}, "luma.myCheckIn");
   const [open, setOpen] = useState(false);
+  // Same hydration gate as AppShell: `useCachedQuery` returns the
+  // localStorage snapshot synchronously on the client, so without this
+  // the server renders the skeleton (data undefined) while the first
+  // client render goes straight to the real <button> — classic
+  // hydration mismatch.
+  const hasHydrated = useHasHydrated();
 
-  if (data === undefined) return <LumaCheckInSkeleton />;
+  if (!hasHydrated || data === undefined) return <LumaCheckInSkeleton />;
   if (data === null) return null;
   if (!data.checkInUrl) return null;
 
