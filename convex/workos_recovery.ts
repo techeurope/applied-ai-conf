@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { internalAction, internalMutation, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { tryAutoLink } from "./ticket";
 
 // WorkOS AuthKit signup leaks "ghost" unverified user records: a user enters
 // email + password, AuthKit creates the user with email_verified=false, then
@@ -375,6 +376,135 @@ export const convexUserExistsByWorkosId = internalQuery({
       .withIndex("by_workos_id", (q) => q.eq("workosUserId", workosUserId))
       .first();
     return !!u && !u.deletedAt;
+  },
+});
+
+// Admin auto-link by email. Calls the same tryAutoLink that ensureFromWorkos
+// uses, but in its own mutation so a throw shows up here instead of being
+// silently swallowed by AppShell's catch. Returns the link row on success or
+// a structured failure so the caller can see why.
+export const adminLinkByEmail = internalMutation({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    const normalized = email.toLowerCase().trim();
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", normalized))
+      .first();
+    if (!user) return { ok: false, reason: "no convex user" as const };
+    if (user.deletedAt) return { ok: false, reason: "user deleted" as const };
+    if (user.ticketLinkedAt)
+      return {
+        ok: true,
+        already: true,
+        lumaGuestId: user.lumaGuestId,
+      };
+    const link = await tryAutoLink(ctx, user);
+    if (!link) {
+      // Surface why tryAutoLink declined (vs threw). Mirrors its early-return
+      // branches: no email, claimed by another user, not approved, etc.
+      const luma = await ctx.db
+        .query("lumaAttendees")
+        .withIndex("by_email", (q) => q.eq("email", normalized))
+        .first();
+      if (!luma) return { ok: false, reason: "no luma row for this email" as const };
+      if (luma.approvalStatus !== "approved")
+        return {
+          ok: false,
+          reason: `luma status=${luma.approvalStatus}` as const,
+        };
+      const claimed = await ctx.db
+        .query("ticketLinks")
+        .withIndex("by_luma_guest_id", (q) => q.eq("lumaGuestId", luma.lumaGuestId))
+        .first();
+      if (claimed && claimed.userId !== user._id) {
+        return { ok: false, reason: "luma ticket already linked to another user" as const };
+      }
+      return { ok: false, reason: "unknown" as const };
+    }
+    return { ok: true, lumaGuestId: link.lumaGuestId };
+  },
+});
+
+// Sweep #3: find Convex users with approved Luma tickets but no ticket link,
+// and auto-link them. Catches the case where tryAutoLink couldn't fire during
+// ensureFromWorkos (e.g. Luma cache hadn't synced the new approval yet) or
+// where my bootstrap created a row without linking. Runs every 5 min.
+export const sweepUnlinkedWithApprovedTicket = internalAction({
+  args: {},
+  handler: async (
+    ctx,
+  ): Promise<{
+    scanned: number;
+    linked: number;
+    skippedNoLumaRow: number;
+    skippedNotApproved: number;
+    skippedConflict: number;
+    errors: string[];
+  }> => {
+    const r = await ctx.runMutation(
+      internal.workos_recovery.sweepUnlinkedWithApprovedTicketInner,
+      {},
+    );
+    console.log("[workos_recovery] sweepUnlinkedWithApprovedTicket", r);
+    return r;
+  },
+});
+
+export const sweepUnlinkedWithApprovedTicketInner = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const users = await ctx.db.query("users").collect();
+    const candidates = users.filter(
+      (u) =>
+        !u.deletedAt &&
+        !u.ticketLinkedAt &&
+        u.accessLevel !== "admin" &&
+        !!u.email,
+    );
+    let linked = 0,
+      skippedNoLumaRow = 0,
+      skippedNotApproved = 0,
+      skippedConflict = 0;
+    const errors: string[] = [];
+    for (const u of candidates) {
+      const luma = await ctx.db
+        .query("lumaAttendees")
+        .withIndex("by_email", (q) => q.eq("email", u.email))
+        .first();
+      if (!luma) {
+        skippedNoLumaRow++;
+        continue;
+      }
+      if (luma.approvalStatus !== "approved") {
+        skippedNotApproved++;
+        continue;
+      }
+      const claimed = await ctx.db
+        .query("ticketLinks")
+        .withIndex("by_luma_guest_id", (q) =>
+          q.eq("lumaGuestId", luma.lumaGuestId),
+        )
+        .first();
+      if (claimed && claimed.userId !== u._id) {
+        skippedConflict++;
+        continue;
+      }
+      try {
+        await tryAutoLink(ctx, u);
+        linked++;
+      } catch (e) {
+        errors.push(`${u.email}: ${String(e).slice(0, 200)}`);
+      }
+    }
+    return {
+      scanned: candidates.length,
+      linked,
+      skippedNoLumaRow,
+      skippedNotApproved,
+      skippedConflict,
+      errors,
+    };
   },
 });
 

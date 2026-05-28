@@ -40,4 +40,15 @@ crons.interval(
   {},
 );
 
+// Sweep #3: find non-admin users with no ticketLinkedAt but an approved Luma
+// row, and auto-link them. Catches the case where ensureFromWorkos's
+// tryAutoLink failed (silent throw) or where the Luma cache hadn't synced
+// yet at signup time.
+crons.interval(
+  "workos auto-link approved tickets",
+  { minutes: 5 },
+  internal.workos_recovery.sweepUnlinkedWithApprovedTicket,
+  {},
+);
+
 export default crons;
