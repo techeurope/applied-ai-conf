@@ -85,22 +85,16 @@ function TodayCard({
   peek: NonNullable<ReturnType<typeof rightNowPeek>>;
   now: number;
 }) {
-  const items: { slot: AgendaSlot; isLive: boolean }[] = [];
-  if (peek.liveMain) items.push({ slot: peek.liveMain, isLive: true });
-  else if (peek.nextMain) items.push({ slot: peek.nextMain, isLive: false });
-  if (peek.liveSide) items.push({ slot: peek.liveSide, isLive: true });
-  else if (peek.nextSide) items.push({ slot: peek.nextSide, isLive: false });
-  // Surface a break when it's live (e.g. lunch) so attendees see what's
-  // actually happening between sessions. Don't double-up: skip the break
-  // slot if either stage already shows one starting at the same time
-  // (rare, but Opening Remarks + Coffee Break clashing would be noisy).
-  if (peek.liveBreak) {
-    items.push({ slot: peek.liveBreak, isLive: true });
-  } else if (peek.nextBreak && items.length < 2) {
-    // Only show "next break" when there's nothing else to show — keeps the
-    // grid from getting cluttered when talks are imminent.
-    items.push({ slot: peek.nextBreak, isLive: false });
-  }
+  // Home card shows only what's LIVE right now (talks, keynote, break,
+  // logistics). For "what's next", the user taps the Agenda link in the
+  // header — duplicating it here was noisy and led to people glancing at
+  // home and reading the next slot's time as the current one.
+  const items: { slot: AgendaSlot }[] = [];
+  if (peek.liveMain) items.push({ slot: peek.liveMain });
+  if (peek.liveSide) items.push({ slot: peek.liveSide });
+  if (peek.liveBreak) items.push({ slot: peek.liveBreak });
+
+  if (items.length === 0) return null;
 
   return (
     <section className="space-y-3">
@@ -117,12 +111,12 @@ function TodayCard({
         </Link>
       </div>
       <div className="grid sm:grid-cols-2 gap-2">
-        {items.map(({ slot, isLive }) => (
+        {items.map(({ slot }) => (
           <LiveSessionCard
             key={slot.id}
             slot={slot}
             nowMinutes={now}
-            isLive={isLive}
+            isLive={true}
           />
         ))}
       </div>
