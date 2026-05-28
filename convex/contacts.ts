@@ -111,10 +111,8 @@ export const updateLeadQualification = mutation({
   },
 });
 
-// Per-author note thread on a contact. Anyone who owns the contact
-// (personal contact) or is a member of the team that owns it (partner
-// team contact) can add a note. Authors are surfaced on read so the
-// UI can show who wrote what.
+// Per-author note thread on a contact. Partner-team-only — solo
+// attendees can capture contacts but don't get the notes feature.
 export const addNote = mutation({
   args: {
     contactId: v.id("contacts"),
@@ -126,10 +124,12 @@ export const addNote = mutation({
     if (!trimmed) throw new Error("Note can't be empty");
     const contact = await ctx.db.get(contactId);
     if (!contact) throw new Error("Contact not found");
-    const allowed =
-      (contact.ownerType === "user" && contact.ownerId === user._id) ||
-      (contact.ownerType === "team" && contact.ownerId === user.teamId);
-    if (!allowed) throw new Error("Not your contact");
+    if (contact.ownerType !== "team") {
+      throw new Error("Notes are a partner-team feature");
+    }
+    if (!user.teamId || contact.ownerId !== user.teamId) {
+      throw new Error("Not your team's contact");
+    }
     const noteId = await ctx.db.insert("contactNotes", {
       contactId,
       byUserId: user._id,
@@ -146,10 +146,9 @@ export const notesForContact = query({
     const user = await getMe(ctx);
     const contact = await ctx.db.get(contactId);
     if (!contact) return [];
-    const allowed =
-      (contact.ownerType === "user" && contact.ownerId === user._id) ||
-      (contact.ownerType === "team" && contact.ownerId === user.teamId);
-    if (!allowed) return [];
+    // Notes are partner-team-only; solo attendees never see notes.
+    if (contact.ownerType !== "team") return [];
+    if (!user.teamId || contact.ownerId !== user.teamId) return [];
     const notes = await ctx.db
       .query("contactNotes")
       .withIndex("by_contact", (q) => q.eq("contactId", contactId))
@@ -172,41 +171,33 @@ export const notesForContact = query({
 });
 
 // Who scanned this contact, oldest first — so the first entry is whoever
-// met them first. For a team lead we count everyone on the team; for a
-// personal contact only the owner (personal contacts come from the public
-// "add" path and rarely have scan events, so this is usually empty).
+// met them first. Partner-team-only; solo attendees don't see scanner
+// attribution (it's their own list, the answer is always "you").
 export const scannersForContact = query({
   args: { contactId: v.id("contacts") },
   handler: async (ctx, { contactId }) => {
     const user = await getMe(ctx);
     const contact = await ctx.db.get(contactId);
     if (!contact) return [];
-    const allowed =
-      (contact.ownerType === "user" && contact.ownerId === user._id) ||
-      (contact.ownerType === "team" && contact.ownerId === user.teamId);
-    if (!allowed) return [];
+    if (contact.ownerType !== "team") return [];
+    if (!user.teamId || contact.ownerId !== user.teamId) return [];
 
     const nameById = new Map<string, string>();
-    let isRelevantScanner: (scannerUserId: Id<"users">) => boolean;
-    if (contact.ownerType === "team") {
-      const memberRows = await ctx.db
-        .query("partnerMembers")
-        .withIndex("by_team", (q) =>
-          q.eq("teamId", contact.ownerId as unknown as Id<"teams">),
-        )
-        .collect();
-      const memberIds = new Set(
-        memberRows.map((m) => m.userId as unknown as string),
-      );
-      for (const m of memberRows) {
-        const u = await ctx.db.get(m.userId);
-        if (u) nameById.set(u._id as unknown as string, u.name ?? "Unknown");
-      }
-      isRelevantScanner = (id) => memberIds.has(id as unknown as string);
-    } else {
-      isRelevantScanner = (id) =>
-        (id as unknown as string) === (user._id as unknown as string);
+    const memberRows = await ctx.db
+      .query("partnerMembers")
+      .withIndex("by_team", (q) =>
+        q.eq("teamId", contact.ownerId as unknown as Id<"teams">),
+      )
+      .collect();
+    const memberIds = new Set(
+      memberRows.map((m) => m.userId as unknown as string),
+    );
+    for (const m of memberRows) {
+      const u = await ctx.db.get(m.userId);
+      if (u) nameById.set(u._id as unknown as string, u.name ?? "Unknown");
     }
+    const isRelevantScanner = (id: Id<"users">) =>
+      memberIds.has(id as unknown as string);
 
     const scanRows = await ctx.db
       .query("scanEvents")
@@ -233,6 +224,8 @@ export const scannersForContact = query({
   },
 });
 
+// Legacy notes/tags field on the row itself (kept for partner team UI).
+// Solo contacts get no notes feature at all.
 export const updateNotes = mutation({
   args: {
     contactId: v.id("contacts"),
@@ -243,11 +236,11 @@ export const updateNotes = mutation({
     const user = await getMe(ctx);
     const contact = await ctx.db.get(contactId);
     if (!contact) throw new Error("Contact not found");
-
-    const expectedOwnerType = user.teamId ? "team" : "user";
-    const expectedOwnerId = user.teamId ?? user._id;
-    if (contact.ownerType !== expectedOwnerType || contact.ownerId !== expectedOwnerId) {
-      throw new Error("Not your contact");
+    if (contact.ownerType !== "team") {
+      throw new Error("Notes are a partner-team feature");
+    }
+    if (!user.teamId || contact.ownerId !== user.teamId) {
+      throw new Error("Not your team's contact");
     }
     await ctx.db.patch(contactId, {
       ...(notes !== undefined ? { notes } : {}),

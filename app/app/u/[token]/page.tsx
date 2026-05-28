@@ -20,6 +20,9 @@ export default function ProfileViewPage({
   const contacts = useQuery(api.contacts.list);
   const addContact = useMutation(api.contacts.add);
   const recordScan = useMutation(api.scans.record);
+  // "Leads" wording is partner-team-specific. Solo attendees see
+  // "contacts" everywhere so the UX matches their nav tab + list page.
+  const isTeamUser = !!me?.teamId || me?.accessLevel === "admin";
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -66,7 +69,13 @@ export default function ProfileViewPage({
       const contactId = await addContact({ userId: user._id });
       router.push(`/app/contacts/${contactId}`);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn't add to leads");
+      setError(
+        e instanceof Error
+          ? e.message
+          : isTeamUser
+            ? "Couldn't add to leads"
+            : "Couldn't save to contacts",
+      );
       setSaving(false);
     }
   }
@@ -128,14 +137,14 @@ export default function ProfileViewPage({
           className="inline-flex items-center gap-1.5 px-6 py-3 rounded-full bg-white text-black font-mono text-sm font-medium ring-1 ring-white/30"
         >
           <LogIn className="size-3.5" strokeWidth={2} />
-          Sign in to save as lead
+          Sign in to save
         </a>
       ) : existing ? (
         <Link
           href={`/app/contacts/${existing._id}`}
           className="inline-flex items-center justify-center w-full sm:w-auto px-7 py-3.5 rounded-full bg-white text-black font-mono text-sm font-medium ring-1 ring-white/30"
         >
-          Open in your leads
+          {isTeamUser ? "Open in your leads" : "Open in your contacts"}
         </Link>
       ) : (
         <button
@@ -144,7 +153,13 @@ export default function ProfileViewPage({
           disabled={saving}
           className="inline-flex items-center justify-center w-full sm:w-auto px-7 py-3.5 rounded-full bg-white text-black font-mono text-sm font-medium ring-1 ring-white/30 disabled:opacity-50"
         >
-          {saving ? "Adding…" : "Add to my leads"}
+          {saving
+            ? isTeamUser
+              ? "Adding…"
+              : "Saving…"
+            : isTeamUser
+              ? "Add to my leads"
+              : "Save to my contacts"}
         </button>
       )}
       {error && (

@@ -34,11 +34,13 @@ const LEAD_STYLES: Record<LeadStatus, string> = {
 export default function ContactsPage() {
   const contacts = useQuery(api.contacts.list);
   const me = useQuery(api.users.me);
-  const canScan = !!me && (me.accessLevel === "admin" || !!me.teamId);
-  // Lead-status filter is only meaningful for partner-team contacts.
-  // Solo users (no team) get the same toggle but it's effectively a
-  // no-op since their contacts never have a leadStatus set.
-  const showStatusFilter = !!me?.teamId;
+  // Partner-team members and admins get the rich "Leads" view: lead
+  // status, CSV export, status pills on each card. Everyone else (solo
+  // attendees) gets a stripped-down "Contacts" view — same list, no
+  // qualification UI, no export, no status pills. The render branches
+  // below.
+  const isTeamView = !!me?.teamId || me?.accessLevel === "admin";
+  const showStatusFilter = isTeamView;
   const [sortKey, setSortKey] = useState<SortKey>("recent");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [query, setQuery] = useState("");
@@ -129,7 +131,7 @@ export default function ContactsPage() {
         <div className="flex items-center gap-2 flex-wrap">
           <div
             role="tablist"
-            aria-label="Sort leads"
+            aria-label={isTeamView ? "Sort leads" : "Sort contacts"}
             className="inline-flex p-1 rounded-full border border-white/10 bg-white/[0.02]"
           >
             <SortButton active={sortKey === "recent"} onClick={() => setSortKey("recent")}>
@@ -148,15 +150,17 @@ export default function ContactsPage() {
             />
           )}
         </div>
-        <button
-          type="button"
-          onClick={handleExportCsv}
-          disabled={!filteredAndSorted || filteredAndSorted.length === 0}
-          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full ring-1 ring-white/15 hover:ring-white/30 font-mono text-[10px] uppercase tracking-[0.18em] text-white/60 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          <Download className="size-3" strokeWidth={2} />
-          Export CSV
-        </button>
+        {isTeamView && (
+          <button
+            type="button"
+            onClick={handleExportCsv}
+            disabled={!filteredAndSorted || filteredAndSorted.length === 0}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full ring-1 ring-white/15 hover:ring-white/30 font-mono text-[10px] uppercase tracking-[0.18em] text-white/60 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Download className="size-3" strokeWidth={2} />
+            Export CSV
+          </button>
+        )}
       </div>
 
       {contacts && contacts.length > 0 && (
@@ -180,20 +184,19 @@ export default function ContactsPage() {
 
       {contacts && contacts.length === 0 && (
         <div className="rounded-2xl glass-card p-8 text-center">
-          <p className="text-base text-white/80 mb-1">No leads yet.</p>
-          <p className="text-sm text-white/50 mb-6">
-            {canScan
-              ? "Scan someone's QR to add them."
-              : "Open someone's QR with your phone camera and tap \"Add to my leads\" on their profile."}
+          <p className="text-base text-white/80 mb-1">
+            {isTeamView ? "No leads yet." : "No contacts yet."}
           </p>
-          {canScan && (
-            <Link
-              href="/app/connect?mode=scanner"
-              className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-white text-black font-mono text-xs font-medium hover:scale-[1.02] transition-all ring-1 ring-white/30"
-            >
-              Open scanner
-            </Link>
-          )}
+          <p className="text-sm text-white/50 mb-6">
+            Open someone&apos;s QR with your phone camera, or use the in-app
+            scanner.
+          </p>
+          <Link
+            href="/app/connect?mode=scanner"
+            className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-white text-black font-mono text-xs font-medium hover:scale-[1.02] transition-all ring-1 ring-white/30"
+          >
+            Open scanner
+          </Link>
         </div>
       )}
 
@@ -202,7 +205,7 @@ export default function ContactsPage() {
         contacts.length > 0 &&
         filteredAndSorted.length === 0 && (
           <p className="text-xs text-white/40 text-center py-6 font-mono">
-            No leads match this filter.
+            {isTeamView ? "No leads" : "No contacts"} match this filter.
           </p>
         )}
 
@@ -223,7 +226,7 @@ export default function ContactsPage() {
                       {[user?.role, user?.company].filter(Boolean).join(" · ")}
                     </div>
                   </div>
-                  {contact.leadStatus && (
+                  {isTeamView && contact.leadStatus && (
                     <span
                       className={`font-mono text-[10px] uppercase tracking-[0.18em] px-2 py-0.5 rounded-full ring-1 shrink-0 ${
                         LEAD_STYLES[contact.leadStatus as LeadStatus]

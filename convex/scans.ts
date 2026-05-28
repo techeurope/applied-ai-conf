@@ -31,14 +31,11 @@ export const record = mutation({
         "Your ticket isn't verified yet. Visit /app/link-ticket first.",
       );
     }
-    // Scanner is partner-team-only — you must be on a team to capture leads.
-    // Without a teamId every scan creates a personal contact the lead-
-    // qualification flow rejects, so we gate scanning here (no admin bypass).
-    if (!scanner.teamId) {
-      throw new ConvexError(
-        "Lead-capture scanning is for partner team members only.",
-      );
-    }
+    // Scanner is open to every ticket-linked attendee. Solo attendees get
+    // a personal contact (ownerType="user"); partner teams get a team-
+    // shared contact (ownerType="team"). The branching downstream around
+    // ownerType decides which UI features (lead status, notes, scanned-by)
+    // are exposed — see contacts.ts for the server-side guards.
 
     const byToken = await ctx.db
       .query("users")

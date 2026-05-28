@@ -89,10 +89,11 @@ export default function ConnectPage() {
     return <p className="font-mono text-xs text-white/40">Not signed in.</p>;
   }
 
-  // Scanner is partner-team-only — you must be on a team to capture leads.
-  // Everyone else (including admins without a team) sees Badge mode only;
-  // a non-team scan would create a personal contact the lead flow can't act on.
-  const canScan = !!me.teamId;
+  // Scanner is enabled for every ticket-linked attendee. Solo scans
+  // create personal contacts (`ownerType="user"`); partner scans create
+  // team contacts (`ownerType="team"`). The lead-qualification flow is
+  // gated separately on the team side.
+  const canScan = !!me.ticketLinkedAt || me.accessLevel === "admin";
   const effectiveMode: Mode = canScan ? mode : "badge";
 
   return (
@@ -107,7 +108,10 @@ export default function ConnectPage() {
       {effectiveMode === "badge" ? (
         <BadgeMode me={me} myTeam={myTeam ?? null} />
       ) : (
-        <ScannerMode recordScan={recordScan} />
+        <ScannerMode
+          recordScan={recordScan}
+          isTeamView={!!me.teamId || me.accessLevel === "admin"}
+        />
       )}
     </div>
   );
@@ -283,8 +287,13 @@ type RecentScan = {
 
 function ScannerMode({
   recordScan,
+  isTeamView,
 }: {
   recordScan: RecordScan;
+  // Solo attendees and partner teams share this scanner UI, but the
+  // "just-scanned" modal looks different: partners get lead-status
+  // pickers + a notes field; solo gets a plain "open contact" view.
+  isTeamView: boolean;
 }) {
   const online = useOnlineStatus();
   const addNote = useMutation(api.contacts.addNote);
@@ -417,6 +426,7 @@ function ScannerMode({
         <ScanModal
           scan={activeScan}
           onClose={dismissModal}
+          isTeamView={isTeamView}
           onSaveNote={async (text) => {
             await addNote({
               contactId: activeScan.contactId as Id<"contacts">,
@@ -546,11 +556,15 @@ function ScannerMode({
 function ScanModal({
   scan,
   onClose,
+  isTeamView,
   onSaveNote,
   onSetLeadStatus,
 }: {
   scan: RecentScan;
   onClose: () => void;
+  // Solo attendees see a stripped modal: no lead status, no notes,
+  // just a confirmation of who they scanned + an "Open contact" link.
+  isTeamView: boolean;
   onSaveNote: (text: string) => Promise<void>;
   onSetLeadStatus: (next: LeadStatus | "clear") => Promise<void>;
 }) {
@@ -615,45 +629,53 @@ function ScanModal({
           )}
         </div>
 
-        <ScanHistoryBanner history={scan.history} />
+        {isTeamView && <ScanHistoryBanner history={scan.history} />}
 
-        <div className="space-y-2">
-          <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">
-            How was this lead?
+        {isTeamView && (
+          <div className="space-y-2">
+            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">
+              How was this lead?
+            </div>
+            <div className="grid grid-cols-4 gap-1.5">
+              {LEAD_STATUSES.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  disabled={leadBusy}
+                  onClick={() => handlePickStatus(s)}
+                  className={`font-mono text-[10px] uppercase tracking-[0.18em] py-2 rounded-md ring-1 transition-colors disabled:opacity-50 ${
+                    pickedStatus === s
+                      ? LEAD_STYLES[s]
+                      : "ring-white/15 text-white/60 hover:text-white hover:ring-white/30"
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-4 gap-1.5">
-            {LEAD_STATUSES.map((s) => (
-              <button
-                key={s}
-                type="button"
-                disabled={leadBusy}
-                onClick={() => handlePickStatus(s)}
-                className={`font-mono text-[10px] uppercase tracking-[0.18em] py-2 rounded-md ring-1 transition-colors disabled:opacity-50 ${
-                  pickedStatus === s
-                    ? LEAD_STYLES[s]
-                    : "ring-white/15 text-white/60 hover:text-white hover:ring-white/30"
-                }`}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-        </div>
+        )}
 
         {mode === "view" ? (
           <div className="flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={() => setMode("note")}
-              className="w-full inline-flex items-center justify-center px-4 py-3 rounded-full bg-white text-black font-mono text-sm font-medium"
-            >
-              Add note
-            </button>
+            {isTeamView && (
+              <button
+                type="button"
+                onClick={() => setMode("note")}
+                className="w-full inline-flex items-center justify-center px-4 py-3 rounded-full bg-white text-black font-mono text-sm font-medium"
+              >
+                Add note
+              </button>
+            )}
             <Link
               href={`/app/contacts/${scan.contactId}`}
-              className="w-full inline-flex items-center justify-center px-4 py-2.5 rounded-full ring-1 ring-white/20 font-mono text-xs text-white/80 hover:text-white hover:ring-white/30"
+              className={`w-full inline-flex items-center justify-center px-4 rounded-full font-mono ${
+                isTeamView
+                  ? "py-2.5 ring-1 ring-white/20 text-white/80 text-xs hover:text-white hover:ring-white/30"
+                  : "py-3 bg-white text-black text-sm font-medium hover:bg-white/90"
+              }`}
             >
-              Open lead
+              {isTeamView ? "Open lead" : "Open contact"}
             </Link>
             <button
               type="button"

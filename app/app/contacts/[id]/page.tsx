@@ -30,6 +30,12 @@ export default function ContactDetailPage({
     contactId: id as Id<"contacts">,
   });
   const entry = contacts?.find((c) => c.contact._id === id);
+  // Branch the whole detail UI on the contact's ownerType. A team
+  // contact gets the rich partner experience; a personal contact
+  // shows just name/role/company/when-first-met. The server-side
+  // guards on lead status, notes, and scannersForContact mirror this
+  // so a solo user can't reach into team data by guessing IDs.
+  const isTeamContact = entry?.contact.ownerType === "team";
 
   const [newNote, setNewNote] = useState("");
   const [postingNote, setPostingNote] = useState(false);
@@ -42,9 +48,9 @@ export default function ContactDetailPage({
   if (!entry) {
     return (
       <div className="space-y-4">
-        <p className="text-sm text-zinc-400">Lead not found.</p>
+        <p className="text-sm text-zinc-400">Not found.</p>
         <Link href="/app/contacts" className="font-mono text-xs underline">
-          ← Back to leads
+          ← Back
         </Link>
       </div>
     );
@@ -55,7 +61,7 @@ export default function ContactDetailPage({
   return (
     <div className="space-y-5 pt-2">
       <Link href="/app/contacts" className="font-mono text-xs text-zinc-500 hover:text-zinc-300">
-        ← Leads
+        ← {isTeamContact ? "Leads" : "Contacts"}
       </Link>
 
       <header className="space-y-1">
@@ -87,7 +93,7 @@ export default function ContactDetailPage({
         <p className="text-sm text-zinc-300 leading-relaxed">{user.bio}</p>
       )}
 
-      {scanners && scanners.length > 0 && (
+      {isTeamContact && scanners && scanners.length > 0 && (
         <section className="space-y-1.5">
           <div className="font-mono text-[10px] uppercase tracking-widest text-zinc-500">
             Scanned by
@@ -147,70 +153,72 @@ export default function ContactDetailPage({
         </section>
       )}
 
-      <section className="space-y-3">
-        <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-500">
-          {contact.ownerType === "team" ? "Team notes" : "Notes thread"}
-        </label>
-        {noteThread === undefined ? (
-          <p className="text-xs text-zinc-500 font-mono">Loading…</p>
-        ) : noteThread.length === 0 ? (
-          <p className="text-xs text-zinc-500">No notes yet.</p>
-        ) : (
-          <ul className="space-y-2">
-            {noteThread.map((n) => (
-              <li
-                key={n._id}
-                className="rounded-md bg-white/[0.03] ring-1 ring-white/10 px-3 py-2"
-              >
-                <div className="flex items-baseline justify-between gap-2 mb-1">
-                  <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/60">
-                    {n.authorIsMe ? "You" : n.authorName}
-                  </span>
-                  <span className="font-mono text-[10px] text-white/30">
-                    {new Date(n.createdAt).toLocaleString()}
-                  </span>
-                </div>
-                <p className="text-sm text-white/85 whitespace-pre-wrap">
-                  {n.text}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
-        <form
-          className="space-y-2"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            const trimmed = newNote.trim();
-            if (!trimmed) return;
-            setPostingNote(true);
-            try {
-              await addNote({
-                contactId: id as Id<"contacts">,
-                text: trimmed,
-              });
-              setNewNote("");
-            } finally {
-              setPostingNote(false);
-            }
-          }}
-        >
-          <textarea
-            value={newNote}
-            onChange={(e) => setNewNote(e.target.value)}
-            rows={3}
-            placeholder="Add a note…"
-            className="w-full px-3 py-2 bg-zinc-900/60 border border-white/10 rounded-md text-sm focus:outline-none focus:border-white/30 resize-none"
-          />
-          <button
-            type="submit"
-            disabled={postingNote || !newNote.trim()}
-            className="px-4 py-2 rounded-md bg-foreground text-background font-mono text-xs disabled:opacity-50"
+      {isTeamContact && (
+        <section className="space-y-3">
+          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-500">
+            Team notes
+          </label>
+          {noteThread === undefined ? (
+            <p className="text-xs text-zinc-500 font-mono">Loading…</p>
+          ) : noteThread.length === 0 ? (
+            <p className="text-xs text-zinc-500">No notes yet.</p>
+          ) : (
+            <ul className="space-y-2">
+              {noteThread.map((n) => (
+                <li
+                  key={n._id}
+                  className="rounded-md bg-white/[0.03] ring-1 ring-white/10 px-3 py-2"
+                >
+                  <div className="flex items-baseline justify-between gap-2 mb-1">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/60">
+                      {n.authorIsMe ? "You" : n.authorName}
+                    </span>
+                    <span className="font-mono text-[10px] text-white/30">
+                      {new Date(n.createdAt).toLocaleString()}
+                    </span>
+                  </div>
+                  <p className="text-sm text-white/85 whitespace-pre-wrap">
+                    {n.text}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+          <form
+            className="space-y-2"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const trimmed = newNote.trim();
+              if (!trimmed) return;
+              setPostingNote(true);
+              try {
+                await addNote({
+                  contactId: id as Id<"contacts">,
+                  text: trimmed,
+                });
+                setNewNote("");
+              } finally {
+                setPostingNote(false);
+              }
+            }}
           >
-            {postingNote ? "Posting…" : "Add note"}
-          </button>
-        </form>
-      </section>
+            <textarea
+              value={newNote}
+              onChange={(e) => setNewNote(e.target.value)}
+              rows={3}
+              placeholder="Add a note…"
+              className="w-full px-3 py-2 bg-zinc-900/60 border border-white/10 rounded-md text-sm focus:outline-none focus:border-white/30 resize-none"
+            />
+            <button
+              type="submit"
+              disabled={postingNote || !newNote.trim()}
+              className="px-4 py-2 rounded-md bg-foreground text-background font-mono text-xs disabled:opacity-50"
+            >
+              {postingNote ? "Posting…" : "Add note"}
+            </button>
+          </form>
+        </section>
+      )}
 
       <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-600">
         First met {new Date(contact.firstScanAt).toLocaleString()}

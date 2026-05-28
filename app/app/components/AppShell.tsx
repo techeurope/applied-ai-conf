@@ -38,6 +38,14 @@ const leadsTab: Tab = {
   icon: Users,
   countKey: "contacts",
 };
+// Solo attendees (no partner team) see the same /app/contacts route but
+// labelled "Contacts" and rendered without lead-status, notes, or CSV.
+const contactsTab: Tab = {
+  href: "/app/contacts",
+  label: "Contacts",
+  icon: Users,
+  countKey: "contacts",
+};
 const voucherTab: Tab = { href: "/app/voucher", label: "Lunch", icon: Ticket };
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -206,10 +214,17 @@ export function AppShell({ children }: { children: ReactNode }) {
     // Order is Connect → [Voucher] → Team → Leads → Settings, so the
     // partner flow reads top-down: scan, then check the team rollup,
     // then drill into individual leads.
+    //
+    // Solo attendees (no team, not admin) get a "Contacts" tab in the
+    // same slot — same /app/contacts route, but the page renders a
+    // stripped-down view (no lead status, no notes, no CSV).
     const isAdmin = me?.accessLevel === "admin";
     if (myTeam?.team || isAdmin) {
       const settingsIdx = base.findIndex((t) => t.href === "/app/settings");
       base.splice(settingsIdx, 0, teamTab, leadsTab);
+    } else if (me) {
+      const settingsIdx = base.findIndex((t) => t.href === "/app/settings");
+      base.splice(settingsIdx, 0, contactsTab);
     }
     // Lunch tab is visible for anyone who's *eligible* for a voucher
     // (ticket-linked or admin), not just users who already have one in the
