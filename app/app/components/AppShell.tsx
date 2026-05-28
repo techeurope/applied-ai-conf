@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@workos-inc/authkit-nextjs/components";
 import { useMutation, useQuery } from "convex/react";
 import { IdCard, Users, CalendarDays, Settings, Compass, LogIn, LogOut, Shield, Briefcase, Ticket, Home } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { ReactNode } from "react";
 import { api } from "@convex/_generated/api";
 import { applyDemoClockFromUrl } from "@/lib/conference-time";
@@ -226,12 +226,19 @@ export function AppShell({ children }: { children: ReactNode }) {
   // Defer the skeleton → real-tabs swap until after hydration. `useCachedQuery`
   // hydrates from localStorage synchronously on the client, so the first
   // client render can already see `tabsReady === true` while the server
-  // (no localStorage) rendered the skeleton. Gating on `mounted` keeps SSR
-  // and the first client render identical, then swaps post-mount.
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  // (no localStorage) rendered the skeleton — that mismatch trips React's
+  // hydration warning. `useSyncExternalStore` is the canonical primitive
+  // for "false during SSR + first client render, true after hydration":
+  // React uses the server snapshot during hydration, then transitions to
+  // the client snapshot, so the diff is intentional and not flagged. The
+  // earlier `useState(false) + useEffect(setMounted(true))` pattern still
+  // leaked the post-effect re-render into the hydration diff under Next
+  // 16 / Turbopack.
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 
   const counts = {
     contacts: contacts?.length,
