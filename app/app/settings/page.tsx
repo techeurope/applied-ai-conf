@@ -3,13 +3,14 @@
 import { useMutation, useQuery } from "convex/react";
 import { useAuth } from "@workos-inc/authkit-nextjs/components";
 import { api } from "@convex/_generated/api";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function SettingsPage() {
   const auth = useAuth();
   const me = useQuery(api.users.me);
   const deleteAccount = useMutation(api.users.deleteAccount);
   const updateProfile = useMutation(api.users.updateProfile);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   return (
     <div className="space-y-8 pt-2">
@@ -48,16 +49,142 @@ export default function SettingsPage() {
         <h2 className="font-mono text-sm text-foreground">Danger zone</h2>
         <button
           type="button"
-          onClick={async () => {
-            if (!confirm("Delete your account and all your data? This can't be undone.")) return;
-            await deleteAccount({});
-            window.location.href = "/app";
-          }}
+          onClick={() => setConfirmOpen(true)}
           className="font-mono text-xs text-red-300 hover:text-red-200 underline"
         >
           Delete my account
         </button>
       </section>
+
+      {confirmOpen && (
+        <DeleteAccountDialog
+          expectedEmail={me?.email ?? null}
+          onCancel={() => setConfirmOpen(false)}
+          onConfirm={async () => {
+            await deleteAccount({});
+            window.location.href = "/app";
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function DeleteAccountDialog({
+  expectedEmail,
+  onCancel,
+  onConfirm,
+}: {
+  expectedEmail: string | null;
+  onCancel: () => void;
+  onConfirm: () => Promise<void>;
+}) {
+  // Compare case-insensitive against a lowercased challenge so users
+  // don't have to fight their phone's auto-capitalize.
+  const challenge = (expectedEmail?.trim() || "delete").toLowerCase();
+  const [input, setInput] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape" && !submitting) onCancel();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onCancel, submitting]);
+
+  const matches = input.trim().toLowerCase() === challenge;
+
+  async function handleConfirm() {
+    if (!matches || submitting) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      await onConfirm();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to delete account");
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete-account-title"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !submitting) onCancel();
+      }}
+    >
+      <div className="w-full max-w-md rounded-2xl ring-1 ring-red-500/20 bg-zinc-950 p-6 space-y-4">
+        <div className="space-y-2">
+          <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-red-300/80">
+            // danger zone
+          </p>
+          <h3
+            id="delete-account-title"
+            className="font-mono text-base text-white"
+          >
+            Delete your account?
+          </h3>
+        </div>
+
+        <p className="text-sm text-white/70 leading-relaxed">
+          This will permanently delete your profile, scans in/out, contacts,
+          consents, goals, team membership, and audit entries. This can&apos;t
+          be undone.
+        </p>
+
+        <div className="space-y-2">
+          <label className="block space-y-1">
+            <span className="block font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
+              Type{" "}
+              <span className="text-white/80">
+                {challenge}
+              </span>{" "}
+              to confirm
+            </span>
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              disabled={submitting}
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck={false}
+              className="w-full px-3 py-2 bg-zinc-900/60 border border-white/10 rounded-md text-sm font-mono focus:outline-none focus:border-red-400/50 disabled:opacity-60"
+            />
+          </label>
+          {error && (
+            <p className="font-mono text-[11px] text-red-300">{error}</p>
+          )}
+        </div>
+
+        <div className="flex items-center justify-end gap-3 pt-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={submitting}
+            className="font-mono text-xs text-white/70 hover:text-white px-3 py-2 disabled:opacity-60"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleConfirm}
+            disabled={!matches || submitting}
+            className="font-mono text-xs px-4 py-2 rounded-md bg-red-500/15 text-red-200 ring-1 ring-red-400/30 hover:bg-red-500/25 hover:text-red-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            {submitting ? "Deleting…" : "Delete my account"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
