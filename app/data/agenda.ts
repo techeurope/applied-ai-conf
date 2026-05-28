@@ -49,44 +49,44 @@ export const AGENDA: AgendaSlot[] = [
   { id: 'main-6', startTime: '12:05', endTime: '12:25', title: 'Giving a Voice to LLMs: Scaling Real-Time Voice Interaction', speakerName: 'Neil Zeghidour', stage: 'main', format: 'talk' },
   { id: 'side-6', startTime: '12:05', endTime: '12:25', title: 'Stop Paying for Frontier Models', speakerName: 'Rachel Nabors', stage: 'side', format: 'talk' },
 
-  // ── Lunch Break (12:30–13:30) ─────────────────────────────────
-  { id: 'lunch', startTime: '12:30', endTime: '13:30', title: 'Lunch Break', stage: 'expo', format: 'break' },
+  // ── Lunch Break (12:30–13:45) — extended 15 min to make up running-late ───
+  { id: 'lunch', startTime: '12:30', endTime: '13:45', title: 'Lunch Break', stage: 'expo', format: 'break' },
 
   // ── Post-lunch: Main stage (4 × 20 min) ────────────────────────
-  { id: 'main-7', startTime: '13:30', endTime: '13:50', title: 'Building Sandcastles for Agents: Safe Execution at Production Scale', speakerName: 'Simon Edwardsson', stage: 'main', format: 'talk' },
-  { id: 'main-8', startTime: '13:55', endTime: '14:15', title: 'Cache Money: How Prompt Caching Cut Our LLM Bills in Half', speakerName: 'Balázs Csomor', stage: 'main', format: 'talk' },
-  { id: 'main-9', startTime: '14:20', endTime: '14:40', title: 'Deploying Context Graphs into the Fortune 500: Lessons Building the Context Layer for Large Enterprise', speakerName: 'Henry Thompson', stage: 'main', format: 'talk' },
-  { id: 'main-10', startTime: '14:45', endTime: '15:05', title: 'Prompt Learning: Distilling Expensive Reasoning Into Fast Production Prompts', speakerName: 'Oğuz Gültepe', stage: 'main', format: 'talk' },
+  { id: 'main-7', startTime: '13:45', endTime: '14:05', title: 'Building Sandcastles for Agents: Safe Execution at Production Scale', speakerName: 'Simon Edwardsson', stage: 'main', format: 'talk' },
+  { id: 'main-8', startTime: '14:10', endTime: '14:30', title: 'Cache Money: How Prompt Caching Cut Our LLM Bills in Half', speakerName: 'Balázs Csomor', stage: 'main', format: 'talk' },
+  { id: 'main-9', startTime: '14:35', endTime: '14:55', title: 'Deploying Context Graphs into the Fortune 500: Lessons Building the Context Layer for Large Enterprise', speakerName: 'Henry Thompson', stage: 'main', format: 'talk' },
+  { id: 'main-10', startTime: '15:00', endTime: '15:20', title: 'Prompt Learning: Distilling Expensive Reasoning Into Fast Production Prompts', speakerName: 'Oğuz Gültepe', stage: 'main', format: 'talk' },
 
   // ── Post-lunch: Demo stage (3 × 30 min) ───────────────────────
-  { id: 'side-7', startTime: '13:30', endTime: '14:00', title: 'Teaching Agents to Pay: What Devs Need to Know', speakerName: 'Ben Smith', stage: 'side', format: 'talk' },
-  { id: 'side-8', startTime: '14:05', endTime: '14:35', title: 'Batch AI Pipelines: How to Go Fast Without Losing Work or Money', speakerNames: ['Marouane Khoukh', 'Mikhail Rozhkov'], stage: 'side', format: 'talk' },
-  { id: 'side-9', startTime: '14:40', endTime: '15:10', title: 'Inference Without the Wait: A Live Demo of Instant-On Model Deployment', speakerName: 'Emmett Fear', stage: 'side', format: 'talk' },
+  { id: 'side-7', startTime: '13:45', endTime: '14:15', title: 'Teaching Agents to Pay: What Devs Need to Know', speakerName: 'Ben Smith', stage: 'side', format: 'talk' },
+  { id: 'side-8', startTime: '14:20', endTime: '14:50', title: 'Batch AI Pipelines: How to Go Fast Without Losing Work or Money', speakerNames: ['Marouane Khoukh', 'Mikhail Rozhkov'], stage: 'side', format: 'talk' },
+  { id: 'side-9', startTime: '14:55', endTime: '15:25', title: 'Inference Without the Wait: A Live Demo of Instant-On Model Deployment', speakerName: 'Emmett Fear', stage: 'side', format: 'talk' },
 
-  // ── Coffee Break (15:10–15:30) ────────────────────────────────
-  { id: 'break-2', startTime: '15:10', endTime: '15:30', title: 'Coffee Break', stage: 'expo', format: 'break' },
+  // ── Coffee Break (15:25–15:45) ────────────────────────────────
+  { id: 'break-2', startTime: '15:25', endTime: '15:45', title: 'Coffee Break', stage: 'expo', format: 'break' },
 
   // ── Post-coffee2: Both stages aligned (3 × 20 min) ───────────
-  { id: 'main-11', startTime: '15:30', endTime: '15:50', title: 'Building a Universal Agent for Legal', speakerName: 'Jakob Emmerling', stage: 'main', format: 'talk' },
-  { id: 'side-10', startTime: '15:30', endTime: '15:50', title: 'From Caching to Batching to Flex — How to optimize AI system for production', speakerNames: ['Lucia Loher', 'Patrick Löber'], stage: 'side', format: 'talk' },
+  { id: 'main-11', startTime: '15:45', endTime: '16:05', title: 'Building a Universal Agent for Legal', speakerName: 'Jakob Emmerling', stage: 'main', format: 'talk' },
+  { id: 'side-10', startTime: '15:45', endTime: '16:05', title: 'From Caching to Batching to Flex — How to optimize AI system for production', speakerNames: ['Lucia Loher', 'Patrick Löber'], stage: 'side', format: 'talk' },
 
-  { id: 'main-12', startTime: '15:55', endTime: '16:15', title: 'Reinventing VEED for the agentic era', speakerName: 'Sabba Keynejad', stage: 'main', format: 'talk' },
-  { id: 'side-11', startTime: '15:55', endTime: '16:15', title: 'The 100x Inference Tax You Don\'t Have to Pay', speakerName: 'Jacek Golebiowski', stage: 'side', format: 'talk' },
+  { id: 'main-12', startTime: '16:10', endTime: '16:30', title: 'Reinventing VEED for the agentic era', speakerName: 'Sabba Keynejad', stage: 'main', format: 'talk' },
+  { id: 'side-11', startTime: '16:10', endTime: '16:30', title: 'The 100x Inference Tax You Don\'t Have to Pay', speakerName: 'Jacek Golebiowski', stage: 'side', format: 'talk' },
 
-  { id: 'main-13', startTime: '16:20', endTime: '16:40', title: 'Leading through AI change', speakerName: 'Masashi Beheim', stage: 'main', format: 'talk' },
-  { id: 'side-12', startTime: '16:20', endTime: '16:40', title: 'Building the Missing Infrastructure Layer for Agents and Distributed Applications', speakerName: 'Giselle van Dongen', stage: 'side', format: 'talk' },
+  { id: 'main-13', startTime: '16:35', endTime: '16:55', title: 'Leading through AI change', speakerName: 'Masashi Beheim', stage: 'main', format: 'talk' },
+  { id: 'side-12', startTime: '16:35', endTime: '16:55', title: 'Building the Missing Infrastructure Layer for Agents and Distributed Applications', speakerName: 'Giselle van Dongen', stage: 'side', format: 'talk' },
 
-  // ── Coffee Break (16:40–17:00) ────────────────────────────────
-  { id: 'break-3', startTime: '16:40', endTime: '17:00', title: 'Coffee Break', stage: 'expo', format: 'break' },
+  // ── Coffee Break (16:55–17:15) ────────────────────────────────
+  { id: 'break-3', startTime: '16:55', endTime: '17:15', title: 'Coffee Break', stage: 'expo', format: 'break' },
 
   // ── Post-coffee3: Both stages aligned (2 × 20 min) ───────────
-  { id: 'main-14', startTime: '17:00', endTime: '17:20', title: 'AI-Empowered Engineering Through Collaborative Tooling', speakerName: 'Łukasz Sągol', stage: 'main', format: 'talk' },
-  { id: 'side-13', startTime: '17:00', endTime: '17:20', title: 'Build Your Own Background Agent: The infra that scales it to millions', speakerName: 'Lucy Zhang', stage: 'side', format: 'talk' },
+  { id: 'main-14', startTime: '17:15', endTime: '17:35', title: 'AI-Empowered Engineering Through Collaborative Tooling', speakerName: 'Łukasz Sągol', stage: 'main', format: 'talk' },
+  { id: 'side-13', startTime: '17:15', endTime: '17:35', title: 'Build Your Own Background Agent: The infra that scales it to millions', speakerName: 'Lucy Zhang', stage: 'side', format: 'talk' },
 
-  { id: 'main-15', startTime: '17:25', endTime: '17:45', title: 'Model Routing in Production: What We Learned the Hard Way', speakerName: 'Bruno Show', stage: 'main', format: 'talk' },
-  { id: 'side-14', startTime: '17:25', endTime: '17:45', title: 'Turning the World into Your Context Window: Rebuilding Web Search to Make AI Reliable in Production', speakerName: 'Sacha Uzan', stage: 'side', format: 'talk' },
+  { id: 'main-15', startTime: '17:40', endTime: '18:00', title: 'Model Routing in Production: What We Learned the Hard Way', speakerName: 'Bruno Show', stage: 'main', format: 'talk' },
+  { id: 'side-14', startTime: '17:40', endTime: '18:00', title: 'Turning the World into Your Context Window: Rebuilding Web Search to Make AI Reliable in Production', speakerName: 'Sacha Uzan', stage: 'side', format: 'talk' },
 
-  // ── Closing (17:50–18:30) ─────────────────────────────────────
-  { id: 'keynote-close', startTime: '17:50', endTime: '18:20', title: 'Shipping Fin to Production: What Worked, What Broke, What Changed', speakerName: 'Des Traynor', stage: 'main', format: 'keynote' },
-  { id: 'closing', startTime: '18:20', endTime: '18:30', title: 'Closing Remarks', stage: 'main', format: 'logistics' },
+  // ── Closing (18:05–18:45) ─────────────────────────────────────
+  { id: 'keynote-close', startTime: '18:05', endTime: '18:35', title: 'Shipping Fin to Production: What Worked, What Broke, What Changed', speakerName: 'Des Traynor', stage: 'main', format: 'keynote' },
+  { id: 'closing', startTime: '18:35', endTime: '18:45', title: 'Closing Remarks', stage: 'main', format: 'logistics' },
 ];
