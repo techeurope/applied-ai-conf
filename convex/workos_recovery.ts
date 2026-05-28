@@ -238,6 +238,146 @@ export const sweepUnverified = internalAction({
   },
 });
 
+// --- admin rescue: create a Convex user row from WorkOS data ----------------
+// When a user authenticates via WorkOS but the AppShell's silent ensureFromWorkos
+// call fails (caught + swallowed), they exist in WorkOS but not in Convex and
+// can't use the app. This bootstraps the row from a known workosUserId so the
+// next sign-in patches it normally.
+export const bootstrapConvexUserFromWorkos = internalMutation({
+  args: {
+    workosUserId: v.string(),
+    email: v.string(),
+    name: v.optional(v.string()),
+  },
+  handler: async (ctx, { workosUserId, email, name }) => {
+    const normalized = email.toLowerCase().trim();
+    const byWorkos = await ctx.db
+      .query("users")
+      .withIndex("by_workos_id", (q) => q.eq("workosUserId", workosUserId))
+      .first();
+    if (byWorkos) return { ok: false, reason: "already exists by workos_id", id: byWorkos._id };
+    const byEmail = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", normalized))
+      .first();
+    if (byEmail) return { ok: false, reason: "email collision", id: byEmail._id };
+    // Generate a unique publicToken
+    let token = "";
+    for (let i = 0; i < 10; i++) {
+      const candidate = "aac_" + Math.random().toString(36).slice(2, 10);
+      const clash = await ctx.db
+        .query("users")
+        .withIndex("by_public_token", (q) => q.eq("publicToken", candidate))
+        .first();
+      if (!clash) {
+        token = candidate;
+        break;
+      }
+    }
+    if (!token) throw new Error("could not allocate publicToken");
+    const id = await ctx.db.insert("users", {
+      email: normalized,
+      workosUserId,
+      name: name || normalized,
+      onboardingRequired: true,
+      isSpeaker: false,
+      publicToken: token,
+    });
+    return { ok: true, id };
+  },
+});
+
+// Sweep #2: find WorkOS users who have signed in but have NO Convex user row.
+// These are people whose AuthKit flow completed (verified + last_sign_in_at set
+// in WorkOS) but where AppShell's ensureFromWorkos call failed silently
+// (caught + swallowed) — e.g. a sub-mutation in tryAutoLink/consumeInvite
+// threw, rolling back the user-insert. Without this they're permanently
+// locked out: signed in, but no Convex profile, no /app access.
+//
+// Scheduled by `crons.ts` alongside sweepUnverified.
+export const sweepMissingConvexUsers = internalAction({
+  args: {},
+  handler: async (
+    ctx,
+  ): Promise<{
+    workosSignedIn: number;
+    bootstrapped: number;
+    errors: string[];
+  }> => {
+    const key = process.env.WORKOS_API_KEY;
+    if (!key) throw new Error("WORKOS_API_KEY not set on this Convex deployment");
+    const errors: string[] = [];
+
+    // Pull every WorkOS user who has signed in.
+    const wsUsers: Array<{ id: string; email: string; firstName?: string; lastName?: string }> = [];
+    let after: string | null = null;
+    while (true) {
+      const qs = new URLSearchParams({ limit: "100" });
+      if (after) qs.set("after", after);
+      const list = await wos<{
+        data: Array<{
+          id: string;
+          email: string;
+          first_name?: string;
+          last_name?: string;
+          last_sign_in_at: string | null;
+        }>;
+        list_metadata?: { after?: string | null };
+      }>("GET", `/user_management/users?${qs}`, key);
+      if (!list.ok || !list.data) {
+        errors.push(`list users ${list.status}: ${list.text ?? ""}`);
+        break;
+      }
+      for (const u of list.data.data) {
+        if (!u.last_sign_in_at) continue;
+        wsUsers.push({
+          id: u.id,
+          email: u.email,
+          firstName: u.first_name,
+          lastName: u.last_name,
+        });
+      }
+      after = list.data.list_metadata?.after ?? null;
+      if (!after) break;
+    }
+
+    let bootstrapped = 0;
+    for (const u of wsUsers) {
+      const exists = await ctx.runQuery(
+        internal.workos_recovery.convexUserExistsByWorkosId,
+        { workosUserId: u.id },
+      );
+      if (exists) continue;
+      const name = [u.firstName, u.lastName].filter(Boolean).join(" ").trim();
+      try {
+        const r = await ctx.runMutation(
+          internal.workos_recovery.bootstrapConvexUserFromWorkos,
+          { workosUserId: u.id, email: u.email, name: name || undefined },
+        );
+        if (r.ok) bootstrapped++;
+        else errors.push(`bootstrap ${u.email}: ${r.reason}`);
+      } catch (e) {
+        errors.push(`bootstrap ${u.email}: ${String(e).slice(0, 200)}`);
+      }
+    }
+
+    const summary = { workosSignedIn: wsUsers.length, bootstrapped, errors };
+    console.log("[workos_recovery] sweepMissingConvexUsers", summary);
+    return summary;
+  },
+});
+
+export const convexUserExistsByWorkosId = internalQuery({
+  args: { workosUserId: v.string() },
+  handler: async (ctx, { workosUserId }) => {
+    const u = await ctx.db
+      .query("users")
+      .withIndex("by_workos_id", (q) => q.eq("workosUserId", workosUserId))
+      .first();
+    return !!u && !u.deletedAt;
+  },
+});
+
 // --- one-time backfill -------------------------------------------------------
 
 // Record the 11 emails I already invited manually today (2026-05-28) so the

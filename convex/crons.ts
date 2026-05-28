@@ -29,4 +29,15 @@ crons.interval(
   {},
 );
 
+// Sweep #2: rescue users who got past WorkOS auth but whose Convex user-insert
+// rolled back (silent throw in tryAutoLink / consumePartnerInviteIfAny /
+// consumeAdminInviteIfAny). Without this they're signed in but locked out of
+// /app forever. See `convex/workos_recovery.ts`.
+crons.interval(
+  "workos missing convex user recovery",
+  { minutes: 5 },
+  internal.workos_recovery.sweepMissingConvexUsers,
+  {},
+);
+
 export default crons;

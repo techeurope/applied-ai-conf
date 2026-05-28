@@ -112,7 +112,19 @@ export function AppShell({ children }: { children: ReactNode }) {
     ensureUser({
       email: auth.user.email ?? undefined,
       name: fullName || auth.user.email || undefined,
-    }).catch(() => undefined);
+    }).catch((err) => {
+      // Do NOT silently swallow. ensureFromWorkos is the only path that creates
+      // the Convex user row; a thrown sub-call (tryAutoLink, consumePartnerInvite,
+      // consumeAdminInvite) rolls back the whole insert and the user is then
+      // signed in via WorkOS with no Convex profile — permanently locked out of
+      // /app. Surface to console so we see it next time; the workos_recovery
+      // cron will self-heal within 5 min as a safety net.
+      console.error("[AppShell] ensureFromWorkos failed", {
+        email: auth.user?.email,
+        workosUserId: auth.user?.id,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    });
   }, [auth.user, ensureUser]);
 
   const verified =
