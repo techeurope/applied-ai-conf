@@ -88,5 +88,5 @@ export const AGENDA: AgendaSlot[] = [
 
   // ── Closing (18:05–18:45) ─────────────────────────────────────
   { id: 'keynote-close', startTime: '18:05', endTime: '18:35', title: 'Shipping Fin to Production: What Worked, What Broke, What Changed', speakerName: 'Des Traynor', stage: 'main', format: 'keynote' },
-  { id: 'closing', startTime: '18:35', endTime: '18:45', title: 'Closing Remarks', stage: 'main', format: 'logistics' },
+  { id: 'closing', startTime: '18:35', endTime: '18:40', title: 'Closing Remarks', stage: 'main', format: 'logistics' },
 ];
