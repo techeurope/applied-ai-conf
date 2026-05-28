@@ -431,6 +431,44 @@ export const overviewStats = query({
         .map((r) => r.lumaGuestId),
     );
 
+    // Decompose the "not linked" count into actionable vs. noise so the
+    // dashboard doesn't trip alarms for users we can't / shouldn't auto-link:
+    //   - needsAttention: has an approved Luma row that's NOT claimed by
+    //     anyone yet. These should have auto-linked but didn't — investigate.
+    //   - noLumaRow:      not on Luma at all. Walk-in, wrong email at signup,
+    //     or non-attendee. Needs a claim code; the link gate is the right UX.
+    //   - notApproved:    on Luma but invited/declined/waitlist. Their RSVP
+    //     to handle.
+    //   - duplicateAccount: their Luma ticket is already linked to another
+    //     active account — they have a working account elsewhere (typically
+    //     personal vs. work email). This row is dead weight, not a problem.
+    const linkedUserIds = new Set(links.map((l) => String(l.userId)));
+    const claimedGuestIds = new Set(links.map((l) => l.lumaGuestId));
+    const lumaByEmail = new Map(lumaRows.map((r) => [r.email, r]));
+    const unlinked = attendees.filter(
+      (u) => !linkedUserIds.has(String(u._id)),
+    );
+    let needsAttention = 0;
+    let noLumaRow = 0;
+    let notApproved = 0;
+    let duplicateAccount = 0;
+    for (const u of unlinked) {
+      const luma = lumaByEmail.get(u.email);
+      if (!luma) {
+        noLumaRow++;
+        continue;
+      }
+      if (luma.approvalStatus !== "approved") {
+        notApproved++;
+        continue;
+      }
+      if (claimedGuestIds.has(luma.lumaGuestId)) {
+        duplicateAccount++;
+        continue;
+      }
+      needsAttention++;
+    }
+
     return {
       accounts: attendees.length,
       registered,
@@ -438,6 +476,11 @@ export const overviewStats = query({
       linkedApproved: links.filter((l) => approvedGuestIds.has(l.lumaGuestId))
         .length,
       lumaApproved: approvedGuestIds.size,
+      // Unlinked breakdown — see comment above.
+      unlinkedNeedsAttention: needsAttention,
+      unlinkedNoLumaRow: noLumaRow,
+      unlinkedNotApproved: notApproved,
+      unlinkedDuplicateAccount: duplicateAccount,
     };
   },
 });

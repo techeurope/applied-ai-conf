@@ -46,7 +46,9 @@ export default function AdminOverviewPage() {
           value={stats?.ticketLinked ?? "—"}
           hint={
             stats
-              ? `${stats.accounts - stats.ticketLinked} of ${stats.accounts} not linked (Luma only — claim codes count separately)`
+              ? stats.unlinkedNeedsAttention > 0
+                ? `${stats.unlinkedNeedsAttention} need attention (approved Luma ticket, no link). Also: ${stats.unlinkedNoLumaRow} walk-ins (need claim code), ${stats.unlinkedNotApproved} Luma RSVP issue, ${stats.unlinkedDuplicateAccount} duplicate accounts.`
+                : `All approved-Luma attendees linked ✓. Unlinkable noise: ${stats.unlinkedNoLumaRow} walk-ins, ${stats.unlinkedNotApproved} Luma RSVP issue, ${stats.unlinkedDuplicateAccount} duplicate accounts.`
               : "Has an approved Luma ticket linked"
           }
         />
