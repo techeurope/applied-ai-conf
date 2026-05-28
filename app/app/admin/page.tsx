@@ -31,9 +31,9 @@ export default function AdminOverviewPage() {
       </section>
       <section className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <Stat
-          label="Registered"
+          label="Onboarded"
           value={stats?.registered ?? "—"}
-          hint="Attendees who onboarded (excl. staff)"
+          hint="Attendees who finished onboarding (excl. staff)"
         />
         <Stat
           label="Not onboarded"

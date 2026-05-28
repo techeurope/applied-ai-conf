@@ -442,6 +442,38 @@ export const overviewStats = query({
   },
 });
 
+// Diagnostic: surface attendees who have a ticketLinks row but never finished
+// onboarding. Explains the apparent paradox where "ticket linked" can exceed
+// "onboarded" in the dashboard (auto-link, walk-in code, or partner invite can
+// set the link before the user submits the onboarding form). Runnable via
+// `npx convex run admin:findTicketLinkedNotOnboarded --prod`.
+export const findTicketLinkedNotOnboarded = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const users = await ctx.db.query("users").collect();
+    const adminIds = new Set(
+      users
+        .filter((u) => !u.deletedAt && u.accessLevel === "admin")
+        .map((u) => String(u._id)),
+    );
+    const links = await ctx.db.query("ticketLinks").collect();
+    const linkedUserIds = new Set(links.map((l) => String(l.userId)));
+    const gap = users
+      .filter((u) => !u.deletedAt && !adminIds.has(String(u._id)))
+      .filter((u) => linkedUserIds.has(String(u._id)) && !u.onboardingCompletedAt)
+      .map((u) => ({
+        _id: u._id,
+        email: u.email,
+        name: u.name,
+        ticketLinkedAt: u.ticketLinkedAt,
+        onboardingRequired: u.onboardingRequired,
+        accessLevel: u.accessLevel,
+        isSpeaker: u.isSpeaker,
+      }));
+    return { count: gap.length, users: gap };
+  },
+});
+
 export const getUser = query({
   args: { userId: v.id("users") },
   handler: async (ctx, { userId }) => {
