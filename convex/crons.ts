@@ -17,4 +17,16 @@ crons.interval(
   {},
 );
 
+// WorkOS signup recovery — every 5 minutes, find users WorkOS created but
+// who never finished email verification (and never signed in), delete the
+// ghost record, and send them an Invitation email (7-day valid link). This
+// rescues attendees who get the "email not available" wall on retry.
+// See `convex/workos_recovery.ts` for the rationale.
+crons.interval(
+  "workos signup recovery",
+  { minutes: 5 },
+  internal.workos_recovery.sweepUnverified,
+  {},
+);
+
 export default crons;

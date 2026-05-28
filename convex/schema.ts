@@ -398,6 +398,22 @@ export default defineSchema({
     .index("by_email", ["email"])
     .index("by_consumed", ["consumedAt"]),
 
+  // One row per email the workos_recovery cron has already invited. Used by
+  // the sweep to skip emails it has already touched, so a recipient never
+  // gets the recovery email twice — even if their WorkOS record reappears
+  // (e.g. they retry signup after the invite expires, or the email was a
+  // typo that will never deliver). Hard cap of MAX_ATTEMPTS retries to
+  // self-heal once if WorkOS state diverges; after that, manual handling.
+  workosRecoveryLog: defineTable({
+    email: v.string(),
+    attempts: v.number(),
+    firstInvitedAt: v.number(),
+    lastInvitedAt: v.number(),
+    // Last invitation_id returned by WorkOS — useful for revoking from the
+    // dashboard or correlating with WorkOS audit events.
+    lastInvitationId: v.optional(v.string()),
+  }).index("by_email", ["email"]),
+
   auditLog: defineTable({
     actorUserId: v.id("users"),
     action: v.string(),
