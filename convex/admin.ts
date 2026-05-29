@@ -392,6 +392,133 @@ export const listUsers = query({
   },
 });
 
+// Full attendee export for post-event reporting. Returns every user
+// (including admins / deactivated / deleted, flagged in the `status`
+// column) enriched with their Luma ticket state, lunch voucher
+// (publicToken + externalUrl + redeemed?), partner team, and lifecycle
+// timestamps. The frontend turns this into a CSV; the column order is
+// fixed so the downloaded file is stable across exports.
+//
+// `status` collapses the user's lifecycle into a single readable label:
+//   deleted | deactivated | onboarded | ticket_linked_not_onboarded |
+//   signed_up_no_ticket
+// Prefixed with `admin:` for accessLevel=admin so they're easy to filter
+// out in the spreadsheet.
+export const exportAttendees = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+    const users = await ctx.db.query("users").collect();
+    const lumaRows = await ctx.db.query("lumaAttendees").collect();
+    const lumaByGuestId = new Map(lumaRows.map((r) => [r.lumaGuestId, r]));
+    const ticketLinks = await ctx.db.query("ticketLinks").collect();
+    const linkByUser = new Map(ticketLinks.map((l) => [String(l.userId), l]));
+    const teams = await ctx.db.query("teams").collect();
+    const teamById = new Map(teams.map((t) => [String(t._id), t]));
+    const vouchers = await ctx.db.query("vouchers").collect();
+    const vouchersByUser = new Map<string, typeof vouchers>();
+    for (const v of vouchers) {
+      const k = String(v.userId);
+      const arr = vouchersByUser.get(k) ?? [];
+      arr.push(v);
+      vouchersByUser.set(k, arr);
+    }
+    const contacts = await ctx.db.query("contacts").collect();
+    const contactsByUser = new Map<string, number>();
+    for (const c of contacts) {
+      if (c.ownerType !== "user") continue;
+      contactsByUser.set(c.ownerId, (contactsByUser.get(c.ownerId) ?? 0) + 1);
+    }
+    const teamContactsByTeam = new Map<string, number>();
+    for (const c of contacts) {
+      if (c.ownerType !== "team") continue;
+      teamContactsByTeam.set(
+        c.ownerId,
+        (teamContactsByTeam.get(c.ownerId) ?? 0) + 1,
+      );
+    }
+    const scanEvents = await ctx.db.query("scanEvents").collect();
+    const scannedCount = new Map<string, number>();
+    const scannerCount = new Map<string, number>();
+    for (const s of scanEvents) {
+      scannedCount.set(
+        String(s.scannedUserId),
+        (scannedCount.get(String(s.scannedUserId)) ?? 0) + 1,
+      );
+      scannerCount.set(
+        String(s.scannerUserId),
+        (scannerCount.get(String(s.scannerUserId)) ?? 0) + 1,
+      );
+    }
+
+    const iso = (ms?: number) => (ms ? new Date(ms).toISOString() : "");
+
+    const rows = users.map((u) => {
+      const luma = u.lumaGuestId ? lumaByGuestId.get(u.lumaGuestId) : null;
+      const link = linkByUser.get(String(u._id));
+      const team = u.teamId ? teamById.get(String(u.teamId)) : null;
+      const userVouchers = vouchersByUser.get(String(u._id)) ?? [];
+      const lunch = userVouchers.find((v) => v.kind === "lunch");
+
+      // Compact lifecycle status — collapses every meaningful state into
+      // one label the spreadsheet can filter on.
+      let status: string;
+      if (u.deletedAt) status = "deleted";
+      else if (u.deactivatedAt) status = "deactivated";
+      else if (u.onboardingCompletedAt) status = "onboarded";
+      else if (u.ticketLinkedAt) status = "ticket_linked_not_onboarded";
+      else status = "signed_up_no_ticket";
+      if (u.accessLevel === "admin") status = `admin:${status}`;
+      else if (u.accessLevel === "vendor") status = `vendor:${status}`;
+
+      return {
+        userId: u._id,
+        status,
+        accessLevel: u.accessLevel ?? "member",
+        isSpeaker: u.isSpeaker ? "yes" : "",
+        accountCreatedAt: iso(u._creationTime),
+        onboardingCompletedAt: iso(u.onboardingCompletedAt),
+        ticketLinkedAt: iso(u.ticketLinkedAt),
+        deactivatedAt: iso(u.deactivatedAt),
+        deactivatedReason: u.deactivatedReason ?? "",
+        deletedAt: iso(u.deletedAt),
+        termsAcceptedAt: iso(u.termsAcceptedAt),
+        name: u.name,
+        email: u.email,
+        role: u.role ?? "",
+        company: u.company ?? "",
+        linkedinUrl: u.linkedinUrl ?? "",
+        headline: u.headline ?? "",
+        bio: u.bio ?? "",
+        publicToken: u.publicToken ?? "",
+        // Luma side
+        lumaEmail: luma?.email ?? link?.lumaEmail ?? "",
+        lumaGuestId: u.lumaGuestId ?? "",
+        lumaApprovalStatus: luma?.approvalStatus ?? "",
+        lumaTicketType: luma?.ticketType ?? "",
+        lumaRegisteredAt: iso(luma?.registeredAt),
+        lumaCheckedInAt: iso(luma?.checkedInAt),
+        ticketLinkMethod: link?.method ?? "",
+        // Partner team
+        teamSlug: team?.slug ?? "",
+        teamName: team?.name ?? "",
+        teamTier: team?.partnerTier ?? "",
+        // Lunch voucher
+        lunchVoucherToken: lunch?.publicToken ?? "",
+        lunchVoucherExternalLabel: lunch?.externalLabel ?? "",
+        lunchVoucherExternalUrl: lunch?.externalUrl ?? "",
+        lunchVoucherIssuedAt: iso(lunch?.issuedAt),
+        lunchVoucherRedeemedAt: iso(lunch?.redeemedAt),
+        // Activity
+        contactsAdded: contactsByUser.get(String(u._id)) ?? 0,
+        timesScanned: scannedCount.get(String(u._id)) ?? 0,
+        timesScanning: scannerCount.get(String(u._id)) ?? 0,
+      };
+    });
+    return rows;
+  },
+});
+
 // Overview funnel for the admin dashboard: how many people actually have an
 // app account and finished onboarding, how many linked a ticket, and how many
 // of those linked tickets are approved on Luma. Distinct from the Luma page,
