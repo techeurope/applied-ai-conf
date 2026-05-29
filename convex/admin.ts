@@ -510,7 +510,18 @@ export const exportAttendees = query({
         lunchVoucherIssuedAt: iso(lunch?.issuedAt),
         lunchVoucherRedeemedAt: iso(lunch?.redeemedAt),
         // Activity
-        contactsAdded: contactsByUser.get(String(u._id)) ?? 0,
+        // `personalContactsAdded` counts contacts the user saved to their
+        // own list (ownerType="user") — meaningful only for solo
+        // attendees. Partner team members' scans create team contacts
+        // (ownerType="team"), so `teamLeadsTotal` reports the size of
+        // their team's lead pool (same number for every member of the
+        // same team, which is the right answer). `timesScanning` is the
+        // raw count of QRs they personally scanned, regardless of where
+        // the contact landed.
+        personalContactsAdded: contactsByUser.get(String(u._id)) ?? 0,
+        teamLeadsTotal: team
+          ? (teamContactsByTeam.get(String(team._id)) ?? 0)
+          : 0,
         timesScanned: scannedCount.get(String(u._id)) ?? 0,
         timesScanning: scannerCount.get(String(u._id)) ?? 0,
       };
