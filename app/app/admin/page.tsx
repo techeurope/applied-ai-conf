@@ -1,50 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { useConvex, useQuery } from "convex/react";
-import { Download } from "lucide-react";
+import { useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
 
 export default function AdminOverviewPage() {
   const users = useQuery(api.admin.listUsers, { limit: 500 });
   const stats = useQuery(api.admin.overviewStats, {});
-  const convex = useConvex();
-  const [exporting, setExporting] = useState(false);
-
-  async function handleExportAttendees() {
-    setExporting(true);
-    try {
-      const rows = await convex.query(api.admin.exportAttendees, {});
-      if (rows.length === 0) return;
-      // Column order is fixed by the keys of the first row — the Convex
-      // query returns a stable shape, so spreadsheet diffs across exports
-      // line up cleanly.
-      const cols = Object.keys(rows[0]) as (keyof (typeof rows)[number])[];
-      const escape = (v: unknown) => {
-        if (v === null || v === undefined) return "";
-        const s = String(v);
-        // Wrap anything that could break a CSV cell (commas, quotes,
-        // newlines) in quotes and double-up embedded quotes.
-        return /[",\n\r]/.test(s) ? `"${s.replaceAll('"', '""')}"` : s;
-      };
-      const csv = [cols.join(",")]
-        .concat(rows.map((r) => cols.map((c) => escape(r[c])).join(",")))
-        .join("\n");
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      const stamp = new Date().toISOString().slice(0, 19).replaceAll(":", "-");
-      a.href = url;
-      a.download = `applied-ai-conf-attendees-${stamp}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    } finally {
-      setExporting(false);
-    }
-  }
 
   const totals = users
     ? {
@@ -128,15 +90,6 @@ export default function AdminOverviewPage() {
           >
             Stage monitors
           </Link>
-          <button
-            type="button"
-            onClick={handleExportAttendees}
-            disabled={exporting}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full ring-1 ring-white/20 font-mono text-xs disabled:opacity-50"
-          >
-            <Download className="size-3" strokeWidth={2} />
-            {exporting ? "Exporting…" : "Export attendees CSV"}
-          </button>
         </div>
       </section>
     </div>
