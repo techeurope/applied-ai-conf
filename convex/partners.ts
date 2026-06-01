@@ -6,7 +6,7 @@ import {
   internalQuery,
   type MutationCtx,
 } from "./_generated/server";
-import { requireAdmin } from "./admin";
+import { requireAdmin, buildTeamLeads } from "./admin";
 import { requireActiveUser } from "./_auth";
 import { internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
@@ -1328,88 +1328,7 @@ export const myTeamLeads = query({
       .withIndex("by_workos_id", (q) => q.eq("workosUserId", identity.subject))
       .first();
     if (!me?.teamId) return [];
-    const teamId = me.teamId;
-
-    // Map every team member's userId → name once, so scanner + note-author
-    // attribution doesn't cost a user lookup per row. Scanners and note
-    // authors are always team members, but fall back to a direct get just
-    // in case (e.g. someone scanned then left the team).
-    const memberRows = await ctx.db
-      .query("partnerMembers")
-      .withIndex("by_team", (q) => q.eq("teamId", teamId))
-      .collect();
-    const teamMemberIds = new Set(
-      memberRows.map((m) => m.userId as unknown as string),
-    );
-    const nameById = new Map<string, string>();
-    for (const m of memberRows) {
-      const u = await ctx.db.get(m.userId);
-      if (u) nameById.set(u._id as unknown as string, u.name ?? "Unknown");
-    }
-    const nameFor = async (uid: Id<"users">): Promise<string> => {
-      const key = uid as unknown as string;
-      const cached = nameById.get(key);
-      if (cached) return cached;
-      const u = await ctx.db.get(uid);
-      const name = u?.name ?? "Unknown";
-      nameById.set(key, name);
-      return name;
-    };
-
-    const contacts = await ctx.db
-      .query("contacts")
-      .withIndex("by_owner", (q) =>
-        q.eq("ownerType", "team").eq("ownerId", teamId as string),
-      )
-      .order("desc")
-      .collect();
-
-    return await Promise.all(
-      contacts.map(async (c) => {
-        const lead = await ctx.db.get(c.contactedUserId);
-
-        // Everyone on the team who scanned this lead, oldest first — so the
-        // first entry is whoever met them first.
-        const scanRows = await ctx.db
-          .query("scanEvents")
-          .withIndex("by_scanned", (q) =>
-            q.eq("scannedUserId", c.contactedUserId),
-          )
-          .collect();
-        const teamScans = scanRows
-          .filter((s) => teamMemberIds.has(s.scannerUserId as unknown as string))
-          .sort((a, b) => a.ts - b.ts);
-        const scanners = await Promise.all(
-          teamScans.map(async (s) => ({
-            name: await nameFor(s.scannerUserId),
-            ts: s.ts,
-          })),
-        );
-
-        // Distinct note authors, in the order they first commented.
-        const noteRows = await ctx.db
-          .query("contactNotes")
-          .withIndex("by_contact", (q) => q.eq("contactId", c._id))
-          .collect();
-        const commenters: string[] = [];
-        const seenAuthors = new Set<string>();
-        for (const n of noteRows) {
-          const key = n.byUserId as unknown as string;
-          if (seenAuthors.has(key)) continue;
-          seenAuthors.add(key);
-          commenters.push(await nameFor(n.byUserId));
-        }
-
-        return {
-          contact: c,
-          lead,
-          scanners,
-          firstScan: scanners[0] ?? null,
-          commenters,
-          noteCount: noteRows.length,
-        };
-      }),
-    );
+    return await buildTeamLeads(ctx, me.teamId);
   },
 });
 

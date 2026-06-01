@@ -31,11 +31,26 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const requestedTeamId = searchParams.get("teamId");
-  if (requestedTeamId && requestedTeamId !== team.team._id) {
-    return Response.json({ error: "Team mismatch" }, { status: 403 });
+
+  // Own team → partner export. A different teamId → admin export (the
+  // admin.teamLeads query enforces admin auth and throws otherwise). Both
+  // queries return the same enriched shape.
+  const isOwnTeam = !requestedTeamId || requestedTeamId === team.team._id;
+  let leads;
+  let slug = team.team.slug;
+  if (isOwnTeam) {
+    leads = await client.query(api.partners.myTeamLeads, {});
+  } else {
+    try {
+      leads = await client.query(api.admin.teamLeads, {
+        teamId: requestedTeamId as Id<"teams">,
+      });
+    } catch {
+      return Response.json({ error: "Not authorized" }, { status: 403 });
+    }
+    slug = searchParams.get("slug") || requestedTeamId;
   }
 
-  const leads = await client.query(api.partners.myTeamLeads, {});
   const header = [
     "scanned_at",
     "name",
@@ -43,16 +58,40 @@ export async function GET(request: Request) {
     "role",
     "company",
     "linkedin",
-    "notes",
+    "lead_status",
+    "qualification",
+    "scanned_by",
+    "team_notes",
+    "note_count",
+    "notes_legacy",
     "tags",
   ];
-  const rows = leads.map(({ contact, lead }) => [
+  // Each note as "Author (YYYY-MM-DD HH:mm): text", one per line, so the
+  // spreadsheet shows who wrote what and when within a single cell.
+  const fmtNotes = (
+    notes: { author: string; text: string; createdAt: number }[],
+  ) =>
+    notes
+      .map(
+        (n) =>
+          `${n.author} (${new Date(n.createdAt)
+            .toISOString()
+            .slice(0, 16)
+            .replace("T", " ")}): ${n.text}`,
+      )
+      .join("\n");
+  const rows = leads.map(({ contact, lead, scanners, notes, noteCount }) => [
     new Date(contact.lastScanAt).toISOString(),
     lead?.name ?? "",
     lead?.email ?? "",
     lead?.role ?? "",
     lead?.company ?? "",
     lead?.linkedinUrl ?? "",
+    contact.leadStatus ?? "",
+    contact.leadDescription ?? "",
+    scanners.map((s) => s.name).join(", "),
+    fmtNotes(notes),
+    String(noteCount),
     contact.notes ?? "",
     (contact.tags ?? []).join(", "),
   ]);
@@ -60,7 +99,7 @@ export async function GET(request: Request) {
     .map((r) => r.map(csvEscape).join(","))
     .join("\n");
 
-  const filename = `${team.team.slug}-leads-${new Date().toISOString().slice(0, 10)}.csv`;
+  const filename = `${slug}-leads-${new Date().toISOString().slice(0, 10)}.csv`;
   return new Response(csv, {
     status: 200,
     headers: {

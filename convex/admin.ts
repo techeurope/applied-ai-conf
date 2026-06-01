@@ -695,24 +695,102 @@ export const getUserActivity = query({
   },
 });
 
+// Shared enrichment for a team's shared lead pool: scanner attribution, the
+// full per-author note thread, plus lead status + qualification (on the
+// contact row). Used by both the partner-facing `partners.myTeamLeads` and the
+// admin `teamLeads` view + CSV export so the two never diverge.
+export async function buildTeamLeads(ctx: QueryCtx, teamId: Id<"teams">) {
+  // Map every team member's userId → name once, so scanner + note-author
+  // attribution doesn't cost a user lookup per row.
+  const memberRows = await ctx.db
+    .query("partnerMembers")
+    .withIndex("by_team", (q) => q.eq("teamId", teamId))
+    .collect();
+  const teamMemberIds = new Set(
+    memberRows.map((m) => m.userId as unknown as string),
+  );
+  const nameById = new Map<string, string>();
+  for (const m of memberRows) {
+    const u = await ctx.db.get(m.userId);
+    if (u) nameById.set(u._id as unknown as string, u.name ?? "Unknown");
+  }
+  const nameFor = async (uid: Id<"users">): Promise<string> => {
+    const key = uid as unknown as string;
+    const cached = nameById.get(key);
+    if (cached) return cached;
+    const u = await ctx.db.get(uid);
+    const name = u?.name ?? "Unknown";
+    nameById.set(key, name);
+    return name;
+  };
+
+  const contacts = await ctx.db
+    .query("contacts")
+    .withIndex("by_owner", (q) =>
+      q.eq("ownerType", "team").eq("ownerId", teamId as string),
+    )
+    .order("desc")
+    .collect();
+
+  return await Promise.all(
+    contacts.map(async (c) => {
+      const lead = await ctx.db.get(c.contactedUserId);
+
+      // Everyone on the team who scanned this lead, oldest first.
+      const scanRows = await ctx.db
+        .query("scanEvents")
+        .withIndex("by_scanned", (q) =>
+          q.eq("scannedUserId", c.contactedUserId),
+        )
+        .collect();
+      const teamScans = scanRows
+        .filter((s) => teamMemberIds.has(s.scannerUserId as unknown as string))
+        .sort((a, b) => a.ts - b.ts);
+      const scanners = await Promise.all(
+        teamScans.map(async (s) => ({
+          name: await nameFor(s.scannerUserId),
+          ts: s.ts,
+        })),
+      );
+
+      // Full note thread, oldest first, each with its author — so the admin
+      // view and CSV export can show who wrote what.
+      const noteRows = await ctx.db
+        .query("contactNotes")
+        .withIndex("by_contact", (q) => q.eq("contactId", c._id))
+        .collect();
+      const notes: { author: string; text: string; createdAt: number }[] = [];
+      const commenters: string[] = [];
+      const seenAuthors = new Set<string>();
+      for (const n of noteRows) {
+        const author = await nameFor(n.byUserId);
+        notes.push({ author, text: n.text, createdAt: n.createdAt });
+        const key = n.byUserId as unknown as string;
+        if (!seenAuthors.has(key)) {
+          seenAuthors.add(key);
+          commenters.push(author);
+        }
+      }
+
+      return {
+        contact: c,
+        lead,
+        scanners,
+        firstScan: scanners[0] ?? null,
+        notes,
+        commenters,
+        noteCount: noteRows.length,
+      };
+    }),
+  );
+}
+
 // Admin-only view of any team's shared lead pool.
 export const teamLeads = query({
   args: { teamId: v.id("teams") },
   handler: async (ctx, { teamId }) => {
     await requireAdmin(ctx);
-    const contacts = await ctx.db
-      .query("contacts")
-      .withIndex("by_owner", (q) =>
-        q.eq("ownerType", "team").eq("ownerId", teamId as string),
-      )
-      .order("desc")
-      .collect();
-    return await Promise.all(
-      contacts.map(async (c) => ({
-        contact: c,
-        lead: await ctx.db.get(c.contactedUserId),
-      })),
-    );
+    return await buildTeamLeads(ctx, teamId);
   },
 });
 

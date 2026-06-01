@@ -381,7 +381,7 @@ function TeamLeadsSection({
           Leads {leads ? `(${leads.length})` : ""}
         </h3>
         <a
-          href={`/api/team/leads/export?teamId=${teamId}`}
+          href={`/api/team/leads/export?teamId=${teamId}&slug=${encodeURIComponent(teamSlug)}`}
           className="inline-flex items-center px-3 py-1.5 rounded-full ring-1 ring-white/20 font-mono text-[11px]"
         >
           Export CSV ↓
@@ -397,8 +397,8 @@ function TeamLeadsSection({
         <p className="text-xs text-white/50">No scans yet.</p>
       ) : (
         <ul className="divide-y divide-white/5">
-          {leads.map(({ contact, lead }) => (
-            <li key={contact._id} className="py-2 space-y-0.5">
+          {leads.map(({ contact, lead, scanners, notes }) => (
+            <li key={contact._id} className="py-2 space-y-1">
               <div className="flex items-baseline justify-between gap-2">
                 <span className="font-mono text-sm">{lead?.name ?? "—"}</span>
                 <span className="font-mono text-[10px] text-white/30">
@@ -416,8 +416,31 @@ function TeamLeadsSection({
                   {contact.leadStatus}
                 </span>
               )}
+              {scanners.length > 0 && (
+                <div className="font-mono text-[10px] text-white/40">
+                  scanned by {scanners.map((s) => s.name).join(", ")}
+                </div>
+              )}
+              {contact.leadDescription && (
+                <p className="text-xs text-white/70 mt-1 whitespace-pre-wrap">
+                  {contact.leadDescription}
+                </p>
+              )}
+              {notes.length > 0 && (
+                <ul className="mt-1 space-y-1 border-l border-white/10 pl-2">
+                  {notes.map((n, i) => (
+                    <li key={i} className="text-xs text-white/60">
+                      <span className="font-mono text-[10px] text-white/40">
+                        {n.author} ·{" "}
+                        {new Date(n.createdAt).toLocaleDateString()}
+                      </span>
+                      <p className="whitespace-pre-wrap text-white/70">{n.text}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
               {contact.notes && (
-                <p className="text-xs text-white/60 mt-1">{contact.notes}</p>
+                <p className="text-xs text-white/50 mt-1 italic">{contact.notes}</p>
               )}
             </li>
           ))}
