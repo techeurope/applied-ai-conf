@@ -1,6 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
+import { buildTeamLeads } from "./admin";
 
 async function getMe(ctx: any) {
   const identity = await ctx.auth.getUserIdentity();
@@ -26,17 +27,40 @@ export const list = query({
       .first();
     if (!user) return [];
 
-    const ownerType = user.teamId ? "team" : "user";
-    const ownerId = user.teamId ?? user._id;
+    // Team members share a lead pool with scanner + per-author note
+    // attribution. Reuse the same enrichment the admin view + export route use
+    // so the three never diverge. Solo attendees get the plain contact list
+    // (no shared scanners or notes).
+    if (user.teamId) {
+      const leads = await buildTeamLeads(ctx, user.teamId);
+      return leads
+        .filter((l) => l.lead && !l.lead.deletedAt)
+        .map((l) => ({
+          contact: l.contact,
+          user: l.lead,
+          scanners: l.scanners,
+          notes: l.notes,
+          commenters: l.commenters,
+          noteCount: l.noteCount,
+        }));
+    }
+
     const contacts = await ctx.db
       .query("contacts")
-      .withIndex("by_owner", (q) => q.eq("ownerType", ownerType).eq("ownerId", ownerId as string))
+      .withIndex("by_owner", (q) => q.eq("ownerType", "user").eq("ownerId", user._id as string))
       .collect();
 
     const enriched = await Promise.all(
       contacts.map(async (c) => {
         const u = await ctx.db.get(c.contactedUserId);
-        return { contact: c, user: u && !u.deletedAt ? u : null };
+        return {
+          contact: c,
+          user: u && !u.deletedAt ? u : null,
+          scanners: [] as { name: string; ts: number }[],
+          notes: [] as { author: string; text: string; createdAt: number }[],
+          commenters: [] as string[],
+          noteCount: 0,
+        };
       }),
     );
     return enriched.filter((e) => e.user !== null);

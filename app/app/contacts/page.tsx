@@ -81,16 +81,38 @@ export default function ContactsPage() {
       "Email",
       "LinkedIn",
       "Lead status",
+      "Qualification",
+      "Scanned by",
+      "Notes",
+      "Note count",
       "First scan",
       "Last scan",
     ];
-    const rows = filteredAndSorted.map(({ contact, user }) => [
+    // Each note as "Author (YYYY-MM-DD HH:mm): text", one per line in the cell,
+    // so the spreadsheet shows who wrote what and when.
+    const fmtNotes = (
+      notes: { author: string; text: string; createdAt: number }[],
+    ) =>
+      notes
+        .map(
+          (n) =>
+            `${n.author} (${new Date(n.createdAt)
+              .toISOString()
+              .slice(0, 16)
+              .replace("T", " ")}): ${n.text}`,
+        )
+        .join("\n");
+    const rows = filteredAndSorted.map(({ contact, user, scanners, notes }) => [
       user?.name ?? "",
       user?.role ?? "",
       user?.company ?? "",
       user?.email ?? "",
       user?.linkedinUrl ?? "",
       contact.leadStatus ?? "",
+      contact.leadDescription ?? "",
+      (scanners ?? []).map((s) => s.name).join(", "),
+      fmtNotes(notes ?? []),
+      String((notes ?? []).length),
       new Date(contact.firstScanAt).toISOString(),
       new Date(contact.lastScanAt).toISOString(),
     ]);
