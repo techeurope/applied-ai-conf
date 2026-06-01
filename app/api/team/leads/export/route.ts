@@ -25,22 +25,21 @@ export async function GET(request: Request) {
   client.setAuth(accessToken);
 
   const team = await client.query(api.partners.myTeam, {});
-  if (!team) {
-    return Response.json({ error: "Not part of a partner team" }, { status: 403 });
-  }
 
   const { searchParams } = new URL(request.url);
   const requestedTeamId = searchParams.get("teamId");
 
-  // Own team → partner export. A different teamId → admin export (the
-  // admin.teamLeads query enforces admin auth and throws otherwise). Both
-  // queries return the same enriched shape.
-  const isOwnTeam = !requestedTeamId || requestedTeamId === team.team._id;
+  // Own team → partner export. A different teamId (or no own team at all) →
+  // admin export, which the admin.teamLeads query gates on admin auth (throws
+  // otherwise). Both queries return the same enriched shape.
+  const isOwnTeam =
+    !!team && (!requestedTeamId || requestedTeamId === team.team._id);
   let leads;
-  let slug = team.team.slug;
+  let slug: string;
   if (isOwnTeam) {
     leads = await client.query(api.partners.myTeamLeads, {});
-  } else {
+    slug = team!.team.slug;
+  } else if (requestedTeamId) {
     try {
       leads = await client.query(api.admin.teamLeads, {
         teamId: requestedTeamId as Id<"teams">,
@@ -49,6 +48,11 @@ export async function GET(request: Request) {
       return Response.json({ error: "Not authorized" }, { status: 403 });
     }
     slug = searchParams.get("slug") || requestedTeamId;
+  } else {
+    return Response.json(
+      { error: "Not part of a partner team" },
+      { status: 403 },
+    );
   }
 
   const header = [

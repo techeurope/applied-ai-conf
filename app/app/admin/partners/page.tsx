@@ -81,10 +81,13 @@ export default function AdminPartnersPage() {
         <h2 className="font-mono text-sm font-bold">Partner teams</h2>
         <ul className="divide-y divide-white/5 rounded-2xl ring-1 ring-white/5 overflow-hidden">
           {teams?.map((t) => (
-            <li key={t._id}>
+            <li
+              key={t._id}
+              className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-white/5"
+            >
               <Link
                 href={`/app/admin/partners/${t._id}`}
-                className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-white/5"
+                className="flex items-center gap-3 min-w-0 flex-1"
               >
                 <div className="min-w-0">
                   <div className="font-mono text-sm flex items-center gap-2">
@@ -104,8 +107,14 @@ export default function AdminPartnersPage() {
                     {t.partnerTier ? ` · ${t.partnerTier}` : ""}
                   </div>
                 </div>
-                <span className="font-mono text-[10px] text-white/30">→</span>
               </Link>
+              <a
+                href={`/api/team/leads/export?teamId=${t._id}&slug=${encodeURIComponent(t.slug)}`}
+                className="shrink-0 inline-flex items-center px-3 py-1.5 rounded-full ring-1 ring-white/20 hover:ring-white/40 font-mono text-[11px]"
+              >
+                Export CSV ↓
+              </a>
+              <span className="font-mono text-[10px] text-white/30">→</span>
             </li>
           ))}
           {teams && teams.length === 0 && (
