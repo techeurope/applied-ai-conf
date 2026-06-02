@@ -27,6 +27,13 @@ function Heading({
   );
 }
 
+// Compact / icon-style logos need a larger height to match the wordmarks' weight.
+const COMPANY_SIZE: Record<string, string> = {
+  SoundCloud: "h-8 w-auto sm:h-10",
+  Tacto: "h-5 w-auto sm:h-6",
+};
+const DEFAULT_COMPANY_SIZE = "h-4 w-auto sm:h-5";
+
 const host = (url: string) => {
   try {
     return new URL(url).hostname.replace(/^www\./, "");
@@ -164,7 +171,7 @@ export default function Logos2026() {
                   className="text-white/45 transition-colors hover:text-white"
                   aria-label={company.name}
                 >
-                  <Logo className="h-4 w-auto sm:h-5" />
+                  <Logo className={COMPANY_SIZE[company.name] ?? DEFAULT_COMPANY_SIZE} />
                 </Link>
               );
             })}
