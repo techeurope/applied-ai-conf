@@ -1,0 +1,69 @@
+import { CONFERENCE_INFO } from "../_data/conference";
+import { LidarScapeBackground } from "@/components/ui/lidar-scape-background";
+import { InlineNewsletterForm } from "@/components/ui/newsletter-form";
+import { CompanyLogoMarquee } from "@/components/ui/company-logo-marquee";
+import { TicketButton } from "@/components/ui/ticket-button";
+
+export default function Hero() {
+  return (
+    <section className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden pt-20 pb-4 sm:pt-12 sm:pb-12 lg:pt-16 lg:pb-16 text-center">
+      {/* Background - Lidar Scape */}
+      <LidarScapeBackground />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black pointer-events-none" />
+
+      {/* Main Content */}
+      <div className="relative z-10 mx-auto flex w-full max-w-[90rem] flex-col items-center px-4 sm:px-6 lg:px-8 space-y-2 sm:space-y-5">
+        {/* 1. Tech Europe */}
+        <div className="font-mono text-lg sm:text-2xl md:text-3xl tracking-widest">
+          <a
+            href="https://techeurope.io"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white font-bold hover:text-gray-300 transition-colors"
+          >
+            {"{"}Tech: Europe{"}"}
+          </a>
+        </div>
+
+        {/* 2. Main Title (H1) */}
+        <h1 className="w-full text-5xl font-bold tracking-tighter sm:text-7xl md:text-8xl lg:text-[7rem] xl:text-[9rem] leading-[0.9] font-mono select-none">
+          <span className="text-glow">Applied</span>
+          <br />
+          <span className="text-glow block mt-1 sm:mt-4">AI Conf</span>
+        </h1>
+
+        {/* 3. Date + Location */}
+        <div className="-mt-1 text-xs sm:text-sm font-medium text-white/60">
+          {CONFERENCE_INFO.dateDisplay} ·{" "}
+          <a
+            href="https://thedelta.io/berlin/welcome"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-white transition-colors underline decoration-white/20 hover:decoration-white/50"
+          >
+            The Delta Campus, Berlin
+          </a>
+        </div>
+
+        {/* 4. Tagline - Large, breathing typography */}
+        <p className="text-xl sm:text-3xl md:text-4xl lg:text-4xl font-mono font-medium text-white/90 tracking-tight max-w-4xl leading-tight">
+          For teams building &amp; running<br />AI systems in production
+        </p>
+
+        {/* 5. Actions */}
+        <div className="flex w-full max-w-3xl flex-col items-center gap-4 sm:flex-row sm:items-center sm:justify-center">
+          <div className="w-full sm:flex-1">
+            <InlineNewsletterForm />
+          </div>
+          <TicketButton
+            location="hero"
+            className="group flex items-center justify-center gap-2 px-7 py-3 rounded-full bg-white hover:bg-gray-100 transition-all shadow-xl shadow-white/20 hover:shadow-white/30 hover:scale-[1.03] w-full sm:w-auto ring-1 ring-white/30"
+          />
+        </div>
+
+        {/* 6. Speaker Company Logos */}
+        <CompanyLogoMarquee />
+      </div>
+    </section>
+  );
+}

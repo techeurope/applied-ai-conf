@@ -45,7 +45,7 @@ import { SlackLogo } from "@/components/ui/slack-logo";
 
 type LogoComponent = React.ComponentType<{ className?: string }>;
 
-const COMPANY_LOGOS: Record<string, LogoComponent> = {
+export const COMPANY_LOGOS: Record<string, LogoComponent> = {
   Langdock: LangdockLogo,
   Choco: ChocoLogo,
   Tacto: TactoLogo,
@@ -95,7 +95,7 @@ const LOGO_SIZE_OVERRIDES: Record<string, string> = {
 };
 
 // Manually ordered: alternating prominent (big-name) and less prominent companies
-const COMPANY_ITEMS = [
+export const COMPANY_ITEMS = [
   { name: "Microsoft", url: "https://www.microsoft.com" },
   { name: "Dust", url: "https://dust.tt" },
   { name: "Siemens", url: "https://www.siemens.com" },
@@ -139,7 +139,7 @@ const COMPANY_ITEMS = [
 const NORMAL_SPEED = 100; // pixels per second
 const HOVER_SPEED = NORMAL_SPEED * 0.2;
 
-export function CompanyLogoMarquee() {
+export function CompanyLogoMarquee({ label = "attending companies" }: { label?: string } = {}) {
   const trackRef = useRef<HTMLDivElement>(null);
   const positionRef = useRef(0);
   const groupWidthRef = useRef(0);
@@ -199,7 +199,7 @@ export function CompanyLogoMarquee() {
   return (
     <div className="w-full max-w-5xl mx-auto">
       <p className="text-[0.6rem] sm:text-[0.65rem] font-mono uppercase tracking-[0.25em] text-white/60">
-        attending companies
+        {label}
       </p>
       <div
         className="relative mt-3 overflow-hidden"
