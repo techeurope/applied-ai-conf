@@ -36,7 +36,7 @@ export default function Hero2027() {
         </p>
 
         {/* The one major thing — different typeface than the logo */}
-        <h1 className="mt-7 w-full max-w-5xl font-sans text-4xl font-semibold tracking-tight text-white sm:text-6xl md:text-7xl leading-[1.12]">
+        <h1 className="mt-7 w-full max-w-5xl font-mono text-3xl font-semibold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl leading-[1.12]">
           Thank you for an{" "}
           <span className="whitespace-nowrap">unforgettable 2026.</span>
         </h1>
@@ -47,14 +47,14 @@ export default function Hero2027() {
             href={PARTNER_2027_FORM_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="group flex w-full items-center justify-center gap-2 rounded-full bg-white px-7 py-3 font-medium text-black shadow-xl shadow-white/20 ring-1 ring-white/30 transition-all hover:scale-[1.03] hover:bg-gray-100 hover:shadow-white/30 sm:w-auto"
+            className="group flex w-full items-center justify-center gap-2 rounded-full bg-white px-7 py-3 font-mono font-medium text-black shadow-xl shadow-white/20 ring-1 ring-white/30 transition-all hover:scale-[1.03] hover:bg-gray-100 hover:shadow-white/30 sm:w-auto"
           >
             Partner with us for 2027
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
           <Link
             href="/2026"
-            className="group flex w-full items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 px-7 py-3 font-medium text-white/80 backdrop-blur-sm transition-all hover:border-white/40 hover:text-white sm:w-auto"
+            className="group flex w-full items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 px-7 py-3 font-mono font-medium text-white/80 backdrop-blur-sm transition-all hover:border-white/40 hover:text-white sm:w-auto"
           >
             Relive 2026
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
