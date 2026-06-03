@@ -27,8 +27,8 @@ export interface GalleryPhoto {
 // as a masonry. Order is interleaved so the columns stay visually balanced.
 export const GALLERY_2026: GalleryPhoto[] = [
   { src: "/2026/celebration.jpg", alt: "The Applied AI Conf 2026 crowd celebrating on the main stage", width: 1600, height: 1067, key: "0ba9856fd5427784450108dd1d266b1b" },
-  { src: "/2026/booth.jpg", alt: "The partner booth area at Applied AI Conf 2026", width: 1280, height: 854, key: "bc2a551e140330c858b449b953992b0e" },
-  { src: "/2026/attendees.jpg", alt: "Attendees at Applied AI Conf 2026", width: 854, height: 1280, key: "2f2f6fe7e31318795c1e3e2cdd9ee235" },
+  { src: "/2026/booth.jpg", alt: "The Nebius booth at Applied AI Conf 2026", width: 1280, height: 854, key: "bc2a551e140330c858b449b953992b0e" },
+  { src: "/2026/attendees.jpg", alt: "Partners at the Nebius booth at Applied AI Conf 2026", width: 854, height: 1280, key: "2f2f6fe7e31318795c1e3e2cdd9ee235" },
   { src: "/2026/expo.jpg", alt: "Partner booths at Applied AI Conf 2026", width: 1280, height: 853, key: "fe62478049014ebf2d3d58a5f050998c" },
   { src: "/2026/keynote.jpg", alt: "A speaker on stage at Applied AI Conf 2026", width: 1280, height: 854, key: "c083e7dd6fcff2bfdd7f96062c606845" },
   { src: "/2026/pair.jpg", alt: "Two attendees at Applied AI Conf 2026", width: 853, height: 1280, key: "0cda8ab2f2b9e185c1b90c529cf383f1" },
