@@ -44,6 +44,6 @@ export const GALLERY_2026: GalleryPhoto[] = [
   { src: "/2026/hallway.jpg", alt: "Attendees at Applied AI Conf 2026", width: 800, height: 1200, key: "79ecbe96fb4d20c34416fcba45411526" },
   { src: "/2026/stage.jpg", alt: "A volunteer in front of the Applied AI Conf 2026 logo wall", width: 1280, height: 854, key: "78eb550d51896e91d41630cac627f299" },
   { src: "/2026/main-stage.jpg", alt: "The main stage at Applied AI Conf 2026", width: 800, height: 1200, key: "652ed3c3de29329ac579fe96b8b4a895" },
-  { src: "/2026/portrait.jpg", alt: "Celestia at Applied AI Conf 2026", width: 800, height: 1200, key: "294abdfeeaa5f99ce697365e6bd7e8d0" },
+  { src: "/2026/portrait.jpg", alt: "Clelia Astra Bertelli from LlamaIndex at Applied AI Conf 2026", width: 800, height: 1200, key: "294abdfeeaa5f99ce697365e6bd7e8d0" },
   { src: "/2026/spotlight.jpg", alt: "A volunteer at Applied AI Conf 2026", width: 800, height: 1200, key: "366fec6818e3ecc7d34e8f742ee93763" },
 ];
