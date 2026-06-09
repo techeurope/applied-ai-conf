@@ -58,7 +58,7 @@ export default function Hero2027() {
             Partner with us for 2027
           </Link>
           <div className="w-full sm:flex-1">
-            <InlineNewsletterForm placeholder="2027 Applied AI Conf newsletter" />
+            <InlineNewsletterForm placeholder="Applied AI Conf 2027 newsletter" />
           </div>
         </div>
       </div>
