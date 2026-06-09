@@ -24,10 +24,6 @@ export default function Gallery2026() {
                 sizes="(max-width: 1024px) 50vw, 33vw"
                 className="h-auto w-full transition-transform duration-700 ease-out group-hover:scale-[1.03]"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-50 transition-opacity duration-500 group-hover:opacity-25" />
-              <span className="absolute bottom-3 left-3 right-3 font-mono text-[11px] leading-snug text-white/0 transition-colors duration-500 group-hover:text-white/85">
-                {photo.alt}
-              </span>
             </a>
           ))}
 
