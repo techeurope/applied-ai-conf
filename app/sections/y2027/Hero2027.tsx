@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { LidarScapeBackground } from "@/components/ui/lidar-scape-background";
+import { InlineNewsletterForm } from "@/components/ui/newsletter-form";
 import { PARTNER_2027_FORM_URL } from "./config";
 
 export default function Hero2027() {
@@ -41,8 +41,14 @@ export default function Hero2027() {
           <span className="whitespace-nowrap">unforgettable 2026.</span>
         </h1>
 
-        {/* Actions */}
-        <div className="mt-9 flex w-full max-w-2xl flex-col items-center gap-4 sm:flex-row sm:justify-center">
+        {/* Actions — mirrors the 2026 hero: newsletter on the left (flex-1), CTAs on the right */}
+        <div className="mt-9 flex w-full max-w-4xl flex-col items-center gap-4 sm:flex-row sm:items-center sm:justify-center">
+          <Link
+            href="/2026"
+            className="group flex w-full items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 px-7 py-3 font-mono font-medium text-white/80 backdrop-blur-sm transition-all hover:border-white/40 hover:text-white sm:w-auto"
+          >
+            Relive 2026
+          </Link>
           <Link
             href={PARTNER_2027_FORM_URL}
             target="_blank"
@@ -50,15 +56,10 @@ export default function Hero2027() {
             className="group flex w-full items-center justify-center gap-2 rounded-full bg-white px-7 py-3 font-mono font-medium text-black shadow-xl shadow-white/20 ring-1 ring-white/30 transition-all hover:scale-[1.03] hover:bg-gray-100 hover:shadow-white/30 sm:w-auto"
           >
             Partner with us for 2027
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
-          <Link
-            href="/2026"
-            className="group flex w-full items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 px-7 py-3 font-mono font-medium text-white/80 backdrop-blur-sm transition-all hover:border-white/40 hover:text-white sm:w-auto"
-          >
-            Relive 2026
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-          </Link>
+          <div className="w-full sm:flex-1">
+            <InlineNewsletterForm />
+          </div>
         </div>
       </div>
     </section>
