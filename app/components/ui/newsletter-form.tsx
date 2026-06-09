@@ -91,7 +91,7 @@ export function NewsletterForm({ className = "", variant = "default" }: Newslett
 }
 
 // Inline compact newsletter form for Hero HUD - button integrated inside input
-export function InlineNewsletterForm() {
+export function InlineNewsletterForm({ placeholder = "Receive updates via email" }: { placeholder?: string } = {}) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
@@ -137,7 +137,7 @@ export function InlineNewsletterForm() {
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="Receive updates via email"
+          placeholder={placeholder}
           required
           disabled={status === "loading"}
           className="w-full h-10 pl-4 pr-10 rounded-full bg-white/5 border border-white/10 text-white placeholder:text-gray-500 text-sm focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all disabled:opacity-50"
